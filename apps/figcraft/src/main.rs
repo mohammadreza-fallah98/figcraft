@@ -238,6 +238,7 @@ fn main() -> eframe::Result {
     if let Some(message) = failed_open {
         fig.show_error(message);
     }
+    figcraft_ui_egui::portal::set_state_dir(&mut fig, services::config_dir());
     if let Some(link) = &args.join {
         figcraft_ui_egui::live::open_invite(&mut fig, link);
     }

@@ -1,0 +1,25 @@
+[package]
+name = "figcraft-portal"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Login against a company portal: browser sign-in with a one-time code (PKCE-style), the `figcraft://auth` callback, tokens kept in the OS credential store, the user's project list and the join link of a project"
+
+[lints]
+workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha2 = { workspace = true }
+base64 = { workspace = true }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+getrandom = "0.4"
+# Blocking HTTPS client (rustls + ring, webpki roots: the same TLS stack the live sessions use). Already in
+# Cargo.lock through craft-update.
+ureq = { workspace = true }
+
+# The OS credential store holds the refresh token: Windows Credential Manager and the macOS Keychain.
+[target.'cfg(any(windows, target_os = "macos"))'.dependencies]
+keyring = { workspace = true }

@@ -27,6 +27,7 @@ pub mod live;
 pub mod menus;
 pub mod pending_open;
 pub mod popover;
+pub mod portal;
 pub mod present;
 pub mod shortcuts;
 pub mod tabs;
@@ -204,6 +205,8 @@ mod plugins_browse_tests;
 mod popover_tests;
 #[cfg(test)]
 mod popup_width_tests;
+#[cfg(test)]
+mod portal_tests;
 #[cfg(test)]
 mod present_links_tests;
 #[cfg(test)]
@@ -586,6 +589,7 @@ pub struct UiState {
     pub plugin_form: Option<plugins_ui::PluginForm>,
     /// Live sessions: remote cursors as drawn, the Join dialog.
     pub live: live::LiveUi,
+    pub portal: portal::PortalUi,
     /// Home ▸ Online.
     pub online: online::OnlineUi,
     /// The window was asked to close with unsaved changes: the question shows.
@@ -711,6 +715,7 @@ impl Default for UiState {
             plugins_manage: plugins_ui::PluginsWindow::default(),
             plugin_form: None,
             live: live::LiveUi::default(),
+            portal: portal::PortalUi::default(),
             online: online::OnlineUi::default(),
             confirm_close: false,
             close_after_save_as: None,

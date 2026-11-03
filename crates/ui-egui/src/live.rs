@@ -735,7 +735,7 @@ pub fn join_field(app: &mut FigApp, ui: &mut Ui, typed: &mut String, id: egui::I
 
 /// Join with `typed` (a code or an invite link); the Join dialog follows the join. Its session, if
 /// it started.
-fn start_join(app: &mut FigApp, typed: &str) -> Option<SessionId> {
+pub(crate) fn start_join(app: &mut FigApp, typed: &str) -> Option<SessionId> {
     let session = app.run("collab.join", json!({"code": typed})).and_then(|j| j["session"].as_u64())?;
     app.ui.live.joining = Some((session, typed.to_string()));
     Some(session)
@@ -1239,6 +1239,9 @@ pub fn open_join(app: &mut FigApp, link: &str) {
 /// message or a document rather than something the person meant to act on, so the link is shown
 /// and confirmed rather than acted on.
 pub fn open_invite(app: &mut FigApp, link: &str) {
+    if crate::portal::handle_link(app, link) {
+        return;
+    }
     open_join(app, link.trim());
 }
 

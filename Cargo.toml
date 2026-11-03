@@ -32,6 +32,7 @@ figcraft-ui-egui = { path = "crates/ui-egui" }
 figcraft-mcp = { path = "crates/mcp" }
 figcraft-collab-net = { path = "crates/collab-net" }
 figcraft-plugin = { path = "crates/plugin" }
+figcraft-portal = { path = "crates/portal" }
 
 # Keep coupled craft-libs crates on one rev. craft-update has no sibling-crate
 # dependencies and is pinned separately for the suite updater rollout.
@@ -115,6 +116,9 @@ eframe = { version = "0.37", default-features = false }
 rfd = "0.17"
 arboard = { version = "3.6", default-features = false }
 webbrowser = "1"
+# Company portal login (crates/portal): a blocking HTTPS client and the OS credential store.
+ureq = { version = "3", default-features = false, features = ["rustls"] }
+keyring = { version = "3", default-features = false, features = ["windows-native", "apple-native"] }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

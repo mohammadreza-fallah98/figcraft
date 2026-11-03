@@ -139,7 +139,8 @@ pub fn right_panel(app: &mut FigApp, ui: &mut Ui) {
     let c = tri.center();
     ui.painter().add(egui::Shape::closed_line(vec![c + vec2(-5.0, -7.0), c + vec2(7.0, 0.0), c + vec2(-5.0, 7.0)], Stroke::new(1.4, t.icon)));
     icons::paint(ui.painter(), Rect::from_center_size(play.center() + vec2(12.0, 0.0), vec2(10.0, 10.0)), Icon::Chevron, t.icon_secondary);
-    crate::live::people_bar(app, ui, Rect::from_min_max(pos2(top.min.x + 12.0, top.min.y), pos2(play.min.x - 6.0, top.max.y)));
+    let people_end = crate::portal::top_bar(app, ui, top, play.min.x - 6.0);
+    crate::live::people_bar(app, ui, Rect::from_min_max(pos2(top.min.x + 12.0, top.min.y), pos2(people_end, top.max.y)));
     if presp.clicked() {
         app.run("proto.present", json!({}));
     }
