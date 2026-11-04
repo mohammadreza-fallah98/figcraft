@@ -157,6 +157,36 @@ fn signed_in_the_people_menu_is_the_profile_menu_with_log_out_last() {
 }
 
 #[test]
+fn without_a_portal_the_own_avatar_is_drawn_as_upstream() {
+    let (mut h, _) = Harness::new();
+    h.app.ui.portal.install(Err(ConfigError::NotSet));
+    h.app.session.prefs.user_name = "Ada Lovelace".into();
+    assert!(has_text(&h.frames(3), "AL"));
+}
+
+#[test]
+fn signed_out_only_log_in_is_drawn_and_no_avatar() {
+    let (mut h, _) = Harness::new();
+    h.app.ui.portal.install(Ok(portal()));
+    h.app.session.prefs.user_name = "Ada Lovelace".into();
+    let shapes = h.frames(3);
+    assert!(has_text(&shapes, "Log in"));
+    assert!(!has_text(&shapes, "AL"));
+}
+
+#[test]
+fn signed_in_only_the_avatar_remains() {
+    let (mut h, _) = Harness::new();
+    let portal = portal();
+    h.app.ui.portal.install(Ok(portal.clone()));
+    portal.begin_login().unwrap();
+    portal.handle_auth_link("figcraft://auth?code=abc");
+    let shapes = h.frames(3);
+    assert!(!has_text(&shapes, "Log in"));
+    assert_eq!(texts(&shapes).iter().filter(|(t, _, _)| t == "AL").count(), 1);
+}
+
+#[test]
 fn opening_a_project_joins_its_session() {
     let (mut h, _) = Harness::new();
     let portal = portal();

@@ -69,7 +69,9 @@ impl Harness {
         s.execute("select.set", &json!({"ids": []})).unwrap();
         let events = Arc::new(Mutex::new(Vec::new()));
         s.live.install(Box::new(Mock(events.clone(), 0)));
-        let h = Harness { ctx: egui::Context::default(), app: FigApp::new(s, Box::new(NoServices)), time: 0.0, events };
+        let mut h = Harness { ctx: egui::Context::default(), app: FigApp::new(s, Box::new(NoServices)), time: 0.0, events };
+        // No portal unless a test installs one, whatever FIGCRAFT_PORTAL_URL says.
+        h.app.ui.portal.install(Err(figcraft_portal::config::ConfigError::NotSet));
         (h, rect)
     }
 

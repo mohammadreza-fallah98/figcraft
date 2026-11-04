@@ -490,12 +490,17 @@ pub fn people_bar(app: &mut FigApp, ui: &mut Ui, area: Rect) {
     // Room for the avatars after yours (and the agent's) and the chevron.
     let fit = (((area.width() - 2.0 * R - 18.0 - STEP * f32::from(u8::from(agent.is_some()))) / STEP).floor() as usize).max(1);
     let (show, more) = if peers.len() > fit { (fit - 1, peers.len() - (fit - 1)) } else { (peers.len(), 0) };
-    let mut x = area.min.x + R + 2.0;
+    // Upstream hook: with a portal configured and signed out, only the Log in button is shown, so
+    // your own avatar is left out (peers and the people chevron stay).
+    let hide_me = crate::portal::login_only(app);
+    let mut x = area.min.x + R + 2.0 - if hide_me { STEP } else { 0.0 };
     let ring = |ui: &Ui, c: Pos2| ui.painter().circle_stroke(c, R + 1.0, Stroke::new(2.0, t.panel));
-    avatar(ui.painter(), pos2(x, cy), R, &me_name, me_fill);
+    if !hide_me {
+        avatar(ui.painter(), pos2(x, cy), R, &me_name, me_fill);
+    }
     // Your avatar's menu: spotlight.
     let mut spotlight = false;
-    if in_session {
+    if in_session && !hide_me {
         let c = pos2(x, cy);
         let resp = ui.interact(Rect::from_center_size(c, vec2(2.0 * R, 2.0 * R)), ui.scope_id().with("live_me"), Sense::click());
         a11y::menu_button(&resp, tr("You"), a11y::menu_open(&resp));

@@ -85,6 +85,17 @@ pub fn handle_link(app: &mut FigApp, link: &str) -> bool {
     true
 }
 
+/// True when a portal is configured and the person is not signed in: the Log in button then stands
+/// alone, and `live::people_bar` leaves out the own avatar (it comes back, as the profile menu, once
+/// signed in). Without a portal this is false: upstream behaviour.
+pub fn login_only(app: &mut FigApp) -> bool {
+    match app.ui.portal.get() {
+        Err(ConfigError::NotSet) => false,
+        Err(_) => true,
+        Ok(p) => p.view().status != Status::SignedIn,
+    }
+}
+
 /// The Log in button, left of Play (its right edge is `right_edge`); the left edge of what it drew
 /// is returned, for the avatars to end there. Draws nothing without a configured portal, nor when
 /// signed in (the avatar's menu is the profile menu then).
