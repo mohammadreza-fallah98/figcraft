@@ -1,4 +1,4 @@
-use crate::api::{Access, PortalError, is_join_url, parse_login, parse_opened, parse_projects};
+use crate::api::{Access, PortalError, is_join_url, parse_ack, parse_login, parse_opened, parse_projects};
 
 const LOGIN: &str = r#"{"isSuccess":true,"data":{"id":7,"roleName":"Member","companyName":"Acme","username":"ada","firstName":"Ada","lastName":"Lovelace","token":"AT","expireTime":3600,"refreshToken":"RT","refreshExpireTime":2592000,"notice":null},"errorMessages":[]}"#;
 
@@ -92,4 +92,12 @@ fn only_join_links_are_accepted_from_a_project() {
 fn opening_a_project_without_access_is_a_404_rejection() {
     let body = r#"{"isSuccess":false,"errorMessages":[{"code":"ProjectAccessNotFound","message":"No access"}]}"#;
     assert_eq!(parse_opened(1, 404, body), Err(PortalError::Rejected { status: 404, message: "No access".into() }));
+}
+
+#[test]
+fn a_logout_answer_is_success_on_any_2xx_and_unauthorized_on_401() {
+    assert_eq!(parse_ack(200, r#"{"isSuccess":true,"errorMessages":[]}"#), Ok(()));
+    assert_eq!(parse_ack(200, ""), Ok(()));
+    assert!(matches!(parse_ack(401, r#"{"isSuccess":false,"errorMessages":[]}"#), Err(PortalError::Unauthorized(_))));
+    assert!(matches!(parse_ack(500, "oops"), Err(PortalError::Rejected { status: 500, .. })));
 }

@@ -104,6 +104,11 @@ that face out, so Arabic is not offered on the web yet. No font is added to
 this repository. The interface's panels are not mirrored; this catalog does not claim a complete
 right-to-left interface. Native review and representative in-app checks remain required.
 
+## Persian draft
+
+`fa.toml` adds فارسی as a draft with only the company portal login strings (14 UI entries); every other
+string reads English until a native speaker extends it. Persian uses the same Arabic-script font gate as Arabic.
+
 ## Adding a language
 
 1. Copy `crates/ui-egui/locales/es.toml` to `<code>.toml` (a BCP 47 code: `fr`, `pt-BR`, `ja`) and

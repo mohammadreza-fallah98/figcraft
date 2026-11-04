@@ -101,7 +101,7 @@ fn shows(code: &str, web: bool) -> bool {
     if code.split('-').next() == Some("ka") {
         return figcraft_text::face_with_char('ა', &["Noto Sans Georgian"]).is_some();
     }
-    if code.split('-').next() == Some("ar") {
+    if matches!(code.split('-').next(), Some("ar" | "fa")) {
         // Web cannot borrow the desktop's Arabic faces. Its current font budget excludes
         // Arabic; keep the catalog out until an embedded Arabic fallback is supplied.
         return figcraft_text::face_with_char('ع', &["Noto Sans Arabic"]).is_some();

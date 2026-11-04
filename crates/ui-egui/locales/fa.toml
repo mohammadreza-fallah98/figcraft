@@ -1,0 +1,24 @@
+# FigCraft interface strings: Persian (فارسی).
+# Machine draft covering the company portal login only; every other string falls back to English.
+# Not yet reviewed by a native speaker. See docs/translating.md.
+
+[meta]
+name = "فارسی"
+status = "draft — portal strings only, needs native review"
+
+[ui]
+"Company portal" = "پورتال شرکت"
+"Finish logging in in your browser. FigCraft continues here when you are done." = "ورود را در مرورگر خود کامل کنید. پس از پایان، فیگ‌کرفت از همین‌جا ادامه می‌دهد."
+"Loading projects…" = "در حال بارگیری پروژه‌ها…"
+"Log in" = "ورود"
+"Log in to your company portal" = "ورود به پورتال شرکت"
+"Log in to your company portal to open the projects shared with you." = "برای باز کردن پروژه‌های اشتراکی با شما، وارد پورتال شرکت شوید."
+"Log out" = "خروج"
+"No projects are shared with you yet." = "هنوز پروژه‌ای با شما به اشتراک گذاشته نشده است."
+"Opening the project…" = "در حال باز کردن پروژه…"
+"Projects" = "پروژه‌ها"
+"Refresh" = "بازخوانی"
+"Signed in as {name}" = "واردشده با نام {name}"
+"Signing in…" = "در حال ورود…"
+"Staying logged in between runs isn't available on this system." = "ماندن در حساب میان اجراها در این سیستم ممکن نیست."
+"Your portal account and projects" = "حساب پورتال و پروژه‌های شما"

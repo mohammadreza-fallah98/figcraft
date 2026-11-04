@@ -68,4 +68,10 @@ impl Api for Client {
         let (status, text) = self.send("POST", &format!("api/v1/app/projects/{project_id}/open"), Some(access_token), None)?;
         api::parse_opened(project_id, status, &text)
     }
+
+    fn logout(&self, access_token: &str, refresh_token: &str) -> Result<(), PortalError> {
+        let body = serde_json::json!({"refreshToken": refresh_token}).to_string();
+        let (status, text) = self.send("POST", "api/v1/app/logout", Some(access_token), Some(body))?;
+        api::parse_ack(status, &text)
+    }
 }

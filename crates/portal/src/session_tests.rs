@@ -15,6 +15,7 @@ struct Fake {
     refresh: Script<Login>,
     projects: Script<Vec<ProjectEntry>>,
     open: Script<OpenedProject>,
+    logout: Script<()>,
     calls: Mutex<Vec<String>>,
 }
 
@@ -46,6 +47,10 @@ impl Api for Fake {
     fn open_project(&self, access_token: &str, project_id: i64) -> Result<OpenedProject, PortalError> {
         self.note(format!("open {access_token} {project_id}"));
         Self::next(&self.open)
+    }
+    fn logout(&self, access_token: &str, refresh_token: &str) -> Result<(), PortalError> {
+        self.note(format!("logout {access_token} {refresh_token}"));
+        Self::next(&self.logout)
     }
 }
 
@@ -268,6 +273,56 @@ fn logout_forgets_everything() {
     assert_eq!(store.load().unwrap(), None);
     p.open_project(1);
     assert_eq!(p.take_opened(), None);
+}
+
+fn sign_in_for_logout() -> (Portal, Arc<Fake>, Arc<MemoryStore>) {
+    let (p, fake, store) = setup();
+    push(&fake.exchange, Ok(login("AT", "RT", 3600)));
+    push(&fake.projects, Ok(vec![]));
+    p.begin_login().unwrap();
+    p.handle_auth_link("figcraft://auth?code=abc");
+    (p, fake, store)
+}
+
+fn assert_logged_out_locally(p: &Portal, store: &MemoryStore) {
+    let v = p.view();
+    assert_eq!((v.status, v.account), (Status::SignedOut, None));
+    assert_eq!(store.load().unwrap(), None);
+}
+
+#[test]
+fn logout_tells_the_portal_with_the_stored_refresh_token() {
+    let (p, fake, store) = sign_in_for_logout();
+    store.save("RT-newest").unwrap();
+    push(&fake.logout, Ok(()));
+    p.logout();
+    assert!(fake.calls().contains(&"logout AT RT-newest".to_string()));
+    assert_logged_out_locally(&p, &store);
+}
+
+#[test]
+fn logout_still_clears_when_the_portal_says_unauthorized() {
+    let (p, fake, store) = sign_in_for_logout();
+    push(&fake.logout, Err(unauthorized()));
+    p.logout();
+    assert!(fake.calls().contains(&"logout AT RT".to_string()));
+    assert_logged_out_locally(&p, &store);
+}
+
+#[test]
+fn logout_still_clears_when_the_portal_is_unreachable() {
+    let (p, fake, store) = sign_in_for_logout();
+    push(&fake.logout, Err(PortalError::Network("down".into())));
+    p.logout();
+    assert_logged_out_locally(&p, &store);
+    assert_eq!(p.view().notice, None);
+}
+
+#[test]
+fn logout_when_signed_out_calls_nothing() {
+    let (p, fake, _store) = setup();
+    p.logout();
+    assert!(!fake.calls().iter().any(|c| c.starts_with("logout")));
 }
 
 #[test]

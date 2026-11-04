@@ -27,6 +27,8 @@ pub trait Api: Send + Sync {
     fn refresh(&self, refresh_token: &str) -> Result<Login, PortalError>;
     fn projects(&self, access_token: &str) -> Result<Vec<ProjectEntry>, PortalError>;
     fn open_project(&self, access_token: &str, project_id: i64) -> Result<OpenedProject, PortalError>;
+    /// End the app session on the portal (`401` is an error the caller may ignore: already ended).
+    fn logout(&self, access_token: &str, refresh_token: &str) -> Result<(), PortalError>;
 }
 
 /// How long a started login waits for its browser callback.
@@ -394,8 +396,24 @@ impl Portal {
         });
     }
 
-    /// Forget everything about the session on this computer.
+    /// Log out: tell the portal in the background (best effort: a failure changes nothing), and
+    /// forget the session on this computer at once.
     pub fn logout(&self) {
+        let held = lock(&self.0.state).tokens.as_ref().map(|t| (t.access.clone(), t.refresh.clone()));
+        if let Some((access, held_refresh)) = held {
+            // The credential store has the newest refresh token (another copy may have rotated it).
+            let refresh = self.0.store.load().ok().flatten().filter(|t| !t.is_empty()).unwrap_or(held_refresh);
+            if !refresh.is_empty() {
+                self.run(move |me| {
+                    let _ = me.0.api.logout(&access, &refresh);
+                });
+            }
+        }
+        self.forget();
+    }
+
+    /// Forget everything about the session on this computer.
+    fn forget(&self) {
         let _ = self.0.store.clear();
         self.clear_note();
         self.set(|s| {
@@ -451,7 +469,7 @@ impl Portal {
             other => other,
         });
         if let Err(PortalError::Unauthorized(_)) = &result {
-            self.logout();
+            self.forget();
             self.set(|s| s.status = Status::Failed("Your session ended. Log in again.".into()));
         }
         result

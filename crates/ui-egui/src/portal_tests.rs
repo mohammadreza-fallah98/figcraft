@@ -41,6 +41,9 @@ impl Api for Scripted {
     fn open_project(&self, _: &str, id: i64) -> Result<OpenedProject, PortalError> {
         Ok(OpenedProject { project_id: id, project_name: "Brand".into(), access: Access::Edit, join_url: JOIN.into() })
     }
+    fn logout(&self, _: &str, _: &str) -> Result<(), PortalError> {
+        Ok(())
+    }
 }
 
 const JOIN: &str = "figcraft://join?host=127.0.0.1:47900&file=f&token=t";

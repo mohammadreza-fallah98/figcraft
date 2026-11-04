@@ -67,6 +67,14 @@ pub fn parse_response<T: DeserializeOwned>(status: u16, body: &str) -> Result<T,
     }
 }
 
+/// A portal answer that carries nothing: any 2xx is success.
+pub fn parse_ack(status: u16, body: &str) -> Result<(), PortalError> {
+    if (200..300).contains(&status) {
+        return Ok(());
+    }
+    parse_response::<serde_json::Value>(status, body).map(|_| ())
+}
+
 /// What `POST app/token` and `POST users/refresh-token` give (the fields used).
 #[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize)]
 #[serde(rename_all = "camelCase", default)]
