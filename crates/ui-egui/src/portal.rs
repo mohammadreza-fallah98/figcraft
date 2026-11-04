@@ -5,6 +5,10 @@
 //! gives. The name from the login goes into Preferences ▸ Your name. All the work is
 //! `figcraft_portal::Portal`'s, on background threads; this file only draws it and applies its
 //! results (a name to keep, a project to join) once a frame.
+//!
+//! Signed in, there is no button of its own: the avatar's people menu (`live::people_menu`) is the
+//! profile menu. It calls `profile_top` (name, company, projects, Refresh) before the people and
+//! `profile_footer` (Log out, last row) after them.
 
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex, PoisonError};
@@ -18,13 +22,10 @@ use serde_json::json;
 
 use crate::FigApp;
 use crate::a11y::Tip;
-use crate::i18n::{tr, trf};
+use crate::i18n::tr;
 use crate::right::{menu_item, menu_popup};
 use crate::theme::{Tokens, semibold};
 use crate::widgets;
-
-/// The widest the button's label gets (longer names are cut with an ellipsis).
-const LABEL_CHARS: usize = 14;
 
 /// The portal's place in the UI state.
 #[derive(Default)]
@@ -84,8 +85,9 @@ pub fn handle_link(app: &mut FigApp, link: &str) -> bool {
     true
 }
 
-/// The Login button, left of Play (its right edge is `right_edge`); the left edge of what it drew
-/// is returned, for the avatars to end there. Draws nothing without a configured portal.
+/// The Log in button, left of Play (its right edge is `right_edge`); the left edge of what it drew
+/// is returned, for the avatars to end there. Draws nothing without a configured portal, nor when
+/// signed in (the avatar's menu is the profile menu then).
 pub fn top_bar(app: &mut FigApp, ui: &mut Ui, top: Rect, right_edge: f32) -> f32 {
     app.ui.portal.ctx.lock().unwrap_or_else(PoisonError::into_inner).get_or_insert_with(|| ui.ctx().clone());
     let portal = match app.ui.portal.get().clone() {
@@ -98,14 +100,14 @@ pub fn top_bar(app: &mut FigApp, ui: &mut Ui, top: Rect, right_edge: f32) -> f32
         apply_results(app, p);
         keep_awake(ui.ctx(), view.as_ref());
     }
+    if view.as_ref().is_some_and(|v| v.status == Status::SignedIn) {
+        return right_edge;
+    }
     let t = Tokens::get(ui.ctx());
-    let signed_in = view.as_ref().and_then(|v| v.account.as_ref()).filter(|_| view.as_ref().is_some_and(|v| v.status == Status::SignedIn));
-    let label = signed_in.map_or_else(|| tr("Log in").to_string(), |a| short(&a.display_name, &a.username));
-    let galley = ui.painter().layout_no_wrap(label, semibold(11.0), t.text);
+    let galley = ui.painter().layout_no_wrap(tr("Log in").to_string(), semibold(11.0), t.text);
     let width = (galley.size().x + 20.0).clamp(52.0, 120.0);
     let rect = Rect::from_min_size(pos2(right_edge - width, top.center().y - 14.0), vec2(width, 28.0));
-    let tip = if signed_in.is_some() { tr("Your portal account and projects") } else { tr("Log in to your company portal") };
-    let resp = ui.interact(rect, ui.scope_id().with("portal_login"), Sense::click()).tip(tip);
+    let resp = ui.interact(rect, ui.scope_id().with("portal_login"), Sense::click()).tip(tr("Log in to your company portal"));
     let r = CornerRadius::same(6);
     if resp.hovered() {
         ui.painter().rect_filled(rect, r, t.hover);
@@ -116,14 +118,68 @@ pub fn top_bar(app: &mut FigApp, ui: &mut Ui, top: Rect, right_edge: f32) -> f32
     rect.min.x - 6.0
 }
 
-/// A name for the button: the display name, else the user name, cut to fit.
-fn short(display: &str, username: &str) -> String {
-    let name = if display.trim().is_empty() { username.trim() } else { display.trim() };
-    if name.chars().count() <= LABEL_CHARS {
-        return name.to_string();
+/// The signed-in portal and its view, if the person is signed in.
+fn signed_in_view(app: &mut FigApp) -> Option<(Portal, View)> {
+    let portal = app.ui.portal.get().clone().ok()?;
+    let view = portal.view();
+    (view.status == Status::SignedIn).then_some((portal, view))
+}
+
+/// Hook for the people menu: when signed in, the account's name and company, then its projects
+/// (a click opens one) and Refresh; a separator ends it. Draws nothing when signed out.
+pub fn profile_top(app: &mut FigApp, ui: &mut Ui) {
+    let Some((portal, view)) = signed_in_view(app) else { return };
+    let t = Tokens::get(ui.ctx());
+    let account = view.account.clone().unwrap_or_default();
+    let name = if account.display_name.trim().is_empty() { &account.username } else { &account.display_name };
+    ui.label(egui::RichText::new(name).font(semibold(12.0)));
+    if !account.company.is_empty() {
+        widgets::label(ui, &account.company, t.text_secondary);
     }
-    let cut: String = name.chars().take(LABEL_CHARS - 1).collect();
-    format!("{cut}…")
+    ui.separator();
+    ui.label(egui::RichText::new(tr("Projects")).font(semibold(12.0)));
+    match &view.projects {
+        Projects::NotLoaded | Projects::Loading => widgets::label(ui, tr("Loading projects…"), t.text_secondary),
+        Projects::Failed(message) => widgets::label(ui, message, t.danger),
+        Projects::Loaded(list) if list.is_empty() => widgets::label(ui, tr("No projects are shared with you yet."), t.text_secondary),
+        Projects::Loaded(list) => {
+            egui::ScrollArea::vertical().max_height(260.0).show(ui, |ui| {
+                for p in list {
+                    let access = match &p.access {
+                        Access::View => tr("View").to_string(),
+                        Access::Edit => tr("Edit").to_string(),
+                        Access::Other(other) => other.clone(),
+                    };
+                    if menu_item(ui, &p.name, &access) && view.opening.is_none() {
+                        portal.open_project(p.id);
+                        ui.close();
+                    }
+                }
+            });
+        }
+    }
+    if view.opening.is_some() {
+        widgets::label(ui, tr("Opening the project…"), t.text_secondary);
+    }
+    if menu_item(ui, tr("Refresh"), "") && !view.busy {
+        portal.refresh_projects();
+    }
+    ui.separator();
+}
+
+/// Hook for the people menu, its last row: Log out (and the note when the login can't be kept).
+/// Draws nothing when signed out.
+pub fn profile_footer(app: &mut FigApp, ui: &mut Ui) {
+    let Some((portal, view)) = signed_in_view(app) else { return };
+    let t = Tokens::get(ui.ctx());
+    ui.separator();
+    if menu_item(ui, tr("Log out"), "") {
+        portal.logout();
+        ui.close();
+    }
+    if !view.remembered {
+        widgets::label(ui, tr("Staying logged in between runs isn't available on this system."), t.text_secondary);
+    }
 }
 
 /// What the background work finished: the name to keep, a project to join.
@@ -171,7 +227,7 @@ fn body(app: &mut FigApp, ui: &mut Ui, t: &Tokens, portal: &Portal, view: &View)
         widgets::label(ui, notice, t.danger);
     }
     match &view.status {
-        Status::SignedIn => signed_in(ui, t, portal, view),
+        Status::SignedIn => ui.close(),
         Status::SigningIn => widgets::label(ui, tr("Signing in…"), t.text_secondary),
         Status::WaitingForBrowser => {
             widgets::label(ui, tr("Finish logging in in your browser. FigCraft continues here when you are done."), t.text_secondary);
@@ -196,51 +252,5 @@ fn start_login(app: &mut FigApp, portal: &Portal) {
     match portal.begin_login() {
         Ok(url) => app.services.open_url(&url),
         Err(e) => app.show_error(e),
-    }
-}
-
-fn signed_in(ui: &mut Ui, t: &Tokens, portal: &Portal, view: &View) {
-    let account = view.account.clone().unwrap_or_default();
-    let name = if account.display_name.is_empty() { &account.username } else { &account.display_name };
-    widgets::label(ui, &trf("Signed in as {name}", &[("name", name)]), t.text);
-    if !account.company.is_empty() {
-        widgets::label(ui, &account.company, t.text_secondary);
-    }
-    ui.separator();
-    ui.label(egui::RichText::new(tr("Projects")).font(semibold(12.0)));
-    match &view.projects {
-        Projects::NotLoaded | Projects::Loading => widgets::label(ui, tr("Loading projects…"), t.text_secondary),
-        Projects::Failed(message) => widgets::label(ui, message, t.danger),
-        Projects::Loaded(list) if list.is_empty() => widgets::label(ui, tr("No projects are shared with you yet."), t.text_secondary),
-        Projects::Loaded(list) => {
-            egui::ScrollArea::vertical().max_height(260.0).show(ui, |ui| {
-                for p in list {
-                    let access = match &p.access {
-                        Access::View => tr("View").to_string(),
-                        Access::Edit => tr("Edit").to_string(),
-                        Access::Other(other) => other.clone(),
-                    };
-                    if menu_item(ui, &p.name, &access) && view.opening.is_none() {
-                        portal.open_project(p.id);
-                        ui.close();
-                    }
-                }
-            });
-        }
-    }
-    if view.opening.is_some() {
-        widgets::label(ui, tr("Opening the project…"), t.text_secondary);
-    }
-    ui.separator();
-    ui.horizontal(|ui| {
-        if widgets::button(ui, tr("Refresh"), false, !view.busy).clicked() {
-            portal.refresh_projects();
-        }
-        if widgets::button(ui, tr("Log out"), false, true).clicked() {
-            portal.logout();
-        }
-    });
-    if !view.remembered {
-        widgets::label(ui, tr("Staying logged in between runs isn't available on this system."), t.text_secondary);
     }
 }

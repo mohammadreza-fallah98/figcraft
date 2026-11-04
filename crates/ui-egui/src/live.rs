@@ -565,9 +565,10 @@ pub fn people_bar(app: &mut FigApp, ui: &mut Ui, area: Rect) {
     }
 }
 
-/// The people row's chevron menu: you and everyone else; the person clicked (to follow).
+/// The people row's chevron menu: you and everyone else; the person clicked (to follow). Signed in
+/// to the portal it also carries the profile section (`portal::profile_top` / `profile_footer`).
 fn people_menu(
-    app: &FigApp,
+    app: &mut FigApp,
     cresp: &egui::Response,
     (me_name, me_fill): (&str, Color32),
     peers: &[(u32, String, Color32)],
@@ -581,6 +582,8 @@ fn people_menu(
                 avatar(p, pos2(r.max.x - 15.0, r.center().y), 8.0, label, fill)
             })
         };
+        // Signed in to the company portal, this menu is the profile menu: its section first, Log out last.
+        crate::portal::profile_top(app, ui);
         row(ui, &trf("{name} (you)", &[("name", &me_name)]), me_fill, false);
         for (id, name, fill) in peers {
             if row(ui, name, *fill, follow == Some(*id)) {
@@ -595,6 +598,7 @@ fn people_menu(
                 t.text_secondary,
             );
         }
+        crate::portal::profile_footer(app, ui);
     });
     clicked
 }

@@ -125,8 +125,35 @@ fn the_name_from_the_login_goes_to_preferences() {
     assert_eq!(portal.view().status, Status::SignedIn);
     h.frames(2);
     assert_eq!(h.app.session.prefs.user_name, "Ada Lovelace");
-    // The button now carries the name.
-    assert!(has_text(&h.frames(1), "Ada Lovelace"));
+    // Signed in, the separate button is gone: the avatar carries the initials.
+    let shapes = h.frames(1);
+    assert!(!has_text(&shapes, "Log in"));
+    assert!(!has_text(&shapes, "Ada Lovelace"));
+    assert!(has_text(&shapes, "AL"));
+}
+
+#[test]
+fn signed_in_the_people_menu_is_the_profile_menu_with_log_out_last() {
+    let (mut h, _) = Harness::new();
+    let portal = portal();
+    h.app.ui.portal.install(Ok(portal.clone()));
+    portal.begin_login().unwrap();
+    portal.handle_auth_link("figcraft://auth?code=abc");
+    let shapes = h.frames(3);
+    // The chevron beside the avatar opens the people menu.
+    let avatar = last_center(&shapes, "AL");
+    h.click(Pos2::new(avatar.x + 24.0, avatar.y));
+    let shapes = h.frames(3);
+    for t in ["Ada Lovelace", "Projects", "Refresh", "Log out", "Not in a live session"] {
+        assert!(has_text(&shapes, t), "{t}");
+    }
+    let (log_out, people) = (last_center(&shapes, "Log out"), last_center(&shapes, "Not in a live session"));
+    assert!(log_out.y > people.y, "Log out is the last row");
+    assert!(last_center(&shapes, "Projects").y < people.y, "the portal section comes first");
+    h.click(log_out);
+    h.frames(2);
+    assert_ne!(portal.view().status, Status::SignedIn);
+    assert!(has_text(&h.frames(2), "Log in"));
 }
 
 #[test]
