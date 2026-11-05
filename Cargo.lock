@@ -2004,7 +2004,7 @@ dependencies = [
 
 [[package]]
 name = "figcraft-portal"
-version = "0.15.0"
+version = "0.15.1"
 dependencies = [
  "base64 0.22.1",
  "getrandom 0.4.3",
