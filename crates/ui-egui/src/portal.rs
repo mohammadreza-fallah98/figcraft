@@ -140,17 +140,11 @@ fn signed_in_view(app: &mut FigApp) -> Option<(Portal, View)> {
     (view.status == Status::SignedIn).then_some((portal, view))
 }
 
-/// Hook for the people menu: when signed in, the account's name and company, then its projects
-/// (a click opens one) and Refresh; a separator ends it. Draws nothing when signed out.
+/// Hook for the people menu, drawn after the people rows: when signed in, a separator, then the portal
+/// projects (a click opens one) and Refresh; a separator ends it. Draws nothing when signed out.
 pub fn profile_top(app: &mut FigApp, ui: &mut Ui) {
     let Some((portal, view)) = signed_in_view(app) else { return };
     let t = Tokens::get(ui.ctx());
-    let account = view.account.clone().unwrap_or_default();
-    let name = if account.display_name.trim().is_empty() { &account.username } else { &account.display_name };
-    ui.label(egui::RichText::new(name).font(semibold(12.0)));
-    if !account.company.is_empty() {
-        widgets::label(ui, &account.company, t.text_secondary);
-    }
     ui.separator();
     ui.label(egui::RichText::new(tr("Projects")).font(semibold(12.0)));
     match &view.projects {

@@ -144,12 +144,13 @@ fn signed_in_the_people_menu_is_the_profile_menu_with_log_out_last() {
     let avatar = last_center(&shapes, "AL");
     h.click(Pos2::new(avatar.x + 24.0, avatar.y));
     let shapes = h.frames(3);
-    for t in ["Ada Lovelace", "Projects", "Refresh", "Log out", "Not in a live session"] {
+    for t in ["Ada Lovelace (you)", "Projects", "Refresh", "Log out", "Not in a live session"] {
         assert!(has_text(&shapes, t), "{t}");
     }
     let (log_out, people) = (last_center(&shapes, "Log out"), last_center(&shapes, "Not in a live session"));
     assert!(log_out.y > people.y, "Log out is the last row");
-    assert!(last_center(&shapes, "Projects").y < people.y, "the portal section comes first");
+    assert!(last_center(&shapes, "Ada Lovelace (you)").y < last_center(&shapes, "Projects").y, "you come first, then the projects");
+    assert!(!has_text(&shapes, "Ada Lovelace"), "no separate name header");
     h.click(log_out);
     h.frames(2);
     assert_ne!(portal.view().status, Status::SignedIn);

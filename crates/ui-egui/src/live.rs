@@ -590,8 +590,7 @@ fn people_menu(
                 avatar(p, pos2(r.max.x - 15.0, r.center().y), 8.0, label, fill)
             })
         };
-        // Signed in to the company portal, this menu is the profile menu: its section first, Log out last.
-        crate::portal::profile_top(app, ui);
+        // Signed in to the company portal, this menu is the profile menu: you first, then the projects, Log out last.
         row(ui, &trf("{name} (you)", &[("name", &me_name)]), me_fill, false);
         for (id, name, fill) in peers {
             if row(ui, name, *fill, follow == Some(*id)) {
@@ -606,6 +605,7 @@ fn people_menu(
                 t.text_secondary,
             );
         }
+        crate::portal::profile_top(app, ui);
         crate::portal::profile_footer(app, ui);
     });
     clicked
