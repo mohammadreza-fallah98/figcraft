@@ -107,7 +107,32 @@ fn push<T>(script: &Script<T>, r: Result<T, PortalError>) {
 }
 
 fn challenge_of(url: &str) -> String {
-    url.strip_prefix(&format!("{BASE}/app-login?challenge=")).unwrap().to_string()
+    url.strip_prefix(&format!("{BASE}/app-login?challenge=")).unwrap().split('&').next().unwrap().to_string()
+}
+
+/// `(port, state)` of a login page address.
+fn loopback_of(url: &str) -> (u16, String) {
+    let q = |key: &str| url.split(['?', '&']).find_map(|p| p.strip_prefix(&format!("{key}="))).unwrap().to_string();
+    (q("port").parse().unwrap(), q("state"))
+}
+
+fn get(port: u16, target: &str) -> String {
+    use std::io::{Read, Write};
+    let mut s = std::net::TcpStream::connect(("127.0.0.1", port)).unwrap();
+    write!(s, "GET {target} HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\n\r\n").unwrap();
+    let mut out = String::new();
+    let _ = s.read_to_string(&mut out);
+    out
+}
+
+fn wait_for(mut done: impl FnMut() -> bool) {
+    for _ in 0..250 {
+        if done() {
+            return;
+        }
+        std::thread::sleep(Duration::from_millis(20));
+    }
+    panic!("timed out");
 }
 
 fn unauthorized() -> PortalError {
@@ -120,6 +145,57 @@ fn begin_login_opens_the_login_page_with_the_challenge() {
     let url = p.begin_login().unwrap();
     assert_eq!(challenge_of(&url).len(), 43);
     assert_eq!(p.view().status, Status::WaitingForBrowser);
+}
+
+#[test]
+fn begin_login_gives_the_port_and_a_random_state() {
+    let (p, ..) = setup();
+    let (first, second) = (p.begin_login().unwrap(), p.begin_login().unwrap());
+    let ((port, state), (_, other)) = (loopback_of(&first), loopback_of(&second));
+    assert!(port > 0);
+    assert_eq!(state.len(), 43);
+    assert_ne!(state, other);
+    // Starting again replaced the first listener.
+    wait_for(|| std::net::TcpStream::connect(("127.0.0.1", port)).is_err());
+}
+
+#[test]
+fn the_loopback_callback_signs_in_once() {
+    let (p, fake, store) = setup();
+    push(&fake.exchange, Ok(login("AT", "RT", 3600)));
+    push(&fake.projects, Ok(vec![]));
+    let url = p.begin_login().unwrap();
+    let (port, state) = loopback_of(&url);
+    let reply = get(port, &format!("/auth?code=abc123&state={state}"));
+    assert!(reply.starts_with("HTTP/1.1 200"), "{reply}");
+    wait_for(|| p.view().status == Status::SignedIn);
+    assert_eq!(fake.calls()[0], format!("exchange abc123 {}", challenge_of(&url)));
+    assert_eq!(store.load().unwrap().as_deref(), Some("RT"));
+    wait_for(|| std::net::TcpStream::connect(("127.0.0.1", port)).is_err());
+}
+
+#[test]
+fn a_stray_request_does_not_end_the_login_and_cancel_closes_the_port() {
+    let (p, fake, _) = setup();
+    let (port, state) = loopback_of(&p.begin_login().unwrap());
+    assert!(get(port, "/auth?code=abc&state=wrong").starts_with("HTTP/1.1 400"));
+    assert_eq!(p.view().status, Status::WaitingForBrowser);
+    p.cancel_login();
+    wait_for(|| std::net::TcpStream::connect(("127.0.0.1", port)).is_err());
+    assert_eq!(p.view().status, Status::SignedOut);
+    assert!(fake.calls().is_empty());
+    let _ = state;
+}
+
+#[test]
+fn the_figcraft_link_still_works_and_closes_the_listener() {
+    let (p, fake, _) = setup();
+    push(&fake.exchange, Ok(login("AT", "RT", 3600)));
+    push(&fake.projects, Ok(vec![]));
+    let (port, _) = loopback_of(&p.begin_login().unwrap());
+    assert!(p.handle_auth_link("figcraft://auth?code=abc"));
+    assert_eq!(p.view().status, Status::SignedIn);
+    wait_for(|| std::net::TcpStream::connect(("127.0.0.1", port)).is_err());
 }
 
 #[test]

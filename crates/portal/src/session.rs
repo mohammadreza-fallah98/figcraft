@@ -16,6 +16,7 @@ use std::time::{Duration, Instant};
 use crate::api::{Login, OpenedProject, PortalError, ProjectEntry};
 use crate::deeplink::{AuthLink, parse_auth_link};
 use crate::handoff::{self, Note};
+use crate::loopback::Loopback;
 use crate::secret::SecretStore;
 use crate::{config, pkce};
 
@@ -41,7 +42,7 @@ const RENEW_BEFORE: Duration = Duration::from_secs(30);
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Status {
     SignedOut,
-    /// The login page is open in the browser; the app waits for `figcraft://auth`.
+    /// The login page is open in the browser; the app waits for its loopback redirect (or `figcraft://auth`).
     WaitingForBrowser,
     /// Trading the code (or the remembered refresh token) for a session.
     SigningIn,
@@ -134,6 +135,8 @@ struct Inner {
     state: Mutex<State>,
     /// Held while a refresh token is being traded.
     refreshing: Mutex<()>,
+    /// The listener answering the browser's loopback redirect of the login under way.
+    loopback: Mutex<Option<Loopback>>,
 }
 
 /// The portal at one address.
@@ -165,7 +168,7 @@ impl Portal {
             notice: None,
             restored: false,
         };
-        Portal(Arc::new(Inner { base: base.to_string(), api, store, wake, spawn, notes, state: Mutex::new(state), refreshing: Mutex::new(()) }))
+        Portal(Arc::new(Inner { base: base.to_string(), api, store, wake, spawn, notes, state: Mutex::new(state), refreshing: Mutex::new(()), loopback: Mutex::new(None) }))
     }
 
     /// The portal at the configured address, over HTTPS, with the system's credential store.
@@ -209,7 +212,8 @@ impl Portal {
     /// Start a login: the address of the login page to open in the browser.
     pub fn begin_login(&self) -> Result<String, String> {
         let verifier = pkce::new_verifier()?;
-        let url = config::login_page_url(&self.0.base, &pkce::challenge(&verifier));
+        let challenge = pkce::challenge(&verifier);
+        let url = self.start_loopback(&challenge);
         if let Some(dir) = &self.0.notes {
             handoff::write(dir, &Note::Waiting { verifier: verifier.clone(), started: handoff::now() })?;
         }
@@ -220,6 +224,34 @@ impl Portal {
             s.notice = None;
         });
         Ok(url)
+    }
+
+    /// Close the loopback listener of the login under way, if any.
+    fn stop_loopback(&self) {
+        lock(&self.0.loopback).take();
+    }
+
+    /// Listen for the browser's loopback redirect and give the login page's address with the port
+    /// and state; when no port can be had, the plain address (the browser then uses `figcraft://`).
+    fn start_loopback(&self, challenge: &str) -> String {
+        self.stop_loopback();
+        let plain = config::login_page_url(&self.0.base, challenge);
+        let Ok(state) = pkce::new_verifier() else { return plain };
+        // The thread holds the portal weakly, so dropping the last copy closes the port.
+        let weak = Arc::downgrade(&self.0);
+        let started = Loopback::start(state.clone(), LOGIN_WAIT, move |code| {
+            if let Some(inner) = weak.upgrade() {
+                Portal(inner).handle_auth_link(&format!("figcraft://auth?code={code}"));
+            }
+        });
+        match started {
+            Ok(listener) => {
+                let url = config::login_page_url_loopback(&self.0.base, challenge, listener.port(), &state);
+                *lock(&self.0.loopback) = Some(listener);
+                url
+            }
+            Err(_) => plain,
+        }
     }
 
     fn clear_note(&self) {
@@ -236,6 +268,7 @@ impl Portal {
 
     /// Stop waiting for the browser.
     pub fn cancel_login(&self) {
+        self.stop_loopback();
         self.clear_note();
         self.set(|s| {
             s.pending = None;
@@ -268,6 +301,8 @@ impl Portal {
         }
         // A login is under way: the refresh token kept by an earlier run is not signed in from on top of it.
         lock(&self.0.state).restored = true;
+        // One code answers the login, by whichever way it came: the listener is done.
+        self.stop_loopback();
         let verdict = self.waiting_login().and_then(|w| {
             if w.expired {
                 return Err("The login took too long. Press Log in to try again.".to_string());
@@ -414,6 +449,7 @@ impl Portal {
 
     /// Forget everything about the session on this computer.
     fn forget(&self) {
+        self.stop_loopback();
         let _ = self.0.store.clear();
         self.clear_note();
         self.set(|s| {

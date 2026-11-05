@@ -18,6 +18,7 @@ pub mod client;
 pub mod config;
 pub mod deeplink;
 pub mod handoff;
+pub mod loopback;
 pub mod pkce;
 pub mod secret;
 pub mod session;
@@ -34,6 +35,8 @@ mod config_tests;
 mod deeplink_tests;
 #[cfg(test)]
 mod handoff_tests;
+#[cfg(test)]
+mod loopback_tests;
 #[cfg(test)]
 mod pkce_tests;
 #[cfg(test)]

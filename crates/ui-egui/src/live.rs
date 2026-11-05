@@ -491,7 +491,7 @@ pub fn people_bar(app: &mut FigApp, ui: &mut Ui, area: Rect) {
     let fit = (((area.width() - 2.0 * R - 18.0 - STEP * f32::from(u8::from(agent.is_some()))) / STEP).floor() as usize).max(1);
     let (show, more) = if peers.len() > fit { (fit - 1, peers.len() - (fit - 1)) } else { (peers.len(), 0) };
     // Upstream hook: with a portal configured and signed out, only the Log in button is shown, so
-    // your own avatar is left out (peers and the people chevron stay).
+    // your own avatar is left out (peers stay; the chevron stays only when someone else is here).
     let hide_me = crate::portal::login_only(app);
     let mut x = area.min.x + R + 2.0 - if hide_me { STEP } else { 0.0 };
     let ring = |ui: &Ui, c: Pos2| ui.painter().circle_stroke(c, R + 1.0, Stroke::new(2.0, t.panel));
@@ -549,14 +549,17 @@ pub fn people_bar(app: &mut FigApp, ui: &mut Ui, area: Rect) {
         x += STEP;
         agent::avatar(ui, pos2(x, cy), R, name);
     }
-    let chev = Rect::from_center_size(pos2(x + R + 10.0, cy), vec2(16.0, 24.0));
-    let cresp = ui.interact(chev, ui.scope_id().with("live_people"), Sense::click());
-    a11y::menu_button(&cresp, tr("People in this file"), a11y::menu_open(&cresp));
-    if cresp.hovered() {
-        ui.painter().rect_filled(chev, CornerRadius::same(4), t.hover);
+    // Signed out with a portal and nobody else here: no avatar, so no chevron either.
+    if !(hide_me && peers.is_empty() && agent.is_none()) {
+        let chev = Rect::from_center_size(pos2(x + R + 10.0, cy), vec2(16.0, 24.0));
+        let cresp = ui.interact(chev, ui.scope_id().with("live_people"), Sense::click());
+        a11y::menu_button(&cresp, tr("People in this file"), a11y::menu_open(&cresp));
+        if cresp.hovered() {
+            ui.painter().rect_filled(chev, CornerRadius::same(4), t.hover);
+        }
+        icons::paint(ui.painter(), Rect::from_center_size(chev.center(), vec2(10.0, 10.0)), Icon::Chevron, t.icon_secondary);
+        clicked = people_menu(app, &cresp, (&me_name, me_fill), &peers, follow).or(clicked);
     }
-    icons::paint(ui.painter(), Rect::from_center_size(chev.center(), vec2(10.0, 10.0)), Icon::Chevron, t.icon_secondary);
-    clicked = people_menu(app, &cresp, (&me_name, me_fill), &peers, follow).or(clicked);
     if let Some(id) = clicked {
         let params = if follow == Some(id) { json!({}) } else { json!({"client": id}) };
         app.run("collab.follow", params);

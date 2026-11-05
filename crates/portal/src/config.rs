@@ -78,3 +78,9 @@ pub fn base_url() -> Result<String, ConfigError> {
 pub fn login_page_url(base: &str, challenge: &str) -> String {
     format!("{base}/app-login?challenge={challenge}")
 }
+
+/// The login page for `challenge` when the app listens on `127.0.0.1:port` for the callback that
+/// carries `state` (all base64url or digits, so nothing needs escaping).
+pub fn login_page_url_loopback(base: &str, challenge: &str, port: u16, state: &str) -> String {
+    format!("{}&port={port}&state={state}", login_page_url(base, challenge))
+}

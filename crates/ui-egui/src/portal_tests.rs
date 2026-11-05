@@ -199,3 +199,23 @@ fn opening_a_project_joins_its_session() {
     h.frames(2);
     assert_eq!(h.app.ui.live.joining.as_ref().map(|(_, link)| link.as_str()), Some(JOIN));
 }
+
+#[test]
+fn signed_out_with_nobody_else_there_the_people_chevron_is_hidden_and_with_a_peer_it_stays() {
+    // With a peer (Hana) the chevron sits 24px after her avatar and opens the people menu.
+    let (mut h, _) = Harness::new();
+    h.app.ui.portal.install(Ok(portal()));
+    h.frames(3);
+    h.joined();
+    let shapes = h.frames(3);
+    let hana = last_center(&shapes, "H");
+    h.click(Pos2::new(hana.x + 24.0, hana.y));
+    assert!(has_text(&h.frames(3), "Hana"), "the people menu lists her");
+    // Alone, the chevron would be where the avatar's would be (2px after the first slot's centre):
+    // there's none, so the click opens nothing.
+    let (mut h, _) = Harness::new();
+    h.app.ui.portal.install(Ok(portal()));
+    h.frames(3);
+    h.click(Pos2::new(hana.x + 2.0, hana.y));
+    assert!(!has_text(&h.frames(3), "Not in a live session"));
+}
