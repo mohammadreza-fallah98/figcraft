@@ -85,6 +85,9 @@ pub fn handle_link(app: &mut FigApp, link: &str) -> bool {
     true
 }
 
+/// Left padding of the top bar's people area (the own avatar, or the Log in button in its place).
+pub const PEOPLE_PAD: f32 = 12.0;
+
 /// True when a portal is configured and the person is not signed in: the Log in button then stands
 /// alone, and `live::people_bar` leaves out the own avatar (it comes back, as the profile menu, once
 /// signed in). Without a portal this is false: upstream behaviour.
@@ -96,13 +99,14 @@ pub fn login_only(app: &mut FigApp) -> bool {
     }
 }
 
-/// The Log in button, left of Play (its right edge is `right_edge`); the left edge of what it drew
-/// is returned, for the avatars to end there. Draws nothing without a configured portal, nor when
-/// signed in (the avatar's menu is the profile menu then).
-pub fn top_bar(app: &mut FigApp, ui: &mut Ui, top: Rect, right_edge: f32) -> f32 {
+/// The Log in button, at the left end of the top bar where the own avatar sits once signed in.
+/// Returns the x where the people area starts: after the button, or at the bar's padding when
+/// nothing was drawn (no portal configured, or signed in: the avatar's menu is the profile menu).
+pub fn top_bar(app: &mut FigApp, ui: &mut Ui, top: Rect) -> f32 {
+    let start = top.min.x + PEOPLE_PAD;
     app.ui.portal.ctx.lock().unwrap_or_else(PoisonError::into_inner).get_or_insert_with(|| ui.ctx().clone());
     let portal = match app.ui.portal.get().clone() {
-        Err(ConfigError::NotSet) => return right_edge,
+        Err(ConfigError::NotSet) => return start,
         other => other,
     };
     let view = portal.as_ref().ok().map(Portal::view);
@@ -112,12 +116,12 @@ pub fn top_bar(app: &mut FigApp, ui: &mut Ui, top: Rect, right_edge: f32) -> f32
         keep_awake(ui.ctx(), view.as_ref());
     }
     if view.as_ref().is_some_and(|v| v.status == Status::SignedIn) {
-        return right_edge;
+        return start;
     }
     let t = Tokens::get(ui.ctx());
     let galley = ui.painter().layout_no_wrap(tr("Log in").to_string(), semibold(11.0), t.text);
     let width = (galley.size().x + 20.0).clamp(52.0, 120.0);
-    let rect = Rect::from_min_size(pos2(right_edge - width, top.center().y - 14.0), vec2(width, 28.0));
+    let rect = Rect::from_min_size(pos2(start, top.center().y - 14.0), vec2(width, 28.0));
     let resp = ui.interact(rect, ui.scope_id().with("portal_login"), Sense::click()).tip(tr("Log in to your company portal"));
     let r = CornerRadius::same(6);
     if resp.hovered() {
@@ -126,7 +130,7 @@ pub fn top_bar(app: &mut FigApp, ui: &mut Ui, top: Rect, right_edge: f32) -> f32
     ui.painter().rect_stroke(rect, r, Stroke::new(1.0, t.border), StrokeKind::Inside);
     ui.painter().galley(rect.center() - galley.size() / 2.0, galley, t.text);
     popover(app, &resp, &portal, view.as_ref());
-    rect.min.x - 6.0
+    rect.max.x + 6.0
 }
 
 /// The signed-in portal and its view, if the person is signed in.

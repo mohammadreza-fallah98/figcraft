@@ -219,3 +219,29 @@ fn signed_out_with_nobody_else_there_the_people_chevron_is_hidden_and_with_a_pee
     h.click(Pos2::new(hana.x + 2.0, hana.y));
     assert!(!has_text(&h.frames(3), "Not in a live session"));
 }
+
+#[test]
+fn signed_out_the_login_button_sits_where_the_own_avatar_is_and_peers_follow_it() {
+    // Signed in, the own avatar's centre is 14px from the people area's left edge.
+    let (mut h, _) = Harness::new();
+    let signed_in = portal();
+    h.app.ui.portal.install(Ok(signed_in.clone()));
+    signed_in.begin_login().unwrap();
+    signed_in.handle_auth_link("figcraft://auth?code=abc");
+    let avatar = last_center(&h.frames(3), "AL");
+    // Signed out, the button starts at that edge (avatar - 14) and is at least 52px wide.
+    let (mut h, _) = Harness::new();
+    h.app.ui.portal.install(Ok(portal()));
+    h.app.session.prefs.user_name = "Ada Lovelace".into();
+    h.frames(3);
+    h.joined();
+    let shapes = h.frames(3);
+    let login = last_center(&shapes, "Log in");
+    let offset = login.x - (avatar.x - 14.0);
+    assert!((26.0..=60.0).contains(&offset), "the button starts at the avatar's slot: {offset}");
+    assert!((login.y - avatar.y).abs() < 1.0, "same row");
+    // Hana's avatar slot starts 6px after the button's right edge: centre = edge + 6 + 14.
+    let hana = last_center(&shapes, "H");
+    let button_right = avatar.x - 14.0 + 2.0 * offset;
+    assert!((hana.x - (button_right + 6.0 + 14.0)).abs() < 1.0, "peer starts after the button: {} vs {button_right}", hana.x);
+}
