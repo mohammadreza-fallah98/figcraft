@@ -13,7 +13,7 @@ pub const BUILD_BASE_URL: Option<&str> = option_env!("FIGCRAFT_PORTAL_URL");
 pub enum ConfigError {
     /// Nothing is configured.
     NotSet,
-    /// What is configured isn't an `https://` address (`http://` is accepted for this computer only).
+    /// What is configured isn't an `https://` address (`http://` is accepted for this computer and private-network hosts only).
     Invalid(String),
 }
 
@@ -26,8 +26,23 @@ impl std::fmt::Display for ConfigError {
     }
 }
 
+/// Hosts where plain `http://` is acceptable: `localhost` or a literal IP in a loopback or private range.
+/// Names are never resolved, so a public name (`localhost.evil.com`) is refused.
+fn is_private_host(host: &str) -> bool {
+    use std::net::IpAddr;
+    if host.eq_ignore_ascii_case("localhost") {
+        return true;
+    }
+    match host.parse::<IpAddr>() {
+        Ok(IpAddr::V4(ip)) => ip.is_loopback() || ip.is_private(),
+        Ok(IpAddr::V6(ip)) => ip.is_loopback(),
+        Err(_) => false,
+    }
+}
+
 /// `value` as a base address: `https://host[:port][/path]` without a trailing slash, query,
-/// fragment or credentials. `http://` is only accepted for `localhost`, `127.0.0.1` and `[::1]`.
+/// fragment or credentials. `http://` is only accepted for `localhost` and private-network addresses (127.0.0.0/8, 10/8,
+/// 172.16/12, 192.168/16, `[::1]`); never for a public host.
 pub fn normalize_base_url(value: &str) -> Result<String, ConfigError> {
     let invalid = |why: &str| ConfigError::Invalid(why.into());
     let value = value.trim();
@@ -51,11 +66,11 @@ pub fn normalize_base_url(value: &str) -> Result<String, ConfigError> {
     } else {
         authority.rsplit_once(':').map_or(authority, |(h, _)| h)
     };
-    let local = matches!(host.to_ascii_lowercase().as_str(), "localhost" | "127.0.0.1" | "::1");
+    let local = is_private_host(host);
     match scheme.as_str() {
         "https" => {}
         "http" if local => {}
-        "http" => return Err(invalid("must use https:// (http:// is only for this computer)")),
+        "http" => return Err(invalid("must use https:// (http:// is only for this computer and private networks)")),
         _ => return Err(invalid("isn't an https:// address")),
     }
     Ok(format!("{scheme}://{authority}{}", path.trim_end_matches('/')))
