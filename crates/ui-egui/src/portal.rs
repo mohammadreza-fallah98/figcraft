@@ -20,6 +20,8 @@ use figcraft_portal::session::Projects;
 use figcraft_portal::{Access, Portal, Status, View};
 use serde_json::json;
 
+use figcraft_engine::live::SessionId;
+
 use crate::FigApp;
 use crate::a11y::Tip;
 use crate::i18n::tr;
@@ -36,6 +38,15 @@ pub struct PortalUi {
     ctx: Arc<Mutex<Option<egui::Context>>>,
     /// The settings folder: where a login leaves its note for a second copy of the app.
     state_dir: Option<PathBuf>,
+    /// Live sessions started by opening a portal project (profile menu or the web page's button):
+    /// they end, with their document, when the portal login ends.
+    opened: Vec<Opened>,
+}
+
+/// A live session that came from a portal project, and the document it syncs once that is open.
+struct Opened {
+    session: SessionId,
+    doc: Option<u64>,
 }
 
 /// Where the app keeps its settings, for the note a login leaves for another copy of the app
@@ -70,6 +81,11 @@ impl PortalUi {
     /// A portal made by a test.
     pub(crate) fn install(&mut self, portal: Result<Portal, ConfigError>) {
         self.portal = Some(portal);
+    }
+
+    /// The sessions opened from the portal and not ended yet.
+    pub(crate) fn opened_sessions(&self) -> Vec<SessionId> {
+        self.opened.iter().map(|o| o.session).collect()
     }
 }
 
@@ -112,7 +128,7 @@ pub fn top_bar(app: &mut FigApp, ui: &mut Ui, top: Rect) -> f32 {
     let view = portal.as_ref().ok().map(Portal::view);
     if let Ok(p) = &portal {
         p.restore();
-        apply_results(app, p);
+        apply_results(app, p, ui.ctx());
         keep_awake(ui.ctx(), view.as_ref());
     }
     if view.as_ref().is_some_and(|v| v.status == Status::SignedIn) {
@@ -192,18 +208,61 @@ pub fn profile_footer(app: &mut FigApp, ui: &mut Ui) {
 }
 
 /// What the background work finished: the name to keep, a project to join.
-fn apply_results(app: &mut FigApp, portal: &Portal) {
+fn apply_results(app: &mut FigApp, portal: &Portal, ctx: &egui::Context) {
     if let Some(name) = portal.take_display_name() {
         app.run("pref.userName", json!({"name": name}));
         app.services.save_prefs(&app.session.prefs);
     }
     if let Some(opened) = portal.take_opened() {
-        crate::live::start_join(app, &opened.join_url);
+        join_opened(app, &opened.join_url);
     }
+    // Links from the portal's web page come through the local bridge: the person pressed the page's
+    // button, so the project opens at once (no Join dialog) and the window comes to the front.
     while let Some(link) = portal.take_invite() {
-        crate::live::open_invite(app, &link);
+        if join_opened(app, &link) {
+            ctx.send_viewport_cmd(egui::ViewportCommand::Focus);
+        }
     }
     portal.poll_handoff();
+    track_opened(app, portal);
+}
+
+/// Join a project the portal handed over, and remember the session as the portal's.
+fn join_opened(app: &mut FigApp, link: &str) -> bool {
+    let Some(session) = crate::live::start_join(app, link) else { return false };
+    app.ui.portal.opened.push(Opened { session, doc: None });
+    true
+}
+
+/// Keep the opened sessions' documents known; forget sessions that ended (the person left, or it
+/// failed: a copy they keep is theirs); close them all once the portal login is gone.
+fn track_opened(app: &mut FigApp, portal: &Portal) {
+    if app.ui.portal.opened.is_empty() {
+        return;
+    }
+    let logged_out = matches!(portal.view().status, Status::SignedOut | Status::Failed(_));
+    let mut kept = Vec::new();
+    for mut o in std::mem::take(&mut app.ui.portal.opened) {
+        let Some(live) = app.session.live.get(o.session) else { continue };
+        o.doc = live.doc_uid.or(o.doc);
+        if logged_out {
+            close_opened(app, &o);
+        } else {
+            kept.push(o);
+        }
+    }
+    app.ui.portal.opened.extend(kept);
+}
+
+/// Leave an opened session and close its document tab. Unsaved local changes keep the app's normal
+/// close behaviour: its own save prompt, nothing is discarded silently.
+fn close_opened(app: &mut FigApp, o: &Opened) {
+    if app.ui.live.joining.as_ref().is_some_and(|(id, _)| *id == o.session) {
+        app.ui.live.joining = None;
+    }
+    app.run("collab.leave", json!({"session": o.session}));
+    let Some(index) = o.doc.and_then(|uid| app.session.docs.iter().position(|d| d.uid == uid)) else { return };
+    app.run("file.close", json!({"index": index}));
 }
 
 /// Frames keep coming while something is going on (a callback from another copy of the app, or a

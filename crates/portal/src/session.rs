@@ -460,6 +460,16 @@ impl Portal {
         *bridge = Bridge::start(&self.0.base, sink);
     }
 
+    /// Queue an invite link as if the portal's web page had handed it over through the bridge.
+    pub fn hand_over_invite(&self, link: &str) {
+        let mut queue = lock(&self.0.invites);
+        if queue.len() < MAX_INVITES {
+            queue.push_back(link.to_string());
+        }
+        drop(queue);
+        (self.0.wake)();
+    }
+
     /// The invite link the portal's web page handed over (through the bridge) since the last call.
     pub fn take_invite(&self) -> Option<String> {
         lock(&self.0.invites).pop_front()

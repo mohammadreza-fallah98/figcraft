@@ -246,3 +246,55 @@ fn signed_out_the_login_button_sits_where_the_own_avatar_is_and_peers_follow_it(
     let button_right = avatar.x - 14.0 + 2.0 * offset;
     assert!((hana.x - (button_right + 6.0 + 14.0)).abs() < 1.0, "peer starts after the button: {} vs {button_right}", hana.x);
 }
+
+fn signed_in(h: &mut Harness) -> Portal {
+    let portal = portal();
+    h.app.ui.portal.install(Ok(portal.clone()));
+    portal.begin_login().unwrap();
+    portal.handle_auth_link("figcraft://auth?code=abc");
+    h.frames(2);
+    portal
+}
+
+#[test]
+fn a_link_from_the_bridge_joins_directly_and_a_system_link_still_asks() {
+    let (mut h, _) = Harness::new();
+    let portal = signed_in(&mut h);
+    portal.hand_over_invite(JOIN);
+    h.frames(2);
+    assert_eq!(h.app.ui.live.joining.as_ref().map(|(_, link)| link.as_str()), Some(JOIN), "joined without the dialog");
+    assert_eq!(h.app.ui.live.join, None, "the Join dialog with a pasted link did not open");
+    assert_eq!(h.app.ui.portal.opened_sessions().len(), 1);
+    crate::live::open_invite(&mut h.app, JOIN);
+    assert_eq!(h.app.ui.live.join.as_deref(), Some(JOIN), "an ordinary link still shows the dialog");
+}
+
+#[test]
+fn logging_out_leaves_the_portal_session_and_closes_its_document() {
+    let (mut h, _) = Harness::new();
+    let portal = signed_in(&mut h);
+    portal.open_project(1);
+    h.frames(2);
+    h.welcome();
+    h.sync();
+    h.frames(2);
+    assert_eq!(h.app.session.docs.len(), 2, "the local file and the shared one");
+    portal.logout();
+    h.frames(3);
+    assert_eq!(h.app.session.docs.len(), 1, "the shared document closed");
+    assert!(h.app.session.live.iter().next().is_none(), "the session ended");
+    assert!(h.app.ui.portal.opened_sessions().is_empty());
+}
+
+#[test]
+fn logging_out_keeps_an_unrelated_local_document_and_a_session_the_person_started() {
+    let (mut h, _) = Harness::new();
+    let portal = signed_in(&mut h);
+    h.joined();
+    h.frames(2);
+    let live_before = h.app.session.live.iter().count();
+    portal.logout();
+    h.frames(3);
+    assert_eq!(h.app.session.live.iter().count(), live_before, "a join the person made themselves goes on");
+    assert!(!h.app.session.docs.is_empty());
+}
