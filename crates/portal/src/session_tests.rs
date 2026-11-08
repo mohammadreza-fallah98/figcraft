@@ -564,3 +564,24 @@ fn a_refresh_uses_the_newest_token_in_the_credential_store() {
     assert_eq!(fake.calls()[1..], ["refresh RT1", "projects AT2", "refresh RT9", "projects AT3"]);
     assert_eq!(store.load().unwrap().as_deref(), Some("RT3"));
 }
+
+#[test]
+fn the_bridge_is_open_only_while_signed_in() {
+    let (p, fake, store) = setup();
+    assert_eq!(p.bridge_port(), None);
+    store.save("RT0").unwrap();
+    push(&fake.refresh, Ok(login("AT", "RT1", 3600)));
+    push(&fake.projects, Ok(vec![project(1)]));
+    p.restore();
+    let port = p.bridge_port().expect("open while signed in");
+    assert_eq!(p.take_invite(), None);
+    p.logout();
+    assert_eq!(p.bridge_port(), None);
+    for _ in 0..250 {
+        if std::net::TcpStream::connect(("127.0.0.1", port)).is_err() {
+            return;
+        }
+        std::thread::sleep(Duration::from_millis(20));
+    }
+    panic!("the bridge port stayed open after logout");
+}

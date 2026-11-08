@@ -200,6 +200,9 @@ fn apply_results(app: &mut FigApp, portal: &Portal) {
     if let Some(opened) = portal.take_opened() {
         crate::live::start_join(app, &opened.join_url);
     }
+    while let Some(link) = portal.take_invite() {
+        crate::live::open_invite(app, &link);
+    }
     portal.poll_handoff();
 }
 

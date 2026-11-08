@@ -16,6 +16,7 @@ use std::time::{Duration, Instant};
 use crate::api::{Login, OpenedProject, PortalError, ProjectEntry};
 use crate::deeplink::{AuthLink, parse_auth_link};
 use crate::handoff::{self, Note};
+use crate::bridge::Bridge;
 use crate::loopback::Loopback;
 use crate::secret::SecretStore;
 use crate::{config, pkce};
@@ -137,11 +138,18 @@ struct Inner {
     refreshing: Mutex<()>,
     /// The listener answering the browser's loopback redirect of the login under way.
     loopback: Mutex<Option<Loopback>>,
+    /// The local bridge for the portal's web page, open while signed in.
+    bridge: Mutex<Option<Bridge>>,
+    /// Invite links the bridge received, for the app to open.
+    invites: Mutex<std::collections::VecDeque<String>>,
 }
 
 /// The portal at one address.
 #[derive(Clone)]
 pub struct Portal(Arc<Inner>);
+
+/// Links waiting to be opened.
+const MAX_INVITES: usize = 4;
 
 fn lock<T>(m: &Mutex<T>) -> MutexGuard<'_, T> {
     m.lock().unwrap_or_else(PoisonError::into_inner)
@@ -168,7 +176,7 @@ impl Portal {
             notice: None,
             restored: false,
         };
-        Portal(Arc::new(Inner { base: base.to_string(), api, store, wake, spawn, notes, state: Mutex::new(state), refreshing: Mutex::new(()), loopback: Mutex::new(None) }))
+        Portal(Arc::new(Inner { base: base.to_string(), api, store, wake, spawn, notes, state: Mutex::new(state), refreshing: Mutex::new(()), loopback: Mutex::new(None), bridge: Mutex::new(None), invites: Mutex::new(std::collections::VecDeque::new()) }))
     }
 
     /// The portal at the configured address, over HTTPS, with the system's credential store.
@@ -429,6 +437,37 @@ impl Portal {
             s.status = Status::SignedIn;
             s.notice = notice;
         });
+        self.start_bridge();
+    }
+
+    /// Open the local bridge (once) while signed in; without a free port it stays off.
+    fn start_bridge(&self) {
+        let mut bridge = lock(&self.0.bridge);
+        if bridge.is_some() {
+            return;
+        }
+        let weak = Arc::downgrade(&self.0);
+        let sink: crate::bridge::Sink = Arc::new(move |link| {
+            if let Some(inner) = weak.upgrade() {
+                let mut queue = lock(&inner.invites);
+                if queue.len() < MAX_INVITES {
+                    queue.push_back(link);
+                }
+                drop(queue);
+                (inner.wake)();
+            }
+        });
+        *bridge = Bridge::start(&self.0.base, sink);
+    }
+
+    /// The invite link the portal's web page handed over (through the bridge) since the last call.
+    pub fn take_invite(&self) -> Option<String> {
+        lock(&self.0.invites).pop_front()
+    }
+
+    /// The port the bridge listens on, while it is open.
+    pub fn bridge_port(&self) -> Option<u16> {
+        lock(&self.0.bridge).as_ref().map(Bridge::port)
     }
 
     /// Log out: tell the portal in the background (best effort: a failure changes nothing), and
@@ -450,6 +489,8 @@ impl Portal {
     /// Forget everything about the session on this computer.
     fn forget(&self) {
         self.stop_loopback();
+        lock(&self.0.bridge).take();
+        lock(&self.0.invites).clear();
         let _ = self.0.store.clear();
         self.clear_note();
         self.set(|s| {

@@ -13,6 +13,7 @@
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 
 pub mod api;
+pub mod bridge;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod client;
 pub mod config;
@@ -29,6 +30,8 @@ pub use session::{Portal, Status, View};
 
 #[cfg(test)]
 mod api_tests;
+#[cfg(test)]
+mod bridge_tests;
 #[cfg(test)]
 mod config_tests;
 #[cfg(test)]
