@@ -158,6 +158,40 @@ fn signed_in_the_people_menu_is_the_profile_menu_with_log_out_last() {
 }
 
 #[test]
+fn the_profile_menu_opens_the_portal_pages_between_refresh_and_log_out() {
+    let (mut h, _) = Harness::new();
+    let opened = Arc::new(Mutex::new(Vec::new()));
+    h.app.services = Box::new(Opener(opened.clone()));
+    let portal = portal();
+    h.app.ui.portal.install(Ok(portal.clone()));
+    portal.begin_login().unwrap();
+    portal.handle_auth_link("figcraft://auth?code=abc");
+    let shapes = h.frames(3);
+    let avatar = last_center(&shapes, "AL");
+    h.click(Pos2::new(avatar.x + 24.0, avatar.y));
+    let shapes = h.frames(3);
+    let y = |s: &str| last_center(&shapes, s).y;
+    assert!(y("Refresh") < y("Open portal") && y("Open portal") < y("Profile and access") && y("Profile and access") < y("Log out"));
+    h.click(last_center(&shapes, "Profile and access"));
+    h.frames(2);
+    assert_eq!(opened.lock().unwrap().clone(), vec![format!("{BASE}/profile")]);
+    let avatar = last_center(&h.frames(2), "AL");
+    h.click(Pos2::new(avatar.x + 24.0, avatar.y));
+    let shapes = h.frames(3);
+    h.click(last_center(&shapes, "Open portal"));
+    h.frames(2);
+    assert_eq!(opened.lock().unwrap().last().cloned(), Some(format!("{BASE}/my-projects")));
+}
+
+#[test]
+fn signed_out_the_portal_page_rows_are_not_drawn() {
+    let (mut h, _) = Harness::new();
+    h.app.ui.portal.install(Ok(portal()));
+    let shapes = h.frames(3);
+    assert!(!has_text(&shapes, "Open portal") && !has_text(&shapes, "Profile and access"));
+}
+
+#[test]
 fn without_a_portal_the_own_avatar_is_drawn_as_upstream() {
     let (mut h, _) = Harness::new();
     h.app.ui.portal.install(Err(ConfigError::NotSet));

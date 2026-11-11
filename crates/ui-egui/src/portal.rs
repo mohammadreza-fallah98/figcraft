@@ -189,7 +189,23 @@ pub fn profile_top(app: &mut FigApp, ui: &mut Ui) {
     if menu_item(ui, tr("Refresh"), "") && !view.busy {
         portal.refresh_projects();
     }
+    if menu_item(ui, tr("Open portal"), "") {
+        app.services.open_url(&portal_page_url(portal.base_url(), PORTAL_PROJECTS_PATH));
+        ui.close();
+    }
+    if menu_item(ui, tr("Profile and access"), "") {
+        app.services.open_url(&portal_page_url(portal.base_url(), PORTAL_PROFILE_PATH));
+        ui.close();
+    }
     ui.separator();
+}
+
+/// Portal website pages the profile menu opens in the browser (the browser's own session signs in).
+const PORTAL_PROJECTS_PATH: &str = "/my-projects";
+const PORTAL_PROFILE_PATH: &str = "/profile";
+
+fn portal_page_url(base: &str, path: &str) -> String {
+    format!("{}{path}", base.trim_end_matches('/'))
 }
 
 /// Hook for the people menu, its last row: Log out (and the note when the login can't be kept).
