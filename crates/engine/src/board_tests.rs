@@ -168,7 +168,7 @@ fn connectors_follow_what_they_join_and_undo_with_it() {
     let b = id(&s.execute("board.sticky", &json!({"x": 400, "y": 0})).unwrap(), "id");
     let c = id(&s.execute("board.connector", &json!({"from": a, "to": b, "style": "straight", "label": "then"})).unwrap(), "id");
     let pts = drawn(&s, c);
-    assert!(near(pts[0], Point::new(200.0, 100.0)) && near(pts[1], Point::new(400.0, 100.0)), "{pts:?}");
+    assert!(near(pts[0], Point::new(204.0, 100.0)) && near(pts[1], Point::new(396.0, 100.0)), "{pts:?}");
     assert_eq!(node(&s, c).stroke.cap_end, StrokeCap::TriangleArrow);
     // Its label sits at the middle.
     let label = crate::board::label_of(s.doc().unwrap(), c).unwrap();
@@ -178,19 +178,19 @@ fn connectors_follow_what_they_join_and_undo_with_it() {
     s.execute("board.setStyle", &json!({"ids": [c], "style": "elbow"})).unwrap();
     s.execute("transform.move", &json!({"ids": [b], "dx": 0, "dy": 300})).unwrap();
     let pts = drawn(&s, c);
-    assert!(near(pts[0], Point::new(200.0, 100.0)) && near(*pts.last().unwrap(), Point::new(400.0, 400.0)), "{pts:?}");
+    assert!(near(pts[0], Point::new(204.0, 100.0)) && near(*pts.last().unwrap(), Point::new(396.0, 400.0)), "{pts:?}");
     assert!(pts.windows(2).all(|w| w[0].x == w[1].x || w[0].y == w[1].y), "right angles: {pts:?}");
     // Undo takes the move back and the route with it.
     s.execute("edit.undo", &json!({})).unwrap();
-    assert!(near(*drawn(&s, c).last().unwrap(), Point::new(400.0, 100.0)));
+    assert!(near(*drawn(&s, c).last().unwrap(), Point::new(396.0, 100.0)));
     // A deleted end stays where it was, as a point.
     s.execute("edit.delete", &json!({"ids": [b]})).unwrap();
     assert!(matches!(connector(&s, c).to, End::Point { .. }));
-    assert!(near(*drawn(&s, c).last().unwrap(), Point::new(400.0, 100.0)));
+    assert!(near(*drawn(&s, c).last().unwrap(), Point::new(396.0, 100.0)));
     // A connector moved on its own takes its free end along; the attached one stays.
     s.execute("transform.move", &json!({"ids": [c], "dx": 0, "dy": 50})).unwrap();
-    assert!(matches!(connector(&s, c).to, End::Point { x, y } if x == 400.0 && y == 150.0), "{:?}", connector(&s, c));
-    assert!(near(drawn(&s, c)[0], Point::new(200.0, 100.0)));
+    assert!(matches!(connector(&s, c).to, End::Point { x, y } if x == 396.0 && y == 150.0), "{:?}", connector(&s, c));
+    assert!(near(drawn(&s, c)[0], Point::new(204.0, 100.0)));
     // Deleting the connector takes its label.
     s.execute("edit.delete", &json!({"ids": [c]})).unwrap();
     assert!(!s.doc().unwrap().contains(label));
@@ -206,12 +206,13 @@ fn routes_are_the_same_for_the_same_document() {
         to: End::Point { x: 300.0, y: 500.0 },
         routing: Routing::Elbow,
         path: None,
+        branch: false,
     };
     let doc = s.doc().unwrap();
     let r = route(doc, &c).unwrap();
     assert_eq!(r, route(&doc.clone(), &c).unwrap());
-    // Down out of the bottom, across halfway, down into the point.
-    assert_eq!(r, vec![Point::new(80.0, 160.0), Point::new(80.0, 330.0), Point::new(300.0, 330.0), Point::new(300.0, 500.0)]);
+    // Down out of the bottom (END_GAP below it), across halfway, down into the point.
+    assert_eq!(r, vec![Point::new(80.0, 164.0), Point::new(80.0, 332.0), Point::new(300.0, 332.0), Point::new(300.0, 500.0)]);
 }
 
 #[test]
@@ -338,7 +339,7 @@ fn boards_sync_in_live_sessions() {
     let doc = room.server.document();
     let NodeKind::Vector { network } = &doc.node(c).unwrap().kind else { panic!("not a vector") };
     let end = doc.world_transform(c) * network.vertices.last().unwrap().point();
-    assert_eq!(end, Point::new(400.0, 350.0), "to the moved sticky's facing side");
+    assert_eq!(end, Point::new(396.0, 350.0), "to END_GAP before the moved sticky's facing side");
     assert_eq!(doc.node(a).unwrap().fills[0].solid_color(), board_color("violet"));
 }
 
@@ -357,6 +358,7 @@ fn board_commands_survive_junk() {
         json!({"path": "M0 0 L 1e308 1e308", "points": [[0, 0], [1e308, 1]]}),
         json!({"end": "from", "target": {"x": 1e308, "y": -1e308}, "side": "inside", "style": "curved"}),
         json!({"id": 99_999, "end": 7, "target": [1], "style": "wavy"}),
+        json!({"id": 99_999, "relation": 7, "children": "x", "text": [1], "x": "NaN", "y": 1e308}),
     ];
     let ids: Vec<&str> = crate::cmd::all_commands()
         .iter()
@@ -410,7 +412,9 @@ fn a_press_on_a_stickys_background_picks_and_drags_it() {
     s.pointer(&PointerEvent::at(PointerKind::Up, 100.0, 450.0, 1.0)).unwrap();
     assert_eq!(s.selection(), vec![a]);
     assert_eq!(node(&s, a).transform.translation().y, 300.0);
-    assert!(near(drawn(&s, c)[0], Point::new(200.0, 400.0)), "the connector followed the drag: {:?}", drawn(&s, c));
+    // Its own connector's start, END_GAP outside its edge, is no snap target for it (#1916).
+    assert_eq!(node(&s, a).transform.translation().x, 0.0, "not nudged sideways by its own connector");
+    assert!(near(drawn(&s, c)[0], Point::new(204.0, 400.0)), "the connector followed the drag: {:?}", drawn(&s, c));
 }
 
 #[test]
