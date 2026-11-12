@@ -14,9 +14,9 @@ use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 use std::time::{Duration, Instant};
 
 use crate::api::{Login, OpenedProject, PortalError, ProjectEntry};
+use crate::bridge::Bridge;
 use crate::deeplink::{AuthLink, parse_auth_link};
 use crate::handoff::{self, Note};
-use crate::bridge::Bridge;
 use crate::loopback::Loopback;
 use crate::secret::SecretStore;
 use crate::{config, pkce};
@@ -193,7 +193,20 @@ impl Portal {
             notice: None,
             restored: false,
         };
-        Portal(Arc::new(Inner { base: base.to_string(), api, store, wake, spawn, notes, state: Mutex::new(state), refreshing: Mutex::new(()), loopback: Mutex::new(None), bridge: Mutex::new(None), invites: Mutex::new(std::collections::VecDeque::new()), uploads: Mutex::new(crate::upload::UploadShared::default()) }))
+        Portal(Arc::new(Inner {
+            base: base.to_string(),
+            api,
+            store,
+            wake,
+            spawn,
+            notes,
+            state: Mutex::new(state),
+            refreshing: Mutex::new(()),
+            loopback: Mutex::new(None),
+            bridge: Mutex::new(None),
+            invites: Mutex::new(std::collections::VecDeque::new()),
+            uploads: Mutex::new(crate::upload::UploadShared::default()),
+        }))
     }
 
     /// The portal at the configured address, over HTTPS, with the system's credential store.

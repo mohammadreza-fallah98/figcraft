@@ -216,7 +216,8 @@ fn read_request(stream: &mut TcpStream) -> Result<Request, u16> {
     let mut first = lines.next().unwrap_or_default().split(' ');
     let (method, target) = (first.next().unwrap_or_default().to_string(), first.next().unwrap_or_default());
     let path = target.split('?').next().unwrap_or_default().to_string();
-    let (mut host, mut origin, mut content_type, mut length): (Option<String>, Option<String>, Option<String>, Option<usize>) = (None, None, None, None);
+    let (mut host, mut origin, mut content_type, mut length): (Option<String>, Option<String>, Option<String>, Option<usize>) =
+        (None, None, None, None);
     for line in lines {
         let Some((name, value)) = line.split_once(':') else { return Err(400) };
         let slot = match name.trim().to_ascii_lowercase().as_str() {

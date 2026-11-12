@@ -48,7 +48,12 @@ fn a_valid_callback_delivers_the_code_once_and_closes() {
     let port = l.port();
     let reply = get(port, &format!("/auth?code=abc&state={STATE}"), &format!("127.0.0.1:{port}"));
     assert!(reply.starts_with("HTTP/1.1 200 OK"), "{reply}");
-    for h in ["Cache-Control: no-store", "Referrer-Policy: no-referrer", "X-Content-Type-Options: nosniff", "Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'"] {
+    for h in [
+        "Cache-Control: no-store",
+        "Referrer-Policy: no-referrer",
+        "X-Content-Type-Options: nosniff",
+        "Content-Security-Policy: default-src 'none'; style-src 'unsafe-inline'",
+    ] {
         assert!(reply.contains(h), "{h}");
     }
     assert!(reply.contains("<title>FigCraft</title>") && reply.contains("Signed in. You can close this tab and return to FigCraft."));

@@ -43,7 +43,16 @@ fn http_is_accepted_for_private_network_hosts_only() {
     for ok in ["http://10.1.2.3:4000", "http://172.16.0.1", "http://172.31.255.254:80", "http://192.168.10.5:4000/", "http://127.0.0.2:5000"] {
         assert!(normalize_base_url(ok).is_ok(), "{ok} should be accepted");
     }
-    for bad in ["http://8.8.8.8", "http://172.15.0.1", "http://172.32.0.1", "http://192.169.1.1", "http://11.0.0.1", "http://[2001:db8::1]:4000", "http://[fd00::1]", "http://192.168.10.5.evil.com"] {
+    for bad in [
+        "http://8.8.8.8",
+        "http://172.15.0.1",
+        "http://172.32.0.1",
+        "http://192.169.1.1",
+        "http://11.0.0.1",
+        "http://[2001:db8::1]:4000",
+        "http://[fd00::1]",
+        "http://192.168.10.5.evil.com",
+    ] {
         assert!(matches!(normalize_base_url(bad), Err(ConfigError::Invalid(_))), "{bad} should be refused");
     }
     assert_eq!(normalize_base_url("http://192.168.10.5:4000/").unwrap(), "http://192.168.10.5:4000");

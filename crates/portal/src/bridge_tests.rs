@@ -57,7 +57,12 @@ fn origin_is_scheme_host_and_non_default_port() {
 fn preflight_allows_only_the_portal_origin() {
     let (b, _rx) = start(48101);
     let p = b.port();
-    let ok = send(p, &format!("OPTIONS /open HTTP/1.1\r\nHost: 127.0.0.1:{p}\r\nOrigin: {ORIGIN}\r\nAccess-Control-Request-Method: POST\r\nAccess-Control-Request-Private-Network: true\r\n\r\n"));
+    let ok = send(
+        p,
+        &format!(
+            "OPTIONS /open HTTP/1.1\r\nHost: 127.0.0.1:{p}\r\nOrigin: {ORIGIN}\r\nAccess-Control-Request-Method: POST\r\nAccess-Control-Request-Private-Network: true\r\n\r\n"
+        ),
+    );
     assert!(ok.starts_with("HTTP/1.1 204"), "{ok}");
     for h in [
         format!("Access-Control-Allow-Origin: {ORIGIN}"),
