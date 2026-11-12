@@ -9,8 +9,8 @@
 //! rule (`windingRule` on the layer, 1 even-odd: inner paths are holes). Sketch fills an open path
 //! as if it were closed.
 
-use figcraft_doc::geom::{Affine, polygon_points, star_points};
-use figcraft_doc::{Region, Segment, VectorNetwork, Vertex, WindingRule};
+use figiran_doc::geom::{Affine, polygon_points, star_points};
+use figiran_doc::{Region, Segment, VectorNetwork, Vertex, WindingRule};
 use serde_json::{Map as JsonMap, Value, json};
 
 use super::tree::{Cx, base, layer, layers, local, size};
@@ -160,7 +160,7 @@ pub(crate) fn cut_corners(l: &Value) -> Option<Value> {
 }
 
 /// A path, star, polygon or triangle layer: a star or polygon while its points are still the
-/// generated ones (same as FigCraft's, within half a percent), else an editable vector.
+/// generated ones (same as FigIran's, within half a percent), else an editable vector.
 pub(crate) fn shape(cx: &mut Cx, l: &Value, w: f64, h: f64) -> Option<Shape> {
     // Inside a shape group the group's fill decides; a shape of its own, its style.
     let style = l.get("style");
@@ -173,7 +173,7 @@ pub(crate) fn shape(cx: &mut Cx, l: &Value, w: f64, h: f64) -> Option<Shape> {
     let class = l.get("_class").and_then(Value::as_str).unwrap_or("");
     let count = l.get("numberOfPoints").and_then(Value::as_u64).filter(|c| (3..=120).contains(c)).and_then(|c| u32::try_from(c).ok());
     let plain = net.vertices.iter().all(|v| v.radius == 0.0) && net.segments.iter().all(|s| s.ta == (0.0, 0.0) && s.tb == (0.0, 0.0));
-    let matches = |pts: Vec<figcraft_doc::geom::Point>| {
+    let matches = |pts: Vec<figiran_doc::geom::Point>| {
         let tol = 0.005 * w.max(h) + 1e-6;
         pts.len() == net.vertices.len() && pts.iter().zip(&net.vertices).all(|(p, v)| (p.x - v.x).abs() <= tol && (p.y - v.y).abs() <= tol)
     };
@@ -317,7 +317,7 @@ fn combined(cx: &mut Cx, l: &Value, kids: &[Value], parent: Affine, world: Affin
             continue;
         }
         // Sketch draws a shape group in the group's style only. Its operands' own borders go: a
-        // FigCraft operand with only a stroke gives its stroke's band, not its area.
+        // FigIran operand with only a stroke gives its stroke's band, not its area.
         let mut operands = operands;
         for o in &mut operands {
             unstroked(o, 0);
@@ -361,7 +361,7 @@ fn compound(cx: &mut Cx, run: &[&Value], winding: WindingRule) -> Option<VectorN
         let lin = |(x, y): (f64, f64)| (a * x + cc * y, b * x + d * y);
         let (v0, s0) = (out.vertices.len(), out.segments.len());
         for v in net.vertices {
-            let p = xf * figcraft_doc::geom::Point::new(v.x, v.y);
+            let p = xf * figiran_doc::geom::Point::new(v.x, v.y);
             out.vertices.push(Vertex { x: p.x, y: p.y, ..v });
         }
         for sg in net.segments {

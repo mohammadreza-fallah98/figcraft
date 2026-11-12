@@ -2,9 +2,9 @@
 
 use std::sync::{Arc, Once};
 
-use figcraft_color::{Color, Paint};
-use figcraft_doc::{Document, Effect, EffectKind, Node, NodeId, NodeKind, Shadow, TextAutoResize, TextData};
-use figcraft_geom::Affine;
+use figiran_color::{Color, Paint};
+use figiran_doc::{Document, Effect, EffectKind, Node, NodeId, NodeKind, Shadow, TextAutoResize, TextData};
+use figiran_geom::Affine;
 
 use crate::{Options, Pixmap, Retained, View, Work, render_view, retained::snap};
 
@@ -12,7 +12,7 @@ use crate::{Options, Pixmap, Retained, View, Work, render_view, retained::snap};
 /// mid-test (a font change makes the next render full).
 fn fonts() {
     static ONCE: Once = Once::new();
-    ONCE.call_once(figcraft_text::scan_system_fonts);
+    ONCE.call_once(figiran_text::scan_system_fonts);
 }
 
 struct Scene {
@@ -59,12 +59,12 @@ fn scene(cut_sensitive: bool) -> Scene {
         solid(d.get_mut(inner).unwrap(), "FFFFFF");
         d.get_mut(inner).unwrap().effects.push(Effect::inner_shadow());
         d.get_mut(inner).unwrap().effects.push(Effect {
-            kind: EffectKind::Noise(figcraft_doc::Noise { size: 1.0, density: 0.3, color: Color::BLACK, ..Default::default() }),
+            kind: EffectKind::Noise(figiran_doc::Noise { size: 1.0, density: 0.3, color: Color::BLACK, ..Default::default() }),
             visible: true,
         });
         let glass = d.create(page, NodeKind::Rectangle, "Glass", 120.0, 280.0, 120.0, 40.0).unwrap();
         d.get_mut(glass).unwrap().fills = vec![Paint::solid(Color::new(1.0, 1.0, 1.0, 0.3))];
-        d.get_mut(glass).unwrap().effects.push(Effect { kind: EffectKind::BackgroundBlur(figcraft_doc::Blur::uniform(8.0)), visible: true });
+        d.get_mut(glass).unwrap().effects.push(Effect { kind: EffectKind::BackgroundBlur(figiran_doc::Blur::uniform(8.0)), visible: true });
     }
     Scene { doc: Arc::new(d), page, rect, text, frame, child }
 }
@@ -278,7 +278,7 @@ fn overflowing_text_is_drawn_while_its_box_is_out_of_view() {
     td.auto_resize = TextAutoResize::WidthAndHeight;
     td.style.font_size = 16.0;
     let t = d.create(page, NodeKind::Text(td), "T", 100.0, 10.0, 1.0, 20.0).unwrap();
-    let Some((layout, _)) = figcraft_text::layout_node(d.node(t).unwrap()) else { return };
+    let Some((layout, _)) = figiran_text::layout_node(d.node(t).unwrap()) else { return };
     if layout.glyphs.is_empty() || layout.width < 120.0 {
         return; // no fonts on this machine
     }
@@ -363,7 +363,7 @@ fn stacked_backdrop_blurs_draw_the_same_in_bands() {
     for (x, y) in [(40.0, 60.0), (120.0, 120.0), (60.0, 200.0)] {
         let b = d.create(page, NodeKind::Rectangle, "B", x, y, 220.0, 160.0).unwrap();
         d.get_mut(b).unwrap().fills = vec![Paint::solid(Color::new(1.0, 1.0, 1.0, 0.25))];
-        d.get_mut(b).unwrap().effects.push(Effect { kind: EffectKind::BackgroundBlur(figcraft_doc::Blur::uniform(24.0)), visible: true });
+        d.get_mut(b).unwrap().effects.push(Effect { kind: EffectKind::BackgroundBlur(figiran_doc::Blur::uniform(24.0)), visible: true });
     }
     let doc = Arc::new(d);
     let v = View { origin: (0.0, 0.0), scale: 1.0, width: 400, height: 400 };
@@ -391,7 +391,7 @@ fn sequential_layer_blurs_draw_the_same_in_bands() {
         let b = d.create(page, NodeKind::Rectangle, "B", 100.0, 150.0, 200.0, 100.0).unwrap();
         solid(d.get_mut(b).unwrap(), "20C040");
         for _ in 0..count {
-            d.get_mut(b).unwrap().effects.push(Effect { kind: EffectKind::LayerBlur(figcraft_doc::Blur::uniform(radius)), visible: true });
+            d.get_mut(b).unwrap().effects.push(Effect { kind: EffectKind::LayerBlur(figiran_doc::Blur::uniform(radius)), visible: true });
         }
         let doc = Arc::new(d);
         let what = format!("{count} blurs of {radius}");
@@ -425,7 +425,7 @@ fn a_shadow_cast_from_a_blurred_layer_draws_the_same_in_a_cut_view() {
     solid(d.get_mut(b).unwrap(), "20C040");
     let shadow = Shadow { color: Color::new(0.0, 0.0, 0.0, 1.0), offset: (0.0, 300.0), radius: 0.0, ..Shadow::default() };
     d.get_mut(b).unwrap().effects = vec![
-        Effect { kind: EffectKind::LayerBlur(figcraft_doc::Blur::uniform(50.0)), visible: true },
+        Effect { kind: EffectKind::LayerBlur(figiran_doc::Blur::uniform(50.0)), visible: true },
         Effect { kind: EffectKind::DropShadow(shadow), visible: true },
     ];
     let whole = View { origin: (0.0, 0.0), scale: 1.0, width: 400, height: 600 };
@@ -442,7 +442,7 @@ fn a_shadow_cast_from_a_blurred_layer_draws_the_same_in_a_cut_view() {
 #[test]
 fn effect_margins_too_large_to_add_stay_large() {
     let mut n = Node::new(NodeId(1), NodeKind::Rectangle, "T", 10.0, 10.0);
-    let t = figcraft_doc::Texture { radius: 1e308, ..Default::default() };
+    let t = figiran_doc::Texture { radius: 1e308, ..Default::default() };
     n.effects = vec![Effect { kind: EffectKind::Texture(t.clone()), visible: true }, Effect { kind: EffectKind::Texture(t), visible: true }];
     let m = crate::draw::effect_margin(&n);
     assert_eq!(m, 2.0 * crate::draw::MAX_REACH);
@@ -455,7 +455,7 @@ fn a_moved_layer_renders_where_its_effects_paint_and_no_further() {
         kind: EffectKind::DropShadow(Shadow { color: Color::BLACK, offset: (0.0, dy), radius: r, ..Shadow::default() }),
         ..Effect::drop_shadow()
     };
-    let blur = Effect { kind: EffectKind::LayerBlur(figcraft_doc::Blur::uniform(30.0)), ..Effect::layer_blur() };
+    let blur = Effect { kind: EffectKind::LayerBlur(figiran_doc::Blur::uniform(30.0)), ..Effect::layer_blur() };
     for (why, effects) in [("a shadow falling 40", vec![shadow(40.0, 8.0)]), ("a blur of 30", vec![blur])] {
         let mut d = Document::new("moved");
         let p = d.first_page().unwrap();
@@ -573,8 +573,8 @@ fn pans_patch_backdrops_at_the_edges_that_moved_in() {
 #[test]
 fn grainy_layers_patch_as_they_render() {
     fonts();
-    let texture = |clip_to_shape| EffectKind::Texture(figcraft_doc::Texture { size: 0.5, radius: 12.0, clip_to_shape, ..Default::default() });
-    let noise = EffectKind::Noise(figcraft_doc::Noise { size: 0.5, density: 0.4, color: Color::BLACK, ..Default::default() });
+    let texture = |clip_to_shape| EffectKind::Texture(figiran_doc::Texture { size: 0.5, radius: 12.0, clip_to_shape, ..Default::default() });
+    let noise = EffectKind::Noise(figiran_doc::Noise { size: 0.5, density: 0.4, color: Color::BLACK, ..Default::default() });
     // At a zoom of 1.7, a grain of 0.5 is 1.7 pixels across: every tenth grain edge falls on a row
     // of pixel centres, and a patch renders those rows from another origin than a full render.
     for (why, kind) in [("texture", texture(false)), ("texture clipped to its shape", texture(true)), ("noise", noise)] {

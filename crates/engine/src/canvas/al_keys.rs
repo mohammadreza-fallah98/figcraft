@@ -18,9 +18,9 @@
 //! Children ignoring auto layout, and children of frames without it, nudge as usual (the caller
 //! handles those).
 
-use figcraft_doc::{AutoLayout, Document, LayoutMode, NodeId};
-use figcraft_geom::Point;
-use figcraft_layout::{GridCell, flow_children, grid_place};
+use figiran_doc::{AutoLayout, Document, LayoutMode, NodeId};
+use figiran_geom::Point;
+use figiran_layout::{GridCell, flow_children, grid_place};
 
 use crate::Result;
 use crate::components::structure_locked;

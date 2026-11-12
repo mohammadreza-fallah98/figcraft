@@ -32,19 +32,19 @@ fail() { printf 'FAIL: %s\n' "$*" >&2; cat "$WORK/caddy.log" >&2; exit 1; }
 
 mkdir "$WORK/web"
 printf 'synthetic editor\n' >"$WORK/web/index.html"
-printf 'synthetic JavaScript asset\n' >"$WORK/web/figcraft-web-present.js"
-printf 'synthetic WebAssembly asset\n' >"$WORK/web/figcraft-web-present_bg.wasm"
+printf 'synthetic JavaScript asset\n' >"$WORK/web/figiran-web-present.js"
+printf 'synthetic WebAssembly asset\n' >"$WORK/web/figiran-web-present_bg.wasm"
 
 # Extract the real commented block, changing only the hostname and filesystem root.
 # The admin endpoint is disabled; state directories stay inside the temporary fixture.
 printf '{\n\tadmin off\n}\n' >"$WORK/Caddyfile"
 awk -v port="$PORT" -v root="$WORK/web" '
-    $0 == "# figcraft.example.com {" { active = 1; found++; print "http://127.0.0.1:" port " {"; next }
+    $0 == "# figiran.example.com {" { active = 1; found++; print "http://127.0.0.1:" port " {"; next }
     active {
         if ($0 !~ /^#/) exit 1
         if ($0 == "# }") { print "}"; active = 0; next }
         sub(/^# ?/, "")
-        if ($1 == "root" && $2 == "*" && $3 == "/srv/figcraft-web") $0 = "\t\troot * \"" root "\""
+        if ($1 == "root" && $2 == "*" && $3 == "/srv/figiran-web") $0 = "\t\troot * \"" root "\""
         print
     }
     END { if (found != 1 || active) exit 1 }
@@ -102,18 +102,18 @@ check() {
 }
 
 for method in GET HEAD; do
-    check "$method" figcraft-web-present.js 200
-    check "$method" figcraft-web-present_bg.wasm 200
-    check "$method" figcraft-web-later.js 404
-    check "$method" figcraft-web-later_bg.wasm 404
+    check "$method" figiran-web-present.js 200
+    check "$method" figiran-web-present_bg.wasm 200
+    check "$method" figiran-web-later.js 404
+    check "$method" figiran-web-later_bg.wasm 404
 done
 
 # The same URLs must work immediately when deployment supplies the previously missing files.
-printf 'new JavaScript asset\n' >"$WORK/web/figcraft-web-later.js"
-printf 'new WebAssembly asset\n' >"$WORK/web/figcraft-web-later_bg.wasm"
+printf 'new JavaScript asset\n' >"$WORK/web/figiran-web-later.js"
+printf 'new WebAssembly asset\n' >"$WORK/web/figiran-web-later_bg.wasm"
 for method in GET HEAD; do
-    check "$method" figcraft-web-later.js 200
-    check "$method" figcraft-web-later_bg.wasm 200
+    check "$method" figiran-web-later.js 200
+    check "$method" figiran-web-later_bg.wasm 200
 done
 
 printf 'Caddy browser asset caching: %s checks passed (%s)\n' "$checks" "$("$CADDY" version)"

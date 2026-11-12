@@ -34,7 +34,7 @@ fn presets_land_beside_existing_frames_and_swap_orientation() {
 #[test]
 fn presets_keep_the_sizes_of_the_prototype_devices() {
     use crate::cmd::create::FRAME_PRESETS;
-    use figcraft_doc::proto::PrototypeSettings;
+    use figiran_doc::proto::PrototypeSettings;
     let mut s = Session::new();
     for (name, size) in
         [("iPhone 17", (402.0, 874.0)), ("iPhone 17 Pro", (402.0, 874.0)), ("iPhone 17 Pro Max", (440.0, 956.0)), ("iPhone Air", (420.0, 912.0))]

@@ -3,7 +3,7 @@
 use crate::common;
 
 use common::Client;
-use figcraft_mcp::{PROTOCOL_VERSION, Server, TOOL_NAMES};
+use figiran_mcp::{PROTOCOL_VERSION, Server, TOOL_NAMES};
 use serde_json::{Value, json};
 
 fn reply(s: &mut Server, line: &str) -> Value {
@@ -17,7 +17,7 @@ fn initialize_negotiates_versions() {
         let mut s = Server::headless();
         let r = reply(&mut s, &json!({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": asked}}).to_string());
         assert_eq!(r["result"]["protocolVersion"], want);
-        assert_eq!(r["result"]["serverInfo"]["name"], "figcraft");
+        assert_eq!(r["result"]["serverInfo"]["name"], "figiran");
         let caps = &r["result"]["capabilities"];
         assert!(caps["tools"].is_object() && caps["resources"].is_object() && caps["prompts"].is_object());
         let ins = r["result"]["instructions"].as_str().unwrap();
@@ -28,7 +28,7 @@ fn initialize_negotiates_versions() {
                 && ins.contains("screenshot")
                 && ins.contains("comment.list")
                 && ins.contains("wait_for_changes")
-                && ins.contains("figcraft://comments")
+                && ins.contains("figiran://comments")
         );
         assert!(!s.is_initialized());
         assert!(s.handle_line(r#"{"jsonrpc":"2.0","method":"notifications/initialized"}"#).is_none());
@@ -132,7 +132,7 @@ fn tools_call_happy_and_error_paths() {
     assert!(c.err("batch", json!({"commands": [{"command": 3}]})).contains("step 0"));
     assert!(c.err("pointer", json!({"x": 1})).contains("`y`"));
     assert!(c.err("type_text", json!({"text": "hi"})).contains("not editing text"));
-    assert!(c.err("open_file", json!({"path": "/definitely/not/here.figcraft"})).contains("here.figcraft"));
+    assert!(c.err("open_file", json!({"path": "/definitely/not/here.figiran"})).contains("here.figiran"));
     // Names a tool or a command doesn't take are refused, not ignored (#1413).
     let e = c.err("run_command", json!({"command": "inspect.code", "args": {"id": id, "language": "html"}}));
     assert!(e.contains("unknown argument `args` (it takes command, document, params)"), "{e}");
@@ -182,33 +182,33 @@ fn resources_and_templates() {
     let mut c = Client::new();
     let list = c.rpc("resources/list", json!({}));
     let uris: Vec<&str> = list["result"]["resources"].as_array().unwrap().iter().map(|r| r["uri"].as_str().unwrap()).collect();
-    assert!(uris.contains(&"figcraft://document") && uris.contains(&"figcraft://comments"));
+    assert!(uris.contains(&"figiran://document") && uris.contains(&"figiran://comments"));
     let t = c.rpc("resources/templates/list", json!({}));
     let tpl: Vec<&str> = t["result"]["resourceTemplates"].as_array().unwrap().iter().map(|r| r["uriTemplate"].as_str().unwrap()).collect();
-    assert_eq!(tpl, ["figcraft://node/{id}", "figcraft://command/{id}"]);
+    assert_eq!(tpl, ["figiran://node/{id}", "figiran://command/{id}"]);
 
     let id = c.create(json!({"type": "frame", "name": "Hero", "width": 200, "height": 100}));
-    let r = c.rpc("resources/read", json!({"uri": "figcraft://document"}));
+    let r = c.rpc("resources/read", json!({"uri": "figiran://document"}));
     let doc: Value = serde_json::from_str(r["result"]["contents"][0]["text"].as_str().unwrap()).unwrap();
     assert!(doc["pages"].is_array());
-    let r = c.rpc("resources/read", json!({"uri": format!("figcraft://node/{id}")}));
+    let r = c.rpc("resources/read", json!({"uri": format!("figiran://node/{id}")}));
     let n: Value = serde_json::from_str(r["result"]["contents"][0]["text"].as_str().unwrap()).unwrap();
     assert_eq!(n["name"], "Hero");
-    let r = c.rpc("resources/read", json!({"uri": "figcraft://command/layout.add"}));
+    let r = c.rpc("resources/read", json!({"uri": "figiran://command/layout.add"}));
     assert!(r["result"]["contents"][0]["text"].as_str().unwrap().contains("Add auto layout"));
     // Open comments are a resource; resolving one removes it.
     c.run("comment.add", json!({"x": 20, "y": 30, "text": "Fix the padding", "anchor": id}));
-    let r = c.rpc("resources/read", json!({"uri": "figcraft://comments"}));
+    let r = c.rpc("resources/read", json!({"uri": "figiran://comments"}));
     let comments: Value = serde_json::from_str(r["result"]["contents"][0]["text"].as_str().unwrap()).unwrap();
     assert_eq!(comments["comments"].as_array().unwrap().len(), 1);
     assert_eq!(comments["comments"][0]["text"], "Fix the padding");
     assert_eq!(comments["comments"][0]["anchor"], id);
     let cid = comments["comments"][0]["id"].clone();
     c.run("comment.resolve", json!({"id": cid}));
-    let r = c.rpc("resources/read", json!({"uri": "figcraft://comments"}));
+    let r = c.rpc("resources/read", json!({"uri": "figiran://comments"}));
     let comments: Value = serde_json::from_str(r["result"]["contents"][0]["text"].as_str().unwrap()).unwrap();
     assert!(comments["comments"].as_array().unwrap().is_empty());
-    for bad in ["figcraft://node/123456", "figcraft://node/xyz", "figcraft://command/nope", "http://example.com"] {
+    for bad in ["figiran://node/123456", "figiran://node/xyz", "figiran://command/nope", "http://example.com"] {
         assert_eq!(c.rpc("resources/read", json!({"uri": bad}))["error"]["code"], -32002, "{bad}");
     }
     assert_eq!(c.rpc("resources/read", json!({}))["error"]["code"], -32602);

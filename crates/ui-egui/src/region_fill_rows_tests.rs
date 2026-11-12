@@ -4,8 +4,8 @@
 
 use egui::accesskit::Role;
 use egui::{Pos2, pos2};
-use figcraft_doc::{NodeId, NodeKind, Region, Segment, VectorNetwork, Vertex};
-use figcraft_engine::Session;
+use figiran_doc::{NodeId, NodeKind, Region, Segment, VectorNetwork, Vertex};
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::layers_drag_tests::Ui;
@@ -35,9 +35,9 @@ pub(crate) fn two_region_vector(s: &mut Session) -> NodeId {
         n.regions =
             vec![Region { loops: vec![vec![0, 1, 2, 3]], ..Default::default() }, Region { loops: vec![vec![4, 5, 6, 7]], ..Default::default() }];
         node.kind = NodeKind::Vector { network: n };
-        node.transform = figcraft_geom::Affine::IDENTITY;
-        node.fills = vec![figcraft_color::Paint::solid(figcraft_color::Color::DEFAULT_SHAPE)];
-        figcraft_engine::vectoredit::refit(doc, id).unwrap();
+        node.transform = figiran_geom::Affine::IDENTITY;
+        node.fills = vec![figiran_color::Paint::solid(figiran_color::Color::DEFAULT_SHAPE)];
+        figiran_engine::vectoredit::refit(doc, id).unwrap();
     }
     id
 }
@@ -92,7 +92,7 @@ fn fill_section(c: &[(Role, String, String, Pos2)]) -> (Vec<String>, bool, bool)
 #[test]
 fn a_selected_regions_rows_leave_out_the_layers_style_and_variable() {
     let mut u = ui();
-    let red = figcraft_color::Color::from_hex("#FF0000").unwrap().to_hex();
+    let red = figiran_color::Color::from_hex("#FF0000").unwrap().to_hex();
     let (rows, detach, styles) = fill_section(&controls(&mut u));
     assert_eq!(rows, [red], "the region's own red, as a hex field");
     assert!(!detach, "the layer's variable binding is not the region's");

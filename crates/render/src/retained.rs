@@ -8,8 +8,8 @@
 
 use std::sync::Arc;
 
-use figcraft_doc::{Document, EffectKind, NodeId, NodeKind};
-use figcraft_geom::Rect;
+use figiran_doc::{Document, EffectKind, NodeId, NodeKind};
+use figiran_geom::Rect;
 use tiny_skia::{IntRect, Pixmap, PixmapPaint, Transform};
 
 use crate::{Options, View, draw, render_view};
@@ -48,7 +48,7 @@ struct Frame {
     magnified_image_pixels: bool,
     skip: Vec<NodeId>,
     solo: Option<NodeId>,
-    background: Option<figcraft_color::Color>,
+    background: Option<figiran_color::Color>,
     dots: Option<crate::Dots>,
     scale: u64,
     /// The view's top-left in device pixels (page origin × scale).
@@ -76,7 +76,7 @@ fn sensitive(doc: &Document) -> Sensitive {
         .nodes()
         .flat_map(|n| n.fills.iter().chain(&n.strokes))
         .filter_map(|p| match &p.kind {
-            figcraft_color::PaintKind::Pattern(pt) => Some(NodeId(pt.source)),
+            figiran_color::PaintKind::Pattern(pt) => Some(NodeId(pt.source)),
             _ => None,
         })
         .collect();
@@ -272,7 +272,7 @@ impl Retained {
             self.last = None;
             return None;
         };
-        let fonts = figcraft_text::layout_generation();
+        let fonts = figiran_text::layout_generation();
         let mut sens = None;
         if let Some(last) = self.last.take()
             && last.page == page

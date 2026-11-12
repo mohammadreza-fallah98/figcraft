@@ -2,7 +2,7 @@
 //! batch of new entries is placed through an index, not a scan of the growing list per entry, and
 //! puts, removes and reorders in one batch still leave the list a scan would.
 
-use figcraft_doc::{Comment, Document, Message};
+use figiran_doc::{Comment, Document, Message};
 
 use crate::change::{Change, DocProp, Entry, Json};
 use crate::{Mode, Replica};

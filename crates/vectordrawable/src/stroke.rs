@@ -1,7 +1,7 @@
 //! Strokes Android can draw itself, and the rule for the filled outline of the rest.
 
-use figcraft_doc::{Node, NodeKind, StrokeAlign, StrokeCap, StrokeJoin};
-use figcraft_geom::{Affine, BezPath};
+use figiran_doc::{Node, NodeKind, StrokeAlign, StrokeCap, StrokeJoin};
+use figiran_geom::{Affine, BezPath};
 
 /// A stroke's Vector Drawable attributes: its path (local), width (viewport), cap, join, miter.
 pub(crate) struct Native {
@@ -39,7 +39,7 @@ pub(crate) fn native(n: &Node, xf: Affine) -> Option<Native> {
     {
         return None;
     }
-    let path = figcraft_doc::geometry::stroke_geometry(n)?;
+    let path = figiran_doc::geometry::stroke_geometry(n)?;
     let width = k.weight * xf.determinant().abs().sqrt();
     let cap = match k.cap_start {
         StrokeCap::Round => "round",

@@ -102,7 +102,7 @@ impl FigApp {
             // Installed fonts apply from the next frame; a child window draws on here, so ask for
             // that frame (the root draws nothing on the frame it installs them).
             ctx.request_repaint();
-        } else if figcraft_text::system_fonts_scanned() {
+        } else if figiran_text::system_fonts_scanned() {
             // Once the system fonts are indexed: faces for names in scripts the UI fonts lack, and
             // for each CJK script once something shows it.
             let installed = self.script_fonts.map_or(0, |(s, _)| s);
@@ -244,7 +244,7 @@ impl FigApp {
         if self.ui.icon_gallery {
             icons::gallery(&ctx);
         }
-        theme::set_doc_profile(&ctx, self.session.doc().map_or(figcraft_color::ColorProfile::Srgb, |d| d.color_profile));
+        theme::set_doc_profile(&ctx, self.session.doc().map_or(figiran_color::ColorProfile::Srgb, |d| d.color_profile));
         widgets::set_nudge(&ctx, self.session.prefs.nudge_small, self.session.prefs.nudge_big);
         self.sync_dev_mode();
         self.end_pen_outside_design();

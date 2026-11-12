@@ -2,9 +2,9 @@
 //! along a rounded edge, tapers through corners, alignments, inner corners that no longer fit,
 //! smoothing and degenerate weights.
 
-use figcraft_doc::StrokeAlign;
-use figcraft_geom::kurbo::{BezPath, Point, Shape};
-use figcraft_geom::rounded_rect;
+use figiran_doc::StrokeAlign;
+use figiran_geom::kurbo::{BezPath, Point, Shape};
+use figiran_geom::rounded_rect;
 
 use crate::{rect_side_strokes, rounded_side_strokes};
 

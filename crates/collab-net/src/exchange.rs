@@ -11,8 +11,8 @@
 
 use std::collections::VecDeque;
 
-use figcraft_collab::message::{self, Admin, AdminReply, ClientMsg, HostInfo, Manage, OpenHosting, PROTOCOL, ServerMsg};
-use figcraft_engine::live::{Event, NetReply, NetRequest, Shared, Status};
+use figiran_collab::message::{self, Admin, AdminReply, ClientMsg, HostInfo, Manage, OpenHosting, PROTOCOL, ServerMsg};
+use figiran_engine::live::{Event, NetReply, NetRequest, Shared, Status};
 
 use crate::invite::{Endpoint, Invite};
 use crate::requests::{self, Publish, REFUSED};

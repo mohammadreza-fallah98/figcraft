@@ -82,10 +82,10 @@ pub struct DocState {
     /// Vector edit mode: the vector being edited, its selected points and the edit tool.
     pub vector_edit: Option<vectoredit::VectorEdit>,
     pub uid: u64,
-    /// The file's version history, oldest first (saved in the `.figcraft` file; not undoable).
-    pub versions: Vec<figcraft_format::Version>,
-    /// The file's branches (saved in the `.figcraft` file; not undoable).
-    pub branches: Vec<figcraft_format::Branch>,
+    /// The file's version history, oldest first (saved in the `.figiran` file; not undoable).
+    pub versions: Vec<figiran_format::Version>,
+    /// The file's branches (saved in the `.figiran` file; not undoable).
+    pub branches: Vec<figiran_format::Branch>,
     /// This tab shows a branch: the `uid` of its main file's tab and the branch id. Its edits go
     /// into the main file's branch (and are saved with the main file).
     pub branch_of: Option<(u64, String)>,
@@ -112,7 +112,7 @@ pub struct DocState {
     pub(crate) last_duplicate: Option<cmd::edit::Duplicated>,
     images_left_in_file: Option<(String, usize)>,
     /// The file on disk as this tab last read or wrote it: a save refuses to replace what another
-    /// app (figcraft-cli, say) wrote to it since (#1330).
+    /// app (figiran-cli, say) wrote to it since (#1330).
     pub(crate) on_disk: Option<library::Stamp>,
 }
 
@@ -206,19 +206,19 @@ impl DocState {
     }
 
     /// With the version history read from its file.
-    pub fn with_versions(mut self, versions: Vec<figcraft_format::Version>) -> Self {
+    pub fn with_versions(mut self, versions: Vec<figiran_format::Version>) -> Self {
         self.versions = versions;
         self
     }
 
     /// With the branches read from its file.
-    pub fn with_branches(mut self, branches: Vec<figcraft_format::Branch>) -> Self {
+    pub fn with_branches(mut self, branches: Vec<figiran_format::Branch>) -> Self {
         self.branches = branches;
         self
     }
 
     /// The branches, for editing (the file then has unsaved changes).
-    pub fn branches_mut(&mut self) -> &mut Vec<figcraft_format::Branch> {
+    pub fn branches_mut(&mut self) -> &mut Vec<figiran_format::Branch> {
         self.versions_changed = true;
         &mut self.branches
     }
@@ -229,7 +229,7 @@ impl DocState {
     }
 
     /// The version history, for editing (the file then has unsaved changes).
-    pub fn versions_mut(&mut self) -> &mut Vec<figcraft_format::Version> {
+    pub fn versions_mut(&mut self) -> &mut Vec<figiran_format::Version> {
         self.versions_changed = true;
         &mut self.versions
     }

@@ -1,9 +1,9 @@
 //! The local bridge: while a person is signed in, the app listens on `127.0.0.1` (first free port of
-//! [`PORTS`]) so the portal's web page can hand it a `figcraft://join?…` link by `fetch`, in browsers
-//! that have no `figcraft://` handler registered (Firefox on some Windows setups).
+//! [`PORTS`]) so the portal's web page can hand it a `figiran://join?…` link by `fetch`, in browsers
+//! that have no `figiran://` handler registered (Firefox on some Windows setups).
 //!
-//! Endpoints: `OPTIONS *` (CORS preflight), `GET /ping` → `{"app":"figcraft","v":1}` and
-//! `POST /open` with `{"url":"figcraft://join?…"}` → `202 {"ok":true}`.
+//! Endpoints: `OPTIONS *` (CORS preflight), `GET /ping` → `{"app":"figiran","v":1}` and
+//! `POST /open` with `{"url":"figiran://join?…"}` → `202 {"ok":true}`.
 //!
 //! Every request must carry an `Origin` equal to the portal's origin and a `Host` of this very
 //! address (no DNS rebinding); anything else gets an empty `403` and is never acted on. CORS headers
@@ -33,7 +33,7 @@ const MAX_CONNECTIONS: usize = 8;
 
 const POLL: Duration = Duration::from_millis(20);
 const CLIENT_TIME: Duration = Duration::from_secs(2);
-const PREFIX: &str = "figcraft://join?";
+const PREFIX: &str = "figiran://join?";
 
 /// Gets each accepted link, once.
 pub type Sink = Arc<dyn Fn(String) + Send + Sync>;
@@ -57,7 +57,7 @@ impl Bridge {
         listener.set_nonblocking(true).ok()?;
         let stop = Arc::new(AtomicBool::new(false));
         let flag = stop.clone();
-        std::thread::Builder::new().name("figcraft-bridge".into()).spawn(move || serve(&listener, port, &origin, &sink, &flag)).ok()?;
+        std::thread::Builder::new().name("figiran-bridge".into()).spawn(move || serve(&listener, port, &origin, &sink, &flag)).ok()?;
         Some(Self { port, stop })
     }
 
@@ -112,7 +112,7 @@ fn serve(listener: &TcpListener, port: u16, origin: &str, sink: &Sink, stop: &At
                 }
                 busy.fetch_add(1, Ordering::SeqCst);
                 let (counter, origin, sink) = (busy.clone(), origin.to_string(), sink.clone());
-                let spawned = std::thread::Builder::new().name("figcraft-bridge-client".into()).spawn(move || {
+                let spawned = std::thread::Builder::new().name("figiran-bridge-client".into()).spawn(move || {
                     answer(stream, port, &origin, &sink);
                     counter.fetch_sub(1, Ordering::SeqCst);
                 });
@@ -161,7 +161,7 @@ fn route(req: &Request, sink: &Sink) -> Reply {
         return (204, None);
     }
     match (req.method.as_str(), req.path.as_str()) {
-        ("GET", "/ping") => (200, Some("{\"app\":\"figcraft\",\"v\":1}")),
+        ("GET", "/ping") => (200, Some("{\"app\":\"figiran\",\"v\":1}")),
         ("POST", "/open") => open(req, sink),
         (_, "/ping" | "/open") => (405, None),
         _ => (404, None),
@@ -187,7 +187,7 @@ fn open(req: &Request, sink: &Sink) -> Reply {
     (202, Some("{\"ok\":true}"))
 }
 
-/// A `figcraft://join?…` link made only of printable ASCII, with a query of `key=value` pairs.
+/// A `figiran://join?…` link made only of printable ASCII, with a query of `key=value` pairs.
 fn valid_link(url: &str) -> bool {
     let Some(query) = url.strip_prefix(PREFIX) else { return false };
     url.len() <= MAX_LINK

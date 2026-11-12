@@ -2,7 +2,7 @@
 //! the bottom moves up to fit, and one taller than the window scrolls.
 
 use egui::{Event, Id, MouseWheelUnit, Rect, TouchPhase, pos2, vec2};
-use figcraft_engine::Session;
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::layers_drag_tests::Ui;

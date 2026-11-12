@@ -74,7 +74,7 @@ fn width_profile_row(app: &mut FigApp, ui: &mut Ui, ids: &[NodeId], profile: Opt
             && let Some(p) = custom
         {
             let pts: Vec<Value> =
-                p.points.iter().rev().map(|q| figcraft_engine::cmd::props::width_point_json(&WidthPoint { t: 1.0 - q.t, ..*q })).collect();
+                p.points.iter().rev().map(|q| figiran_engine::cmd::props::width_point_json(&WidthPoint { t: 1.0 - q.t, ..*q })).collect();
             app.run("stroke.widthProfile", json!({"ids": ids, "points": pts}));
         }
     });
@@ -82,14 +82,14 @@ fn width_profile_row(app: &mut FigApp, ui: &mut Ui, ids: &[NodeId], profile: Opt
 
 /// A brush drawn along a short line across `rect`, as outlines (egui fills only convex shapes).
 pub(crate) fn brush_art(painter: &egui::Painter, rect: Rect, preset: &str, col: Color32) {
-    use figcraft_geom::kurbo::{self, PathEl};
-    let mut line = figcraft_geom::BezPath::new();
+    use figiran_geom::kurbo::{self, PathEl};
+    let mut line = figiran_geom::BezPath::new();
     line.move_to((0.0, 0.0));
     line.line_to((f64::from(rect.width()), 0.0));
     let brush = Brush::new(preset);
     let props = StrokeProps { weight: f64::from(rect.height()), align: StrokeAlign::Center, brush: Some(brush.clone()), ..Default::default() };
-    let Some(out) = figcraft_pathops::brush::outline(&line, props.weight, &props, &brush) else { return };
-    for sub in figcraft_geom::split_subpaths(&out) {
+    let Some(out) = figiran_pathops::brush::outline(&line, props.weight, &props, &brush) else { return };
+    for sub in figiran_geom::split_subpaths(&out) {
         let mut pts = Vec::new();
         kurbo::flatten(sub.iter(), 0.25, |el| {
             if let PathEl::MoveTo(p) | PathEl::LineTo(p) = el {
@@ -102,7 +102,7 @@ pub(crate) fn brush_art(painter: &egui::Painter, rect: Rect, preset: &str, col: 
 
 /// Stroke settings ▸ Brush: a plain stroke, a stretch brush or a scatter brush, each with its look.
 fn brush_row(app: &mut FigApp, ui: &mut Ui, ids: &[NodeId], brush: Option<Option<Brush>>, panel_w: f32) {
-    use figcraft_pathops::brush::{PRESETS, preset};
+    use figiran_pathops::brush::{PRESETS, preset};
     let t = Tokens::get(ui.ctx());
     widgets::sublabels(ui, tr("Brush"), None);
     row(ui, 32.0, |ui| {
@@ -145,7 +145,7 @@ fn brush_row(app: &mut FigApp, ui: &mut Ui, ids: &[NodeId], brush: Option<Option
     });
     // A scatter brush's spacing and jitter.
     let Some(Some(b)) =
-        brush.filter(|b| b.as_ref().and_then(|b| preset(&b.preset)).is_some_and(|p| p.kind == figcraft_pathops::brush::BrushKind::Scatter))
+        brush.filter(|b| b.as_ref().and_then(|b| preset(&b.preset)).is_some_and(|p| p.kind == figiran_pathops::brush::BrushKind::Scatter))
     else {
         return;
     };
@@ -188,7 +188,7 @@ fn brush_row(app: &mut FigApp, ui: &mut Ui, ids: &[NodeId], brush: Option<Option
 }
 
 /// Dash pattern `dashes` with its first dash (`i` 0) or first gap (`i` 1) set to `v`. A lone value
-/// is both (`figcraft_pathops::width::dash_pattern` draws odd lengths repeated), so `[5]` is
+/// is both (`figiran_pathops::width::dash_pattern` draws odd lengths repeated), so `[5]` is
 /// written out as `[5, 5]` first and only the edited entry changes.
 fn set_dash(dashes: &[f64], i: usize, v: f64) -> Vec<f64> {
     let mut d = if dashes.is_empty() { vec![4.0] } else { dashes.to_vec() };

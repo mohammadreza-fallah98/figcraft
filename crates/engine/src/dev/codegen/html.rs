@@ -167,7 +167,7 @@ fn placement_decls(n: &Node, parent: Option<&Node>, root: bool, in_flow: bool) -
     } else {
         let c = n.transform.as_coeffs();
         decls.push_str(&format!("position: absolute;\nleft: {}px;\ntop: {}px;\n", num(c[4]), num(c[5])));
-        let rot = figcraft_geom::rotation_degrees(n.transform);
+        let rot = figiran_geom::rotation_degrees(n.transform);
         if rot.abs() > 0.01 {
             decls.push_str(&format!("transform: rotate({}deg);\ntransform-origin: 0 0;\n", num(-rot)));
         }
@@ -274,7 +274,7 @@ impl<'c, 'a> Markup<'c, 'a> {
         false
     }
 
-    fn text_body(&self, n: &Node, t: &figcraft_doc::TextData) -> String {
+    fn text_body(&self, n: &Node, t: &figiran_doc::TextData) -> String {
         match (self.ctx.param(n, "characters").filter(|_| self.code()), self.lang) {
             (Some(p), CodeLang::Leptos) => format!("{{{}.clone()}}", self.ident(p)),
             (Some(p), CodeLang::Vue) => format!("{{{{ {} }}}}", self.ident(p)),

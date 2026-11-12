@@ -8,7 +8,7 @@ use serde_json::json;
 use crate::Session;
 use crate::cmd::component::{can_add_variant, can_combine_variants};
 use crate::components::tests::{ex, healthy, idv, kids, node};
-use figcraft_doc::*;
+use figiran_doc::*;
 
 /// A main component named `name` at `x`, made from a 120×40 frame with a "Bg" rectangle.
 fn component(s: &mut Session, name: &str, x: f64) -> NodeId {

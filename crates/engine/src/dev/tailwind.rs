@@ -7,7 +7,7 @@
 
 use std::collections::{BTreeMap, HashMap};
 
-use figcraft_doc::{Document, NodeId, NodeKind, Variable, VariableId, VariableType};
+use figiran_doc::{Document, NodeId, NodeKind, Variable, VariableId, VariableType};
 
 use crate::codegen::{CodeLang, Ctx, Markup, css_var_name, css_var_of, num};
 use crate::component_codegen::component_type_name;

@@ -11,7 +11,7 @@ pub fn export_bytes(doc: &Document, ids: &[NodeId], format: ExportFormat, scale:
 /// The page area exporting `ids` with `setting` covers: what they paint (a clipping frame's own
 /// area), or their boxes with "include bounding box" and for slices. Hidden layers paint nothing,
 /// so they take no room next to visible ones (a hidden-only export keeps its own area).
-pub fn export_area(doc: &Document, ids: &[NodeId], setting: &ExportSetting) -> Option<figcraft_geom::Rect> {
+pub fn export_area(doc: &Document, ids: &[NodeId], setting: &ExportSetting) -> Option<figiran_geom::Rect> {
     let any_visible = ids.iter().any(|i| doc.node(*i).is_some_and(|n| n.visible));
     ids.iter()
         .filter_map(|i| {
@@ -22,7 +22,7 @@ pub fn export_area(doc: &Document, ids: &[NodeId], setting: &ExportSetting) -> O
             } else if any_visible && node.is_some_and(|n| !n.visible) {
                 None
             } else {
-                figcraft_render::export_bounds(doc, *i)
+                figiran_render::export_bounds(doc, *i)
             }
         })
         .reduce(|a, b| a.union(b))
@@ -69,9 +69,9 @@ pub fn export_bytes_with(doc: &Document, ids: &[NodeId], setting: &ExportSetting
 
 /// What Copy as PNG puts on the clipboard: the layers together, at 2x (in the document's colour
 /// profile; the clipboard wants sRGB).
-pub fn copy_png(doc: &Document, ids: &[NodeId]) -> Option<figcraft_render::Pixmap> {
+pub fn copy_png(doc: &Document, ids: &[NodeId]) -> Option<figiran_render::Pixmap> {
     let area = export_area(doc, ids, &ExportSetting::default())?;
-    figcraft_render::render_area(doc, &crate::cmd::edit::z_sorted(doc, ids), area, 2.0)
+    figiran_render::render_area(doc, &crate::cmd::edit::z_sorted(doc, ids), area, 2.0)
 }
 
 pub(super) fn export(s: &mut Session, p: &Value) -> Result<Value> {
@@ -142,19 +142,19 @@ fn export_penpot(s: &mut Session, p: &Value) -> Result<Value> {
 }
 
 pub fn penpot_bytes(doc: &Document) -> Result<(Vec<u8>, Vec<String>)> {
-    figcraft_format::penpot::export(doc).map_err(|e| EngineError::Other(e.to_string()))
+    figiran_format::penpot::export(doc).map_err(|e| EngineError::Other(e.to_string()))
 }
 
 /// `doc` as a `.fig` file (with a thumbnail) and the warnings about what was left out.
 pub fn fig_bytes(doc: &Document) -> Result<(Vec<u8>, Vec<String>)> {
-    figcraft_format::fig::export(doc, thumbnail(doc).as_deref()).map_err(|e| EngineError::Other(e.to_string()))
+    figiran_format::fig::export(doc, thumbnail(doc).as_deref()).map_err(|e| EngineError::Other(e.to_string()))
 }
 
 /// The scale that gives `ids` (their export area together) `setting`'s export size.
 pub fn export_scale(doc: &Document, ids: &[NodeId], setting: &ExportSetting) -> f64 {
     // Size-based exports ask for bounds before encoding. Let encoding report the depth error
     // without entering a recursive bounds walk here; SVG/PDF do not use this raster scale.
-    if setting.format.is_vector() && figcraft_render::check_export_depth(doc, ids).is_err() {
+    if setting.format.is_vector() && figiran_render::check_export_depth(doc, ids).is_err() {
         return 1.0;
     }
     export_area(doc, ids, setting).map_or(1.0, |b| setting.size.scale_for(b.width(), b.height()))
@@ -314,7 +314,7 @@ pub(crate) const FORBIDDEN_FILE_NAME_CHARS: &str = "/\\:*?\"<>|";
 
 /// `name` without path separators and characters file systems reject (`/ \ : * ? " < > |` and
 /// control characters become `_`); everything else is kept, up to the first 200 characters.
-/// `figcraft-cli export` names its files by this rule too (and keeps at most 100 characters before
+/// `figiran-cli export` names its files by this rule too (and keeps at most 100 characters before
 /// the number and extension it adds).
 pub fn safe_file_name(name: &str) -> String {
     name.chars().take(200).map(|c| if c.is_control() || FORBIDDEN_FILE_NAME_CHARS.contains(c) { '_' } else { c }).collect()
@@ -380,7 +380,7 @@ pub(super) fn export_layers(s: &mut Session, p: &Value) -> Result<Value> {
     let with_settings: std::collections::BTreeSet<NodeId> = jobs.iter().map(|j| j.id).collect();
     let mut r = json!({"files": files, "skipped": ids.len().saturating_sub(with_settings.len())});
     if zip {
-        let archive = figcraft_format::zip_files(members.iter().map(|(n, b)| (*n, b.as_slice()))).map_err(|e| EngineError::Other(e.to_string()))?;
+        let archive = figiran_format::zip_files(members.iter().map(|(n, b)| (*n, b.as_slice()))).map_err(|e| EngineError::Other(e.to_string()))?;
         r["data"] = json!(base64::engine::general_purpose::STANDARD.encode(&archive));
     }
     Ok(r)
@@ -388,9 +388,9 @@ pub(super) fn export_layers(s: &mut Session, p: &Value) -> Result<Value> {
 
 /// A PDF with one page per group of layers (an sRGB document), titled after the file; `area`
 /// sizes a single page to that page area instead of the layers' bounds.
-pub(super) fn pdf_bytes(doc: &Document, groups: &[Vec<NodeId>], print: &PrintSettings, area: Option<figcraft_geom::Rect>) -> Result<Vec<u8>> {
-    let opts = figcraft_pdf::PdfOptions { title: Some(doc.name.clone()), print: *print, area, ..Default::default() };
-    figcraft_pdf::export_groups(doc, groups, &opts).map_err(|e| EngineError::Other(e.to_string()))
+pub(super) fn pdf_bytes(doc: &Document, groups: &[Vec<NodeId>], print: &PrintSettings, area: Option<figiran_geom::Rect>) -> Result<Vec<u8>> {
+    let opts = figiran_pdf::PdfOptions { title: Some(doc.name.clone()), print: *print, area, ..Default::default() };
+    figiran_pdf::export_groups(doc, groups, &opts).map_err(|e| EngineError::Other(e.to_string()))
 }
 
 /// Every top-level frame of `page` (reading order) as one PDF page each, and the page count.

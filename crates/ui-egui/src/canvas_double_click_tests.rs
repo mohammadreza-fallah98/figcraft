@@ -2,8 +2,8 @@
 //! began is dropped, so the tool is idle once the button is up.
 
 use egui::{Event, Modifiers, PointerButton, Pos2};
-use figcraft_doc::NodeId;
-use figcraft_engine::Session;
+use figiran_doc::NodeId;
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::layers_drag_tests::Ui;
@@ -31,7 +31,7 @@ fn double_click_at(u: &mut Ui, p: Pos2) {
 fn double_clicking_a_selected_shape_enters_vector_edit_like_enter() {
     let mut s = Session::new();
     let r = s.execute("shape.rectangle", &json!({"x": 100, "y": 100, "width": 300, "height": 200})).unwrap();
-    let r: NodeId = figcraft_engine::params::id_of(&r["id"]).unwrap();
+    let r: NodeId = figiran_engine::params::id_of(&r["id"]).unwrap();
     s.execute("select.none", &json!({})).unwrap();
     let mut u = Ui::new(s);
     let p = u.app.to_screen(250.0, 200.0);
@@ -50,7 +50,7 @@ fn double_clicking_a_selected_shape_enters_vector_edit_like_enter() {
 fn a_slower_double_click_still_edits_the_points() {
     let mut s = Session::new();
     let r = s.execute("shape.rectangle", &json!({"x": 100, "y": 100, "width": 200, "height": 200})).unwrap();
-    let r: NodeId = figcraft_engine::params::id_of(&r["id"]).unwrap();
+    let r: NodeId = figiran_engine::params::id_of(&r["id"]).unwrap();
     s.execute("select.set", &json!({"ids": [r]})).unwrap();
     let mut u = Ui::new(s);
     let p = u.app.to_screen(200.0, 200.0);
@@ -74,7 +74,7 @@ fn a_slower_double_click_still_edits_the_points() {
 fn double_clicking_an_unselected_shape_edits_its_points() {
     let mut s = Session::new();
     let r = s.execute("shape.rectangle", &json!({"x": 100, "y": 100, "width": 300, "height": 200})).unwrap();
-    let r: NodeId = figcraft_engine::params::id_of(&r["id"]).unwrap();
+    let r: NodeId = figiran_engine::params::id_of(&r["id"]).unwrap();
     s.execute("select.none", &json!({})).unwrap();
     let mut u = Ui::new(s);
     let p = u.app.to_screen(250.0, 200.0);
@@ -88,7 +88,7 @@ fn double_clicking_an_unselected_shape_edits_its_points() {
 fn a_double_click_on_empty_canvas_right_after_entering_leaves_vector_edit() {
     let mut s = Session::new();
     let r = s.execute("shape.rectangle", &json!({"x": 100, "y": 100, "width": 300, "height": 200})).unwrap();
-    let r: NodeId = figcraft_engine::params::id_of(&r["id"]).unwrap();
+    let r: NodeId = figiran_engine::params::id_of(&r["id"]).unwrap();
     s.execute("select.none", &json!({})).unwrap();
     let mut u = Ui::new(s);
     let shape = u.app.to_screen(250.0, 200.0);
@@ -104,7 +104,7 @@ fn a_double_click_on_empty_canvas_right_after_entering_leaves_vector_edit() {
 fn a_click_on_empty_canvas_keeps_vector_edit_until_a_double_click() {
     let mut s = Session::new();
     let r = s.execute("shape.rectangle", &json!({"x": 100, "y": 100, "width": 300, "height": 200})).unwrap();
-    let r: NodeId = figcraft_engine::params::id_of(&r["id"]).unwrap();
+    let r: NodeId = figiran_engine::params::id_of(&r["id"]).unwrap();
     s.execute("select.set", &json!({"ids": [r]})).unwrap();
     let mut u = Ui::new(s);
     let shape = u.app.to_screen(250.0, 200.0);
@@ -151,7 +151,7 @@ fn a_double_click_leaves_the_shape_tool_idle() {
 fn a_shift_double_click_keeps_the_selection_handles() {
     let mut s = Session::new();
     let r = s.execute("shape.rectangle", &json!({"x": 100, "y": 100, "width": 300, "height": 200})).unwrap();
-    let r = figcraft_engine::params::id_of(&r["id"]).unwrap();
+    let r = figiran_engine::params::id_of(&r["id"]).unwrap();
     s.execute("select.set", &json!({"ids": [r]})).unwrap();
     let mut u = Ui::new(s);
     let handles = |u: &Ui| u.app.inspect()["tool"]["shapeHandles"].as_array().map_or(0, Vec::len);

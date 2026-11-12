@@ -1,11 +1,11 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::io::{Cursor, Write};
 
-use figcraft_doc::color::{BlendMode, Color, Gradient, GradientKind, ImageScaleMode, Paint, PaintKind};
-use figcraft_doc::geom::kurbo::PathEl;
-use figcraft_doc::geom::{Affine, BezPath, Point};
-use figcraft_doc::proto::{Action, Direction, Easing, Interaction, OverlayPosition, Transition, Trigger};
-use figcraft_doc::{
+use figiran_doc::color::{BlendMode, Color, Gradient, GradientKind, ImageScaleMode, Paint, PaintKind};
+use figiran_doc::geom::kurbo::PathEl;
+use figiran_doc::geom::{Affine, BezPath, Point};
+use figiran_doc::proto::{Action, Direction, Easing, Interaction, OverlayPosition, Transition, Trigger};
+use figiran_doc::{
     BoolOp, CellAlign, ContentAlign, CrossAlign, Document, EffectKind, GridAlign, GridKind, GridTrack, HConstraint, LayoutMode, LetterSpacing,
     LineHeight, MainAlign, Node, NodeId, NodeKind, Sizing, StrokeAlign, StrokeCap, TextAlignH, TextAlignV, TextAutoResize, TextCase, TextDecoration,
     TextStyle, VConstraint, VariableType, VariableValue,
@@ -560,7 +560,7 @@ impl<'a> Exporter<'a> {
         let manifest = json!({
             "type": "penpot/export-files",
             "version": 1,
-            "generatedBy": format!("figcraft/{}", env!("CARGO_PKG_VERSION")),
+            "generatedBy": format!("figiran/{}", env!("CARGO_PKG_VERSION")),
             "refer": "penpot",
             "files": [{"id": self.file_id, "name": name, "features": file.get("features").cloned().unwrap_or(Value::Null)}],
             "relations": [],
@@ -698,10 +698,10 @@ impl<'a> Exporter<'a> {
                     .into_iter()
                     .map(|c| {
                         let child_op = self.node(c).and_then(|n| n.bool_op).unwrap_or(op);
-                        (figcraft_pathops::closed(&self.world_outline(c, depth + 1)), child_op)
+                        (figiran_pathops::closed(&self.world_outline(c, depth + 1)), child_op)
                     })
                     .collect();
-                match figcraft_pathops::boolean_ops(operands.iter().map(|(p, o)| (p, *o))) {
+                match figiran_pathops::boolean_ops(operands.iter().map(|(p, o)| (p, *o))) {
                     Ok(path) => path,
                     Err(_) => {
                         self.warn(format!("Boolean layer '{}' could not be flattened; its operands were exported as one path", node.name));
@@ -714,9 +714,9 @@ impl<'a> Exporter<'a> {
                 }
             }
             NodeKind::Vector { network } if node.fills.is_empty() || !node.strokes.is_empty() => {
-                self.doc.world_transform(id) * figcraft_doc::geometry::drawn_network(network, node.corners.smoothing).stroke_path()
+                self.doc.world_transform(id) * figiran_doc::geometry::drawn_network(network, node.corners.smoothing).stroke_path()
             }
-            _ => match figcraft_doc::geometry::shape_path(node) {
+            _ => match figiran_doc::geometry::shape_path(node) {
                 Some(p) => self.doc.world_transform(id) * p,
                 None => BezPath::new(),
             },
@@ -828,7 +828,7 @@ impl<'a> Exporter<'a> {
     /// A layer's fields as an auto layout child: its own, and the source's while its parent's layout
     /// is unchanged.
     fn item_fields(&mut self, node: &Node, parent_node: Option<&Node>, fields: &mut Map<String, Value>) {
-        if parent_node.and_then(|p| p.layout.as_ref()).is_some() || node.child_layout != figcraft_doc::ChildLayout::default() {
+        if parent_node.and_then(|p| p.layout.as_ref()).is_some() || node.child_layout != figiran_doc::ChildLayout::default() {
             self.child_layout(node, fields);
         }
         if let Some(parent) = parent_node
@@ -855,7 +855,7 @@ impl<'a> Exporter<'a> {
 
     /// A text layer's fields: its content (the source's while its text is unchanged) and how it grows;
     /// its fills are in the content.
-    fn text_fields(&mut self, node: &Node, text: &figcraft_doc::TextData, fields: &mut Map<String, Value>) {
+    fn text_fields(&mut self, node: &Node, text: &figiran_doc::TextData, fields: &mut Map<String, Value>) {
         fields.insert("fills".into(), json!([]));
         let unchanged = matches_fingerprint(node, "text", text_fingerprint(node));
         match (unchanged, source_value(node, "content")) {
@@ -1026,7 +1026,7 @@ impl<'a> Exporter<'a> {
             }
         };
         let open = typ == "path"
-            && figcraft_doc::geometry::stroke_geometry(node).is_some_and(|p| !p.elements().iter().any(|e| matches!(e, PathEl::ClosePath)));
+            && figiran_doc::geometry::stroke_geometry(node).is_some_and(|p| !p.elements().iter().any(|e| matches!(e, PathEl::ClosePath)));
         let alignment = match props.align {
             StrokeAlign::Inside => "inner",
             StrokeAlign::Center => "center",
@@ -1203,11 +1203,11 @@ impl<'a> Exporter<'a> {
         }
     }
 
-    fn grid_cells(&mut self, node: &Node, al: &figcraft_doc::AutoLayout, kids: &[NodeId], columns: usize) -> (Value, usize) {
+    fn grid_cells(&mut self, node: &Node, al: &figiran_doc::AutoLayout, kids: &[NodeId], columns: usize) -> (Value, usize) {
         let frame_id = self.ids.get(&node.id).cloned().unwrap_or_default();
         let flow: Vec<NodeId> =
             node.children.iter().copied().filter(|c| kids.contains(c) && self.node(*c).is_some_and(|n| !n.child_layout.absolute)).collect();
-        let (placed, rows) = figcraft_layout::grid_place(self.doc, al, &flow);
+        let (placed, rows) = figiran_layout::grid_place(self.doc, al, &flow);
         let mut taken = vec![vec![false; columns]; rows];
         let mut map = Map::new();
         let cell_align = |a: Option<CellAlign>| match a {
@@ -1326,7 +1326,7 @@ impl<'a> Exporter<'a> {
         out
     }
 
-    fn text_content(&mut self, node: &Node, text: &figcraft_doc::TextData) -> Value {
+    fn text_content(&mut self, node: &Node, text: &figiran_doc::TextData) -> Value {
         let align = match text.align_h {
             TextAlignH::Left => "left",
             TextAlignH::Center => "center",
@@ -1455,7 +1455,7 @@ impl<'a> Exporter<'a> {
                 out.insert("preserveScroll".into(), json!(preserve_scroll));
             }
             Action::OpenOverlay { dest, position, close_on_outside, background, offset, anchor } => {
-                if *anchor != figcraft_doc::proto::OverlayAnchor::Screen {
+                if *anchor != figiran_doc::proto::OverlayAnchor::Screen {
                     self.warn(format!("Overlay anchor on '{}' was approximated relative to the screen", node.name));
                 }
                 out.insert("actionType".into(), json!("open-overlay"));

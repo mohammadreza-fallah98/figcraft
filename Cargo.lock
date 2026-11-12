@@ -1790,7 +1790,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b97b65636e5b9ef369943878ac74335ba1c55c1cb6adbf1e2c293c624248d693"
 
 [[package]]
-name = "figcraft"
+name = "figiran"
 version = "0.18.1"
 dependencies = [
  "arboard",
@@ -1801,11 +1801,11 @@ dependencies = [
  "eframe",
  "egui",
  "env_logger",
- "figcraft-collab-net",
- "figcraft-engine",
- "figcraft-format",
- "figcraft-text",
- "figcraft-ui-egui",
+ "figiran-collab-net",
+ "figiran-engine",
+ "figiran-format",
+ "figiran-text",
+ "figiran-ui-egui",
  "fmv-macos-events",
  "image",
  "log",
@@ -1822,32 +1822,32 @@ dependencies = [
 ]
 
 [[package]]
-name = "figcraft-cli"
+name = "figiran-cli"
 version = "0.18.1"
 dependencies = [
  "clap",
  "clap_complete",
  "clap_mangen",
- "figcraft-doc",
- "figcraft-engine",
- "figcraft-format",
- "figcraft-mcp",
- "figcraft-render",
- "figcraft-svg",
- "figcraft-text",
+ "figiran-doc",
+ "figiran-engine",
+ "figiran-format",
+ "figiran-mcp",
+ "figiran-render",
+ "figiran-svg",
+ "figiran-text",
  "serde_json",
  "thiserror 2.0.21",
 ]
 
 [[package]]
-name = "figcraft-collab"
+name = "figiran-collab"
 version = "0.18.1"
 dependencies = [
  "base64 0.22.1",
  "chrono",
- "figcraft-color",
- "figcraft-doc",
- "figcraft-geom",
+ "figiran-color",
+ "figiran-doc",
+ "figiran-geom",
  "flate2",
  "imbl",
  "postcard",
@@ -1858,13 +1858,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "figcraft-collab-net"
+name = "figiran-collab-net"
 version = "0.18.1"
 dependencies = [
  "base64 0.22.1",
- "figcraft-collab",
- "figcraft-doc",
- "figcraft-engine",
+ "figiran-collab",
+ "figiran-doc",
+ "figiran-engine",
  "getrandom 0.4.3",
  "js-sys",
  "log",
@@ -1881,7 +1881,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "figcraft-color"
+name = "figiran-color"
 version = "0.18.1"
 dependencies = [
  "kurbo",
@@ -1890,11 +1890,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "figcraft-doc"
+name = "figiran-doc"
 version = "0.18.1"
 dependencies = [
- "figcraft-color",
- "figcraft-geom",
+ "figiran-color",
+ "figiran-geom",
  "imbl",
  "serde",
  "serde_json",
@@ -1903,7 +1903,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "figcraft-engine"
+name = "figiran-engine"
 version = "0.18.1"
 dependencies = [
  "base64 0.22.1",
@@ -1911,19 +1911,19 @@ dependencies = [
  "craft-font-catalog",
  "craft-font-store",
  "deunicode",
- "figcraft-collab",
- "figcraft-color",
- "figcraft-doc",
- "figcraft-format",
- "figcraft-geom",
- "figcraft-layout",
- "figcraft-pathops",
- "figcraft-pdf",
- "figcraft-plugin",
- "figcraft-render",
- "figcraft-svg",
- "figcraft-text",
- "figcraft-vectordrawable",
+ "figiran-collab",
+ "figiran-color",
+ "figiran-doc",
+ "figiran-format",
+ "figiran-geom",
+ "figiran-layout",
+ "figiran-pathops",
+ "figiran-pdf",
+ "figiran-plugin",
+ "figiran-render",
+ "figiran-svg",
+ "figiran-text",
+ "figiran-vectordrawable",
  "image",
  "log",
  "regex",
@@ -1937,12 +1937,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "figcraft-format"
+name = "figiran-format"
 version = "0.18.1"
 dependencies = [
- "figcraft-doc",
- "figcraft-layout",
- "figcraft-pathops",
+ "figiran-doc",
+ "figiran-layout",
+ "figiran-pathops",
  "flate2",
  "image",
  "ruzstd",
@@ -1954,7 +1954,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "figcraft-geom"
+name = "figiran-geom"
 version = "0.18.1"
 dependencies = [
  "kurbo",
@@ -1962,23 +1962,23 @@ dependencies = [
 ]
 
 [[package]]
-name = "figcraft-layout"
+name = "figiran-layout"
 version = "0.18.1"
 dependencies = [
- "figcraft-doc",
- "figcraft-geom",
+ "figiran-doc",
+ "figiran-geom",
 ]
 
 [[package]]
-name = "figcraft-mcp"
+name = "figiran-mcp"
 version = "0.18.1"
 dependencies = [
  "base64 0.22.1",
- "figcraft-collab-net",
- "figcraft-doc",
- "figcraft-engine",
- "figcraft-geom",
- "figcraft-render",
+ "figiran-collab-net",
+ "figiran-doc",
+ "figiran-engine",
+ "figiran-geom",
+ "figiran-render",
  "image",
  "log",
  "proptest",
@@ -1986,24 +1986,24 @@ dependencies = [
 ]
 
 [[package]]
-name = "figcraft-pathops"
+name = "figiran-pathops"
 version = "0.18.1"
 dependencies = [
- "figcraft-doc",
- "figcraft-geom",
+ "figiran-doc",
+ "figiran-geom",
  "linesweeper",
 ]
 
 [[package]]
-name = "figcraft-pdf"
+name = "figiran-pdf"
 version = "0.18.1"
 dependencies = [
- "figcraft-color",
- "figcraft-doc",
- "figcraft-geom",
- "figcraft-pathops",
- "figcraft-render",
- "figcraft-text",
+ "figiran-color",
+ "figiran-doc",
+ "figiran-geom",
+ "figiran-pathops",
+ "figiran-render",
+ "figiran-text",
  "flate2",
  "krilla",
  "log",
@@ -2012,10 +2012,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "figcraft-plugin"
+name = "figiran-plugin"
 version = "0.18.1"
 dependencies = [
- "figcraft-color",
+ "figiran-color",
  "serde",
  "serde_json",
  "sha2",
@@ -2025,7 +2025,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "figcraft-portal"
+name = "figiran-portal"
 version = "0.18.1"
 dependencies = [
  "base64 0.22.1",
@@ -2038,16 +2038,16 @@ dependencies = [
 ]
 
 [[package]]
-name = "figcraft-render"
+name = "figiran-render"
 version = "0.18.1"
 dependencies = [
  "crc32fast",
- "figcraft-color",
- "figcraft-doc",
- "figcraft-format",
- "figcraft-geom",
- "figcraft-pathops",
- "figcraft-text",
+ "figiran-color",
+ "figiran-doc",
+ "figiran-format",
+ "figiran-geom",
+ "figiran-pathops",
+ "figiran-text",
  "image",
  "log",
  "moxcms",
@@ -2057,19 +2057,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "figcraft-server"
+name = "figiran-server"
 version = "0.18.1"
 dependencies = [
  "chrono",
  "crc32fast",
  "ctrlc",
  "env_logger",
- "figcraft-collab",
- "figcraft-collab-net",
- "figcraft-doc",
- "figcraft-engine",
- "figcraft-format",
- "figcraft-plugin",
+ "figiran-collab",
+ "figiran-collab-net",
+ "figiran-doc",
+ "figiran-engine",
+ "figiran-format",
+ "figiran-plugin",
  "log",
  "rustix 1.1.5",
  "serde",
@@ -2082,29 +2082,29 @@ dependencies = [
 ]
 
 [[package]]
-name = "figcraft-svg"
+name = "figiran-svg"
 version = "0.18.1"
 dependencies = [
  "base64 0.22.1",
- "figcraft-color",
- "figcraft-doc",
- "figcraft-geom",
- "figcraft-pathops",
- "figcraft-render",
- "figcraft-text",
+ "figiran-color",
+ "figiran-doc",
+ "figiran-geom",
+ "figiran-pathops",
+ "figiran-render",
+ "figiran-text",
  "flate2",
  "thiserror 2.0.21",
  "usvg",
 ]
 
 [[package]]
-name = "figcraft-text"
+name = "figiran-text"
 version = "0.18.1"
 dependencies = [
  "core-text",
  "craft-font-catalog",
- "figcraft-doc",
- "figcraft-geom",
+ "figiran-doc",
+ "figiran-geom",
  "harfrust 0.13.3",
  "icu_segmenter",
  "log",
@@ -2116,7 +2116,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "figcraft-ui-egui"
+name = "figiran-ui-egui"
 version = "0.18.1"
 dependencies = [
  "base64 0.22.1",
@@ -2125,16 +2125,16 @@ dependencies = [
  "craft-update",
  "egui",
  "egui_extras",
- "figcraft-color",
- "figcraft-doc",
- "figcraft-engine",
- "figcraft-format",
- "figcraft-geom",
- "figcraft-layout",
- "figcraft-pathops",
- "figcraft-portal",
- "figcraft-render",
- "figcraft-text",
+ "figiran-color",
+ "figiran-doc",
+ "figiran-engine",
+ "figiran-format",
+ "figiran-geom",
+ "figiran-layout",
+ "figiran-pathops",
+ "figiran-portal",
+ "figiran-render",
+ "figiran-text",
  "image",
  "log",
  "serde",
@@ -2145,21 +2145,21 @@ dependencies = [
 ]
 
 [[package]]
-name = "figcraft-vectordrawable"
+name = "figiran-vectordrawable"
 version = "0.18.1"
 dependencies = [
- "figcraft-color",
- "figcraft-doc",
- "figcraft-geom",
- "figcraft-pathops",
- "figcraft-render",
- "figcraft-text",
+ "figiran-color",
+ "figiran-doc",
+ "figiran-geom",
+ "figiran-pathops",
+ "figiran-render",
+ "figiran-text",
  "roxmltree 0.21.2",
  "thiserror 2.0.21",
 ]
 
 [[package]]
-name = "figcraft-web"
+name = "figiran-web"
 version = "0.18.1"
 dependencies = [
  "base64 0.22.1",
@@ -2167,11 +2167,11 @@ dependencies = [
  "craft-web-host",
  "eframe",
  "egui",
- "figcraft-collab-net",
- "figcraft-engine",
- "figcraft-format",
- "figcraft-text",
- "figcraft-ui-egui",
+ "figiran-collab-net",
+ "figiran-engine",
+ "figiran-format",
+ "figiran-text",
+ "figiran-ui-egui",
  "js-sys",
  "log",
  "serde_json",
@@ -6886,7 +6886,7 @@ checksum = "9440ea3e5aeabb0ac63af70daf835274065238cdd0cec83418f417eae38bacee"
 name = "xtask"
 version = "0.18.1"
 dependencies = [
- "figcraft-engine",
+ "figiran-engine",
  "serde_json",
 ]
 

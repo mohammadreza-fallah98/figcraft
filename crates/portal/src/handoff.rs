@@ -1,6 +1,6 @@
 //! The note a login leaves for the other copy of the app.
 //!
-//! When the browser follows `figcraft://auth?code=…`, the system starts a *new* FigCraft process
+//! When the browser follows `figiran://auth?code=…`, the system starts a *new* FigIran process
 //! with that link (a running copy doesn't receive it). That copy has never seen the verifier, so
 //! the copy that pressed Log in leaves a note in the app's settings folder: the verifier (useless
 //! without the one-time code) and when it was made. The new copy reads it, trades the code, keeps

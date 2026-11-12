@@ -2,9 +2,9 @@
 
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use figcraft_color::{Color, Paint};
-use figcraft_doc::{Document, NodeKind, PrintSettings};
-use figcraft_pdf::{PdfOptions, export_pdf};
+use figiran_color::{Color, Paint};
+use figiran_doc::{Document, NodeKind, PrintSettings};
+use figiran_pdf::{PdfOptions, export_pdf};
 use std::io::Read;
 
 /// Every zlib stream of `pdf`, inflated and joined.

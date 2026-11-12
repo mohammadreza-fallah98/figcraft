@@ -7,12 +7,12 @@
 //! outer side, through the centre on the inner side) and capped. The result may overlap itself;
 //! fill it with the non-zero rule.
 
-use figcraft_doc::{StrokeCap, StrokeJoin, StrokeProps, WidthProfile};
-use figcraft_geom::kurbo::{self, BezPath, PathEl, Point, Shape as _, Vec2};
-use figcraft_geom::measure::FLATTEN_TOL;
+use figiran_doc::{StrokeCap, StrokeJoin, StrokeProps, WidthProfile};
+use figiran_geom::kurbo::{self, BezPath, PathEl, Point, Shape as _, Vec2};
+use figiran_geom::measure::FLATTEN_TOL;
 /// The most points the outline works with; longer paths fall back to a uniform stroke.
-pub use figcraft_geom::measure::MAX_SAMPLES as MAX_WIDTH_SAMPLES;
-pub use figcraft_geom::measure::{Polyline, polylines};
+pub use figiran_geom::measure::MAX_SAMPLES as MAX_WIDTH_SAMPLES;
+pub use figiran_geom::measure::{Polyline, polylines};
 
 /// Every subpath gets at least this many width samples, so the width varies smoothly along long
 /// straight runs.

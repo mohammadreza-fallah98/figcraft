@@ -4,8 +4,8 @@
 use std::time::Duration;
 
 use egui::{Align2, Color32, CornerRadius, Rect, RichText, Stroke, Ui, pos2, vec2};
-use figcraft_doc::BoardTimer;
-use figcraft_engine::cmd::facilitate::{self, BADGE_PX};
+use figiran_doc::BoardTimer;
+use figiran_engine::cmd::facilitate::{self, BADGE_PX};
 use serde_json::{Value, json};
 
 use crate::FigApp;
@@ -41,7 +41,7 @@ fn vote_view(app: &FigApp) -> VoteView {
 /// The pill at the top right of a board's canvas: the timer, then the vote.
 pub fn show(app: &mut FigApp, ctx: &egui::Context, canvas: Rect) {
     let Ok(doc) = app.session.doc() else { return };
-    if !figcraft_engine::board::is_board(doc) {
+    if !figiran_engine::board::is_board(doc) {
         return;
     }
     let timer = doc.timer;

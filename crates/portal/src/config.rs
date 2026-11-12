@@ -1,12 +1,12 @@
-//! Where the portal is: the address comes from the `FIGCRAFT_PORTAL_URL` environment variable, else
-//! from the value a build baked in (`FIGCRAFT_PORTAL_URL` at compile time); with neither, signing in
+//! Where the portal is: the address comes from the `FIGIRAN_PORTAL_URL` environment variable, else
+//! from the value a build baked in (`FIGIRAN_PORTAL_URL` at compile time); with neither, signing in
 //! is off. Nothing about the host is written in the code.
 
 /// The environment variable (and build-time variable) holding the portal's address.
-pub const ENV_BASE_URL: &str = "FIGCRAFT_PORTAL_URL";
+pub const ENV_BASE_URL: &str = "FIGIRAN_PORTAL_URL";
 
 /// The address a build baked in.
-pub const BUILD_BASE_URL: Option<&str> = option_env!("FIGCRAFT_PORTAL_URL");
+pub const BUILD_BASE_URL: Option<&str> = option_env!("FIGIRAN_PORTAL_URL");
 
 /// Why an address can't be used.
 #[derive(Clone, Debug, PartialEq, Eq)]

@@ -8,8 +8,8 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use egui::{Event, Key, Modifiers, Pos2, RawInput, Rect, vec2};
-use figcraft_doc::{Document, NodeId};
-use figcraft_engine::Session;
+use figiran_doc::{Document, NodeId};
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::{FigApp, NoServices};
@@ -24,12 +24,12 @@ struct Bench {
 
 impl Bench {
     fn new(layers: usize) -> Self {
-        let (doc, _) = figcraft_engine::synthetic::large_document(layers).unwrap();
+        let (doc, _) = figiran_engine::synthetic::large_document(layers).unwrap();
         Self::with_document(doc)
     }
 
     fn with_document(doc: Document) -> Self {
-        figcraft_text::scan_system_fonts();
+        figiran_text::scan_system_fonts();
         let mut b = Self { ctx: egui::Context::default(), app: FigApp::new(Session::with_document(doc), Box::new(NoServices)), time: 0.0 };
         // Fonts install on the first frame; the next ones lay out and settle.
         for _ in 0..4 {
@@ -177,9 +177,9 @@ fn a_layer_revealed_at_the_bottom_of_10k_layers_gets_the_keyboard_on_its_row() {
 
 /// The synthetic design system with `icons` icon components (plus its component sets) and
 /// `instances` instances using it.
-fn design_system(icons: usize, instances: usize) -> (Document, figcraft_engine::synthetic_ds::DesignSystem, Vec<NodeId>) {
-    let spec = figcraft_engine::synthetic_ds::DsSpec { icons, ..figcraft_engine::synthetic_ds::DsSpec::FULL };
-    figcraft_engine::synthetic_ds::design_system_with_instances(&spec, instances).unwrap()
+fn design_system(icons: usize, instances: usize) -> (Document, figiran_engine::synthetic_ds::DesignSystem, Vec<NodeId>) {
+    let spec = figiran_engine::synthetic_ds::DsSpec { icons, ..figiran_engine::synthetic_ds::DsSpec::FULL };
+    figiran_engine::synthetic_ds::design_system_with_instances(&spec, instances).unwrap()
 }
 
 /// Build a test mouse-wheel event for the given vertical delta.
@@ -217,7 +217,7 @@ fn report_components(icons: usize, instances: usize) {
     b.app.ui.left_tab = crate::LeftTab::File;
     let nav = inst.iter().copied().find(|i| {
         b.app.session.doc().ok().and_then(|d| match &d.node(*i)?.kind {
-            figcraft_doc::NodeKind::Instance { component, .. } => figcraft_engine::components::variant_set(d, *component),
+            figiran_doc::NodeKind::Instance { component, .. } => figiran_engine::components::variant_set(d, *component),
             _ => None,
         }) == Some(ds.nav)
     });
@@ -239,7 +239,7 @@ fn report_components(icons: usize, instances: usize) {
 #[test]
 #[ignore = "benchmark: cargo xtask bench"]
 fn perf_ui_frames() {
-    let sizes: Vec<usize> = std::env::var("FIGCRAFT_BENCH_LAYERS")
+    let sizes: Vec<usize> = std::env::var("FIGIRAN_BENCH_LAYERS")
         .ok()
         .map(|s| s.split(',').filter_map(|v| v.trim().parse().ok()).collect())
         .unwrap_or_else(|| vec![1000, 10_000]);

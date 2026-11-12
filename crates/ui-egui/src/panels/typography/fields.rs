@@ -19,7 +19,7 @@ pub(super) fn font_rows(
     apply_style: &dyn Fn(&mut FigApp, &str, Value),
 ) {
     let t = Tokens::get(ui.ctx());
-    let range = figcraft_engine::textedit::selected_range(&app.session);
+    let range = figiran_engine::textedit::selected_range(&app.session);
 
     // Font family.
     let family = uniform(styles, |s| s.font_family.clone());
@@ -38,7 +38,7 @@ pub(super) fn font_rows(
             }
             match &fam {
                 Some(fam) => {
-                    let list = figcraft_text::family_styles(fam);
+                    let list = figiran_text::family_styles(fam);
                     if list.is_empty() {
                         widgets::label(ui, tr("Font not installed"), t.text_tertiary);
                     }
@@ -222,7 +222,7 @@ fn apply_variable_item(ui: &mut Ui, ids: &[NodeId], field: &str, anchor: &egui::
 
 /// The font family field and its searchable menu (hovering a family previews it on the canvas).
 fn family_row(app: &mut FigApp, ui: &mut Ui, ids: &[NodeId], family: Option<&str>, editing: bool, apply_style: &dyn Fn(&mut FigApp, &str, Value)) {
-    let range = figcraft_engine::textedit::selected_range(&app.session);
+    let range = figiran_engine::textedit::selected_range(&app.session);
     let w = ui.available_width();
     let resp = font_dropdown(app, ui, ids, "fontFamily", family, w, editing);
     let offer = app.services.can_ask_for_local_fonts();
@@ -262,9 +262,9 @@ fn local_fonts_item(ui: &mut Ui) -> bool {
 }
 
 /// The variable font the shown styles use (one family, one variable face), if any.
-fn variable_face(styles: &[TextStyle]) -> Option<Arc<figcraft_text::Face>> {
+fn variable_face(styles: &[TextStyle]) -> Option<Arc<figiran_text::Face>> {
     let family = uniform(styles, |s| s.font_family.clone())?;
-    let face = figcraft_text::find_face(&family, &styles.first()?.font_style)?;
+    let face = figiran_text::find_face(&family, &styles.first()?.font_style)?;
     (face.is_variable() && face.family.eq_ignore_ascii_case(&family)).then_some(face)
 }
 
@@ -331,7 +331,7 @@ fn type_settings(
         }
         caption(ui, tr("List style"));
         // While editing: the selected paragraphs' list.
-        let range = figcraft_engine::textedit::selected_range(&app.session);
+        let range = figiran_engine::textedit::selected_range(&app.session);
         let list = common(doc, ids, |n| {
             n.kind.text().and_then(|t| {
                 let (a, b) = range.filter(|r| r.0 == n.id).map_or((0, t.char_count()), |(_, a, b)| (a, b));
@@ -402,7 +402,7 @@ fn type_settings(
         // is forced ("controls are available to override text direction per paragraph", Add
         // right-to-left text). While editing: the selected paragraphs.
         let has_direction =
-            |t: &TextData| figcraft_text::display::has_rtl(&t.characters) || t.paragraphs.iter().any(|p| p.direction != TextDirection::Auto);
+            |t: &TextData| figiran_text::display::has_rtl(&t.characters) || t.paragraphs.iter().any(|p| p.direction != TextDirection::Auto);
         if ids.iter().any(|i| doc.node(*i).and_then(|n| n.kind.text()).is_some_and(has_direction)) {
             caption(ui, tr("Text direction"));
             let dir = common(doc, ids, |n| {
@@ -459,7 +459,7 @@ fn type_settings(
         variable_axes(app, ui, ids, styles, face);
     } else {
         // Which features the font has (first style shown).
-        let face = uniform(styles, |s| (s.font_family.clone(), s.font_style.clone())).and_then(|(f, s)| figcraft_text::find_face(&f, &s));
+        let face = uniform(styles, |s| (s.font_family.clone(), s.font_style.clone())).and_then(|(f, s)| figiran_text::find_face(&f, &s));
         let face_name = face.as_ref().map(|f| format!("{} {}", f.family, f.style)).unwrap_or_else(|| tr("Mixed fonts").into());
         widgets::label(ui, &face_name, t.text_secondary);
         egui::ScrollArea::vertical().max_height(320.0).show(ui, |ui| {
@@ -538,7 +538,7 @@ fn decoration_details(app: &mut FigApp, ui: &mut Ui, styles: &[TextStyle], apply
             let s = s.trim();
             if s.is_empty() || s.eq_ignore_ascii_case("auto") {
                 apply_style(app, "textDecorationColor", json!("auto"));
-            } else if let Some(c) = figcraft_color::Color::parse_css(s).or_else(|| figcraft_color::Color::from_hex(s)) {
+            } else if let Some(c) = figiran_color::Color::parse_css(s).or_else(|| figiran_color::Color::from_hex(s)) {
                 apply_style(app, "textDecorationColor", json!(format!("#{}", c.to_hex())));
             } else {
                 app.toast(trf("{value} isn't a colour", &[("value", &s)]));

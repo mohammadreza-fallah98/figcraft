@@ -2,7 +2,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use figcraft_doc::{Document, NodeId};
+use figiran_doc::{Document, NodeId};
 
 use crate::change::{Change, Json, Prop};
 use crate::frac::{self, FIRST_KEY, KEY_RESPACE_LEN};
@@ -213,7 +213,7 @@ fn increasing_run(keys: &[Option<&str>]) -> Vec<bool> {
 #[cfg(test)]
 mod depth_tests {
     use super::*;
-    use figcraft_doc::NodeKind;
+    use figiran_doc::NodeKind;
 
     #[test]
     fn a_chain_longer_than_a_fixed_bound_is_walked_whole() {

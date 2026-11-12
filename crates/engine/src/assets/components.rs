@@ -33,10 +33,10 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use figcraft_doc::{
+use figiran_doc::{
     ChildLayout, ContentAlign, CrossAlign, DocError, Document, MainAlign, Node, NodeId, NodeKind, PropDef, Sizing, TextAutoResize, TextData,
 };
-use figcraft_geom::Affine;
+use figiran_geom::Affine;
 use serde_json::Value;
 
 mod cycles;
@@ -288,11 +288,11 @@ pub fn default_props(comp: &Node) -> BTreeMap<String, Value> {
     out
 }
 
-/// Component `c`'s property definitions, in the order they show ([`figcraft_doc::ordered_props`]).
+/// Component `c`'s property definitions, in the order they show ([`figiran_doc::ordered_props`]).
 pub fn prop_list(doc: &Document, c: NodeId) -> Vec<(String, PropDef)> {
     match doc.node(c).map(|n| &n.kind) {
         Some(NodeKind::Component { props, prop_order, .. }) => {
-            figcraft_doc::ordered_props(props, prop_order).into_iter().map(|(k, d)| (k.clone(), d.clone())).collect()
+            figiran_doc::ordered_props(props, prop_order).into_iter().map(|(k, d)| (k.clone(), d.clone())).collect()
         }
         _ => Vec::new(),
     }

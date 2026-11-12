@@ -1,5 +1,5 @@
 use super::*;
-use figcraft_geom::Point;
+use figiran_geom::Point;
 
 fn page(doc: &Document) -> NodeId {
     doc.first_page().unwrap()
@@ -133,9 +133,9 @@ fn region_paints_participate_in_colors_images_and_pattern_remapping() {
     let source = d.create(group, NodeKind::Rectangle, "Source", 0.0, 0.0, 4.0, 4.0).unwrap();
     let mut network = VectorNetwork::from_points(&[Point::new(0.0, 0.0), Point::new(20.0, 0.0), Point::new(20.0, 20.0), Point::new(0.0, 20.0)], true);
     network.regions[0].fills = Some(vec![
-        figcraft_color::Paint::solid(figcraft_color::Color::from_hex("FF0000").unwrap()),
-        figcraft_color::Paint::image("region-image", figcraft_color::ImageScaleMode::Fill),
-        figcraft_color::Paint::pattern(source.0),
+        figiran_color::Paint::solid(figiran_color::Color::from_hex("FF0000").unwrap()),
+        figiran_color::Paint::image("region-image", figiran_color::ImageScaleMode::Fill),
+        figiran_color::Paint::pattern(source.0),
     ]);
     let vector = d.create(group, NodeKind::Vector { network }, "Vector", 0.0, 0.0, 20.0, 20.0).unwrap();
     assert!(used_images(&d).contains("region-image"));
@@ -144,13 +144,13 @@ fn region_paints_participate_in_colors_images_and_pattern_remapping() {
     let copied_source = copied_children[0];
     let copied_vector = d.node(copied_children[1]).unwrap();
     let NodeKind::Vector { network } = &copied_vector.kind else { panic!() };
-    let figcraft_color::PaintKind::Pattern(pattern) = &network.regions[0].fills.as_ref().unwrap()[2].kind else { panic!() };
+    let figiran_color::PaintKind::Pattern(pattern) = &network.regions[0].fills.as_ref().unwrap()[2].kind else { panic!() };
     assert_eq!(pattern.source, copied_source.0);
 
-    let red = figcraft_color::Color::from_hex("FF0000").unwrap();
-    d.map_colors(|c| if c == red { figcraft_color::Color::BLACK } else { c });
+    let red = figiran_color::Color::from_hex("FF0000").unwrap();
+    d.map_colors(|c| if c == red { figiran_color::Color::BLACK } else { c });
     let NodeKind::Vector { network } = &d.node(vector).unwrap().kind else { panic!() };
-    assert_eq!(network.regions[0].fills.as_ref().unwrap()[0].solid_color(), Some(figcraft_color::Color::BLACK));
+    assert_eq!(network.regions[0].fills.as_ref().unwrap()[0].solid_color(), Some(figiran_color::Color::BLACK));
 }
 
 #[test]
@@ -229,13 +229,13 @@ fn text_case() {
 #[test]
 fn vector_network_paths() {
     let net = VectorNetwork::from_points(&[Point::new(0.0, 0.0), Point::new(10.0, 0.0), Point::new(10.0, 10.0)], true);
-    use figcraft_geom::Shape;
+    use figiran_geom::Shape;
     assert!((net.fill_path().area().abs() - 50.0).abs() < 1e-9);
     let open = VectorNetwork::from_points(&[Point::new(0.0, 0.0), Point::new(10.0, 0.0), Point::new(10.0, 10.0)], false);
     assert!(open.fill_path().elements().is_empty());
     assert_eq!(open.stroke_path().segments().count(), 2);
     // Round-trip a bezier path.
-    let rr = figcraft_geom::rounded_rect(40.0, 20.0, [5.0; 4], 0.0);
+    let rr = figiran_geom::rounded_rect(40.0, 20.0, [5.0; 4], 0.0);
     let n2 = VectorNetwork::from_path(&rr);
     assert!((n2.fill_path().area() - rr.area()).abs() < 1e-6);
     let mut bad = VectorNetwork {
@@ -645,7 +645,7 @@ fn text_insert_at_run_boundary_keeps_runs_disjoint() {
 fn many_small_vector_subpaths_build_and_stroke_without_rescans() {
     // Many closed subpaths whose last point repeats the start (#F-332), a long open chain (#F-334)
     // and a big rounded polygon (#F-333): each used to scan the whole network per step.
-    let mut p = figcraft_geom::kurbo::BezPath::new();
+    let mut p = figiran_geom::kurbo::BezPath::new();
     for i in 0..3_000 {
         let x = f64::from(i) * 10.0;
         p.move_to((x, 0.0));
@@ -712,15 +712,15 @@ fn rounded_square(radii: [f64; 4]) -> VectorNetwork {
 }
 
 /// The area a closed path encloses, whichever way it runs.
-fn area_of(p: &figcraft_geom::BezPath) -> f64 {
-    use figcraft_geom::Shape;
+fn area_of(p: &figiran_geom::BezPath) -> f64 {
+    use figiran_geom::Shape;
     p.area().abs()
 }
 
 #[test]
 fn closed_vectors_smooth_each_rounded_point_with_its_own_radius() {
-    use figcraft_geom::Shape;
-    use figcraft_geom::kurbo::{ParamCurve, ParamCurveArclen, ParamCurveNearest};
+    use figiran_geom::Shape;
+    use figiran_geom::kurbo::{ParamCurve, ParamCurveArclen, ParamCurveNearest};
     // (point radii, smoothing, derivation): a closed square draws the smoothed rectangle's corners,
     // each point keeping its own radius and a point without one staying sharp.
     let rows: Vec<([f64; 4], f64, &str)> = vec![
@@ -733,7 +733,7 @@ fn closed_vectors_smooth_each_rounded_point_with_its_own_radius() {
         let net = rounded_square(radii);
         let smoothed = net.rounded_smoothed(s).unwrap().fill_path();
         // The rectangle's corners take [top left, top right, bottom right, bottom left] radii.
-        let want = area_of(&figcraft_geom::rounded_rect(100.0, 100.0, radii, s));
+        let want = area_of(&figiran_geom::rounded_rect(100.0, 100.0, radii, s));
         let got = area_of(&smoothed);
         assert!((got - want).abs() < 0.1, "{why}: {got} vs the smoothed rectangle's {want}");
         assert!((got - area_of(&net.fill_path())).abs() > 1.0, "{why}: smoothing changes the outline");
@@ -789,7 +789,7 @@ fn corner_smoothing_leaves_open_paths_and_zero_alone() {
 
 #[test]
 fn smoothed_vector_corners_stay_finite_on_awkward_networks() {
-    use figcraft_geom::Shape;
+    use figiran_geom::Shape;
     // A concave L, a square with a square hole, points with unusable radii and a loop that names a
     // missing segment.
     let l = [(0.0, 0.0), (100.0, 0.0), (100.0, 40.0), (40.0, 40.0), (40.0, 100.0), (0.0, 100.0)];
@@ -853,8 +853,8 @@ fn clicks_on_a_smoothed_vector_corner_follow_the_drawn_fill() {
 /// lists its segments and whichever way each one runs (#1951, #1506).
 #[test]
 fn a_chamfered_rectangles_rounded_fill_is_cut_at_every_point() {
-    use figcraft_geom::BezPath;
-    use figcraft_geom::kurbo::{ParamCurveArclen, ParamCurveNearest};
+    use figiran_geom::BezPath;
+    use figiran_geom::kurbo::{ParamCurveArclen, ParamCurveNearest};
     let corners = [Point::new(0.0, 0.0), Point::new(50.0, 0.0), Point::new(100.0, 50.0), Point::new(100.0, 100.0), Point::new(0.0, 100.0)];
     let keeps_off = |path: &BezPath, p: Point| path.segments().map(|s| s.nearest(p, 1e-9).distance_sq.sqrt()).fold(f64::INFINITY, f64::min);
     let length = |path: &BezPath| path.segments().map(|s| s.arclen(1e-9)).sum::<f64>();

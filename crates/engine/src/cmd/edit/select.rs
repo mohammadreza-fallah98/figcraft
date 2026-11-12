@@ -8,7 +8,7 @@ pub(super) fn layers_at(s: &mut Session, p: &Value) -> Result<Value> {
     let zoom = s.ds()?.view.zoom.max(1e-6);
     let sel = s.selection();
     let result = crate::booleans::result_outline(doc, &sel);
-    let layers: Vec<Value> = figcraft_doc::geometry::layers_at(doc, s.page()?, figcraft_geom::Point::new(x, y), 2.0 / zoom, Some(&result))
+    let layers: Vec<Value> = figiran_doc::geometry::layers_at(doc, s.page()?, figiran_geom::Point::new(x, y), 2.0 / zoom, Some(&result))
         .into_iter()
         .filter_map(|(id, depth)| doc.node(id).map(|n| json!({"id": id, "name": n.name, "type": n.kind.type_name(), "depth": depth})))
         .collect();
@@ -49,8 +49,8 @@ pub(super) fn select_area(s: &mut Session, p: &Value) -> Result<Value> {
     if ![x, y, w, h].iter().all(|v| v.is_finite() && v.abs() < 1e9) {
         return Err(bad(cmd, "the box is out of range"));
     }
-    let start = figcraft_geom::Point::new(x, y);
-    let r = figcraft_geom::Rect::from_points(start, figcraft_geom::Point::new(x + w, y + h));
+    let start = figiran_geom::Point::new(x, y);
+    let r = figiran_geom::Rect::from_points(start, figiran_geom::Point::new(x + w, y + h));
     let add = boolean(p, "add") == Some(true);
     let base = if add { s.selection() } else { Vec::new() };
     let within = s.marquee_within(start)?;

@@ -3,8 +3,8 @@
 //! edit, a new selection or another tool is.
 
 use egui::{Event, Pos2};
-use figcraft_doc::NodeId;
-use figcraft_engine::Session;
+use figiran_doc::NodeId;
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::layers_drag_tests::Ui;
@@ -13,7 +13,7 @@ use crate::layers_drag_tests::Ui;
 fn two_rectangles() -> (Ui, NodeId, NodeId) {
     let mut s = Session::new();
     let mut make = |x| {
-        figcraft_engine::params::id_of(&s.execute("shape.rectangle", &json!({"x": x, "y": 100, "width": 200, "height": 200})).unwrap()["id"]).unwrap()
+        figiran_engine::params::id_of(&s.execute("shape.rectangle", &json!({"x": x, "y": 100, "width": 200, "height": 200})).unwrap()["id"]).unwrap()
     };
     let (a, b) = (make(100), make(400));
     s.execute("select.none", &json!({})).unwrap();

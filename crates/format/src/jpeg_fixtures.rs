@@ -1,5 +1,5 @@
 // Synthetic JPEGs for the header check in `jpeg.rs`, shared by its tests here and the decoder
-// tests in `figcraft-render` (`include!`d by both).
+// tests in `figiran-render` (`include!`d by both).
 
 /// An 8 × 8 progressive RGB JPEG with every component sampled 1 × 1, as jpeg-encoder 0.6 writes it
 /// at quality 50 (JFIF header, the standard tables, three scans). Its frame header (SOF2) starts at

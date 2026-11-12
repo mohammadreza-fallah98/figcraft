@@ -1,6 +1,6 @@
 use super::*;
-use figcraft_color::{Color, Paint};
-use figcraft_doc::{Document, Effect, NodeKind, Region, Segment, VectorNetwork, Vertex, WindingRule};
+use figiran_color::{Color, Paint};
+use figiran_doc::{Document, Effect, NodeKind, Region, Segment, VectorNetwork, Vertex, WindingRule};
 
 #[test]
 fn export_basic_shapes() {
@@ -64,9 +64,9 @@ fn import_rejects_garbage() {
 
 #[test]
 fn region_gradient_export_keeps_the_original_paint_box() {
-    use figcraft_color::{Gradient, GradientKind};
-    use figcraft_doc::RegionPaintSpace;
-    use figcraft_geom::{Affine, Rect, Shape};
+    use figiran_color::{Gradient, GradientKind};
+    use figiran_doc::RegionPaintSpace;
+    use figiran_geom::{Affine, Rect, Shape};
     let mut d = Document::new("region gradient");
     let page = d.first_page().unwrap();
     let mut network = VectorNetwork::from_path(&Rect::new(20.0, 10.0, 80.0, 40.0).to_path(0.1));
@@ -131,9 +131,9 @@ fn nested_frame_paint_is_clipped_in_page_space() {
 }
 
 /// "ab" in black with a green second character, as outlines and as live text.
-fn two_colour_text() -> (Document, figcraft_doc::NodeId) {
-    use figcraft_doc::{StyleRun, TextData};
-    figcraft_text::scan_system_fonts();
+fn two_colour_text() -> (Document, figiran_doc::NodeId) {
+    use figiran_doc::{StyleRun, TextData};
+    figiran_text::scan_system_fonts();
     let mut d = Document::new("t");
     let page = d.first_page().unwrap();
     let mut text = TextData::new("ab");
@@ -165,8 +165,8 @@ fn text_run_fill_survives_live_text_export() {
 
 #[test]
 fn title_case_does_not_restart_words_across_fill_runs_in_live_text() {
-    use figcraft_doc::{StyleRun, TextCase, TextData};
-    figcraft_text::scan_system_fonts();
+    use figiran_doc::{StyleRun, TextCase, TextData};
+    figiran_text::scan_system_fonts();
     let mut d = Document::new("t");
     let page = d.first_page().unwrap();
     let mut text = TextData::new("hello");
@@ -186,8 +186,8 @@ fn title_case_does_not_restart_words_across_fill_runs_in_live_text() {
 /// live-text export must leave them out so the SVG still parses, for plain and per-run spans.
 #[test]
 fn live_text_export_drops_xml_forbidden_control_characters() {
-    use figcraft_doc::{StyleRun, TextData};
-    figcraft_text::scan_system_fonts();
+    use figiran_doc::{StyleRun, TextData};
+    figiran_text::scan_system_fonts();
     for styled in [false, true] {
         let mut d = Document::new("t");
         let page = d.first_page().unwrap();
@@ -214,8 +214,8 @@ fn live_text_export_drops_xml_forbidden_control_characters() {
 /// out too, whatever text itself does, so the file parses.
 #[test]
 fn ids_and_font_families_drop_xml_forbidden_control_characters() {
-    use figcraft_doc::TextData;
-    figcraft_text::scan_system_fonts();
+    use figiran_doc::TextData;
+    figiran_text::scan_system_fonts();
     let forbidden = ['\u{0}', '\u{1}', '\u{8}', '\u{b}', '\u{c}', '\u{e}', '\u{1f}', '\u{fffe}', '\u{ffff}'];
     let junk: String = forbidden.iter().flat_map(|c| ['x', *c]).collect();
     let mut d = Document::new("t");
@@ -236,27 +236,27 @@ fn ids_and_font_families_drop_xml_forbidden_control_characters() {
 #[test]
 fn side_strokes_on_rounded_corners_export_as_their_area() {
     // border-l-4 rounded-r-lg: the stroke path is the 4 px bar (60 px tall), drawn even-odd.
-    use figcraft_geom::Shape;
+    use figiran_geom::Shape;
     let mut d = Document::new("t");
     let p = d.first_page().unwrap();
     let f = d.create(p, NodeKind::Frame, "F", 0.0, 0.0, 120.0, 60.0).unwrap();
     let n = d.get_mut(f).unwrap();
     n.corners.radii = [0.0, 8.0, 8.0, 0.0];
     n.strokes = vec![Paint::solid(Color::from_hex("FF0000").unwrap())];
-    n.stroke.align = figcraft_doc::StrokeAlign::Inside;
+    n.stroke.align = figiran_doc::StrokeAlign::Inside;
     n.stroke.sides = Some([0.0, 0.0, 0.0, 4.0]);
     let svg = export_svg(&d, &[f], &SvgOptions::default()).unwrap();
     let stroke = svg.split("<path").find(|e| e.contains("#FF0000")).unwrap();
     assert!(stroke.contains("fill-rule=\"evenodd\""), "{stroke}");
     let data = stroke.split("d=\"").nth(1).and_then(|s| s.split('"').next()).unwrap();
-    let area = figcraft_geom::BezPath::from_svg(data).unwrap().area().abs();
+    let area = figiran_geom::BezPath::from_svg(data).unwrap().area().abs();
     assert!((area - 240.0).abs() < 0.01, "{area}");
 }
 
 #[test]
 fn point_joins_equal_to_the_layer_join_keep_a_plain_stroke() {
-    use figcraft_doc::{StrokeJoin, VectorNetwork};
-    use figcraft_geom::kurbo::Point;
+    use figiran_doc::{StrokeJoin, VectorNetwork};
+    use figiran_geom::kurbo::Point;
     let svg_with = |join: StrokeJoin| {
         let mut network = VectorNetwork::from_points(&[Point::new(0.0, 0.0), Point::new(50.0, 50.0), Point::new(100.0, 0.0)], false);
         for v in &mut network.vertices {
@@ -329,7 +329,7 @@ fn a_filled_open_curve_is_closed_for_its_fill() {
     let p = d.first_page().unwrap();
     let svg = r##"<svg xmlns="http://www.w3.org/2000/svg" width="100" height="50"><path fill="#000000" d="M0 0C0 50 100 50 100 0"/></svg>"##;
     import_svg(&mut d, svg.as_bytes(), p, 0.0, 0.0, "x").unwrap();
-    let loops = |n: &figcraft_doc::Node| match &n.kind {
+    let loops = |n: &figiran_doc::Node| match &n.kind {
         NodeKind::Vector { network } => network.regions.iter().map(|r| r.loops.len()).sum::<usize>(),
         _ => 0,
     };
@@ -363,20 +363,20 @@ fn dashed(kind: NodeKind, dashes: Vec<f64>) -> String {
     let node = d.get_mut(n).unwrap();
     node.fills.clear();
     node.strokes = vec![Paint::solid(Color::from_hex("000000").unwrap())];
-    node.stroke.align = figcraft_doc::StrokeAlign::Center;
+    node.stroke.align = figiran_doc::StrokeAlign::Center;
     node.stroke.dashes = dashes;
     export_svg(&d, &[n], &SvgOptions { simplify_stroke: true, ..SvgOptions::default() }).unwrap()
 }
 
 /// The `stroke-linecap` a dashed or solid line with a round start cap and `dash_cap` writes.
-fn linecap(dashes: Vec<f64>, dash_cap: Option<figcraft_doc::StrokeCap>) -> Option<String> {
+fn linecap(dashes: Vec<f64>, dash_cap: Option<figiran_doc::StrokeCap>) -> Option<String> {
     let mut d = Document::new("dash cap");
     let p = d.first_page().unwrap();
     let n = d.create(p, NodeKind::Line, "Line", 0.0, 0.0, 100.0, 0.0).unwrap();
     let node = d.get_mut(n).unwrap();
     node.strokes = vec![Paint::solid(Color::from_hex("000000").unwrap())];
-    node.stroke.align = figcraft_doc::StrokeAlign::Center;
-    (node.stroke.cap_start, node.stroke.cap_end) = (figcraft_doc::StrokeCap::Round, figcraft_doc::StrokeCap::Round);
+    node.stroke.align = figiran_doc::StrokeAlign::Center;
+    (node.stroke.cap_start, node.stroke.cap_end) = (figiran_doc::StrokeCap::Round, figiran_doc::StrokeCap::Round);
     (node.stroke.dashes, node.stroke.dash_cap) = (dashes, dash_cap);
     let svg = export_svg(&d, &[n], &SvgOptions { simplify_stroke: true, ..SvgOptions::default() }).unwrap();
     assert!(svg.contains("stroke-width"), "a stroke, not an outline: {svg}");
@@ -385,7 +385,7 @@ fn linecap(dashes: Vec<f64>, dash_cap: Option<figcraft_doc::StrokeCap>) -> Optio
 
 #[test]
 fn a_dash_cap_writes_the_line_cap_of_a_dashed_stroke() {
-    use figcraft_doc::StrokeCap::{None as Butt, Square};
+    use figiran_doc::StrokeCap::{None as Butt, Square};
     assert_eq!(linecap(vec![4.0, 4.0], None).as_deref(), Some("round"), "unset: the end point cap");
     assert_eq!(linecap(vec![4.0, 4.0], Some(Square)).as_deref(), Some("square"));
     assert_eq!(linecap(vec![4.0, 4.0], Some(Butt)), None);
@@ -435,7 +435,7 @@ fn an_exported_dashed_line_opens_as_the_same_line() {
 /// stroke inside or outside exports as a stroke, the same as the forward one's.
 #[test]
 fn a_whole_ellipse_drawn_backwards_keeps_its_simple_stroke() {
-    let export = |sweep: f64, align: figcraft_doc::StrokeAlign| {
+    let export = |sweep: f64, align: figiran_doc::StrokeAlign| {
         let mut d = Document::new("backwards");
         let p = d.first_page().unwrap();
         let n = d.create(p, NodeKind::Ellipse { start: 0.0, sweep, inner: 0.0 }, "Ellipse", 0.0, 0.0, 100.0, 60.0).unwrap();
@@ -445,7 +445,7 @@ fn a_whole_ellipse_drawn_backwards_keeps_its_simple_stroke() {
         (node.stroke.weight, node.stroke.align) = (8.0, align);
         export_svg(&d, &[n], &SvgOptions { simplify_stroke: true, ..SvgOptions::default() }).unwrap()
     };
-    for align in [figcraft_doc::StrokeAlign::Inside, figcraft_doc::StrokeAlign::Outside] {
+    for align in [figiran_doc::StrokeAlign::Inside, figiran_doc::StrokeAlign::Outside] {
         let (forwards, backwards) = (export(std::f64::consts::TAU, align), export(-std::f64::consts::TAU, align));
         assert!(forwards.contains("stroke-width=\"8\""), "{align:?}: {forwards}");
         assert_eq!(backwards, forwards, "{align:?}");

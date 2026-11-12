@@ -1,4 +1,4 @@
-use figcraft_engine::Session;
+use figiran_engine::Session;
 use serde_json::{Value, json};
 
 fn rectangle(s: &mut Session, x: f64) -> Value {

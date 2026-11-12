@@ -2,8 +2,8 @@
 //! morphology filter), negative spread and inner shadows cut with masks; layers without one outline
 //! keep the morphology filter. Every export stays valid SVG.
 
-use figcraft_color::{Color, Paint};
-use figcraft_doc::{Document, Effect, EffectKind, NodeId, NodeKind, Shadow};
+use figiran_color::{Color, Paint};
+use figiran_doc::{Document, Effect, EffectKind, NodeId, NodeKind, Shadow};
 
 use super::*;
 
@@ -89,8 +89,8 @@ fn hostile_shadow_values_still_export() {
 /// skewed one further across than down.
 #[test]
 fn a_scaled_spread_shadow_keeps_its_filter_room() {
-    use figcraft_doc::SPREAD_MITER_LIMIT;
-    use figcraft_geom::{Affine, kurbo};
+    use figiran_doc::SPREAD_MITER_LIMIT;
+    use figiran_geom::{Affine, kurbo};
     let star = NodeKind::Star { count: 5, inner_ratio: 0.4 };
     let s =
         Shadow { color: Color::from_hex("000000").unwrap(), offset: (6.0, -9.0), radius: 4.0, spread: 10.0, show_behind: true, ..Default::default() };
@@ -114,14 +114,14 @@ fn a_scaled_spread_shadow_keeps_its_filter_room() {
         // What the shadow paints, as the renderer draws it: the outline stroked twice the spread
         // wide with mitred joins, through the node's transform, moved by the offset (in the
         // export's frame, which starts at the node's export bounds) and blurred.
-        let bounds = figcraft_render::export_bounds(&d, n).unwrap();
+        let bounds = figiran_render::export_bounds(&d, n).unwrap();
         let at = Affine::translate((s.offset.0 - bounds.x0, s.offset.1 - bounds.y0)) * d.world_transform(n);
-        let shape = figcraft_render::node_outline(&d, d.get(n).unwrap()).unwrap();
+        let shape = figiran_render::node_outline(&d, d.get(n).unwrap()).unwrap();
         let stroke = kurbo::Stroke::new(s.spread * 2.0).with_join(kurbo::Join::Miter).with_miter_limit(SPREAD_MITER_LIMIT);
         let mut grown = kurbo::stroke(shape.0.iter(), &stroke, &Default::default(), 0.01);
         grown.apply_affine(at);
         let blur = s.radius * 1.5;
-        let painted = figcraft_geom::Shape::bounding_box(&grown).inflate(blur, blur);
+        let painted = figiran_geom::Shape::bounding_box(&grown).inflate(blur, blur);
         assert!(region.union(painted) == region, "{why}: the filter {region:?} cuts the shadow at {painted:?}");
     }
 }

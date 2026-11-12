@@ -1,8 +1,8 @@
-//! The link the browser hands back: `figcraft://auth?code=<one-time code>`. The system gives the
-//! app any `figcraft:` link that is followed, so this only accepts the exact shape and a code made
+//! The link the browser hands back: `figiran://auth?code=<one-time code>`. The system gives the
+//! app any `figiran:` link that is followed, so this only accepts the exact shape and a code made
 //! of the characters the portal issues (base64url); anything else is refused, never guessed at.
 
-/// What `figcraft://auth` carried.
+/// What `figiran://auth` carried.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum AuthLink {
     /// The one-time code to exchange (with the verifier) for a session.
@@ -12,9 +12,9 @@ pub enum AuthLink {
 /// Why a link isn't a usable auth callback.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum LinkError {
-    /// A `figcraft:` link for something else (`figcraft://join?…`) or not a link at all.
+    /// A `figiran:` link for something else (`figiran://join?…`) or not a link at all.
     NotAuthLink,
-    /// `figcraft://auth` without a `code`.
+    /// `figiran://auth` without a `code`.
     MissingCode,
     /// A `code` that is empty, too long or has characters the portal never issues.
     BadCode,
@@ -23,16 +23,16 @@ pub enum LinkError {
 /// The longest code accepted (the portal's are 43 characters).
 const MAX_CODE: usize = 256;
 
-/// The text after `figcraft://auth` when `link` is an auth link (`figcraft:` in any case).
+/// The text after `figiran://auth` when `link` is an auth link (`figiran:` in any case).
 fn auth_rest(link: &str) -> Option<&str> {
     let link = link.trim();
-    let rest = link.get(..9).filter(|s| s.eq_ignore_ascii_case("figcraft:")).and(link.get(9..))?;
+    let rest = link.get(..8).filter(|s| s.eq_ignore_ascii_case("figiran:")).and(link.get(8..))?;
     let rest = rest.strip_prefix("//")?;
     let rest = rest.get(..4).filter(|s| s.eq_ignore_ascii_case("auth")).and(rest.get(4..))?;
     matches!(rest.chars().next(), None | Some('?' | '/' | '#')).then_some(rest)
 }
 
-/// `link` is a `figcraft://auth` link (with or without a usable code).
+/// `link` is a `figiran://auth` link (with or without a usable code).
 pub fn is_auth_link(link: &str) -> bool {
     auth_rest(link).is_some()
 }

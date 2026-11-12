@@ -6,7 +6,7 @@
 use std::sync::{Arc, Mutex};
 
 use egui::{Event, Key, Modifiers, Pos2, pos2, vec2};
-use figcraft_engine::Session;
+use figiran_engine::Session;
 use serde_json::{Value, json};
 
 use crate::comments::{cluster, insert_mention, mention_matches, mention_query, start_draft};

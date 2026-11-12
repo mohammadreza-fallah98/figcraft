@@ -3,8 +3,8 @@
 
 use std::sync::{Arc, Mutex};
 
-use figcraft_collab::message::{ClientMsg, LibraryReply, LibraryReq};
-use figcraft_doc::{Document, LibraryLink};
+use figiran_collab::message::{ClientMsg, LibraryReply, LibraryReq};
+use figiran_doc::{Document, LibraryLink};
 use serde_json::json;
 
 use crate::live::{Event, HostOptions, LiveLink, NetRequest, Presence, SessionInfo};
@@ -62,8 +62,8 @@ impl LiveLink for Link {
 fn opened(prefs: Prefs, tag: &str) -> (Session, Arc<Mutex<Wire>>, std::path::PathBuf) {
     let mut d = Document::new("Someone else's file");
     d.libraries_mut().enabled.push(LibraryLink { id: "lib".into(), name: "Kit".into(), path: LINK.into(), version: 3 });
-    let path = std::env::temp_dir().join(format!("figcraft-beacon-{}-{tag}.figcraft", std::process::id()));
-    std::fs::write(&path, figcraft_format::save_bytes(&d, None).unwrap()).unwrap();
+    let path = std::env::temp_dir().join(format!("figiran-beacon-{}-{tag}.figiran", std::process::id()));
+    std::fs::write(&path, figiran_format::save_bytes(&d, None).unwrap()).unwrap();
     let mut s = Session::new();
     s.prefs = prefs;
     let wire = Arc::new(Mutex::new(Wire::default()));
@@ -122,7 +122,7 @@ fn checking_one_team_library_by_name() {
 #[test]
 fn a_confined_check_is_refused_before_the_libraries_are_remembered() {
     let (mut s, wire, path) = opened(Prefs::default(), "confined");
-    let dir = std::env::temp_dir().join(format!("figcraft-beacon-roots-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("figiran-beacon-roots-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let roots = Arc::new(crate::file_access::Roots::new(&[], &[dir.to_string_lossy().into_owned()]).unwrap());
     crate::file_access::confined(Some(&roots), || {

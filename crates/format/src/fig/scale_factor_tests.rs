@@ -3,7 +3,7 @@
 //! unless an override or derived row gives the value, which is at the instance's scale already.
 //! Fixtures built in code with the parent module's helpers.
 
-use figcraft_doc::{Document, EffectKind, LetterSpacing, LineHeight, Node, NodeKind};
+use figiran_doc::{Document, EffectKind, LetterSpacing, LineHeight, Node, NodeKind};
 
 use super::kiwi::{Kv, Schema};
 use super::tests::{arr, at, canvas, e, f, g, node, o, s, xy};

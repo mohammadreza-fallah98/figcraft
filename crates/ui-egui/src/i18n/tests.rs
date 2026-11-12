@@ -9,7 +9,7 @@ use super::{Forms, LANGS, Lang, Plural, Text, chain, counted, fill, find, lookup
 /// Keys looked up from data rather than written as `tr("…")` in the code: the main menu's
 /// submenu names (the engine's menu catalog) and labels of engine and document enums.
 fn dynamic_keys() -> BTreeSet<String> {
-    let mut keys: BTreeSet<String> = figcraft_engine::catalog::MENU.iter().flat_map(|m| m.menu.split('/')).map(str::to_string).collect();
+    let mut keys: BTreeSet<String> = figiran_engine::catalog::MENU.iter().flat_map(|m| m.menu.split('/')).map(str::to_string).collect();
     keys.extend(dynamic_labels().into_iter().map(str::to_string));
     keys
 }
@@ -127,28 +127,28 @@ const DATA_LABELS: &[&str] = &[
 
 /// Labels of engine enums the UI shows through `tr(x.label())`, read from the engine, plus [`DATA_LABELS`].
 fn dynamic_labels() -> Vec<&'static str> {
-    use figcraft_engine::keymap::{GESTURES, Group};
-    let mut v: Vec<&'static str> = figcraft_engine::ToolId::ALL.iter().map(|t| t.label()).collect();
-    v.extend(figcraft_engine::vectoredit::VTool::ALL.iter().map(|t| t.label()));
+    use figiran_engine::keymap::{GESTURES, Group};
+    let mut v: Vec<&'static str> = figiran_engine::ToolId::ALL.iter().map(|t| t.label()).collect();
+    v.extend(figiran_engine::vectoredit::VTool::ALL.iter().map(|t| t.label()));
     // Board shapes and stamps (the board tools' flyouts and the contextual bar).
-    v.extend(figcraft_doc::BoardShape::ALL.iter().map(|b| b.label()));
-    v.extend(figcraft_doc::Stamp::ALL.iter().map(|b| b.label()));
-    v.extend(figcraft_engine::board_templates::TEMPLATES.iter().map(|t| t.name));
+    v.extend(figiran_doc::BoardShape::ALL.iter().map(|b| b.label()));
+    v.extend(figiran_doc::Stamp::ALL.iter().map(|b| b.label()));
+    v.extend(figiran_engine::board_templates::TEMPLATES.iter().map(|t| t.name));
     v.extend(Group::ALL.iter().map(|g| g.label()));
     v.extend(GESTURES.iter().flat_map(|(_, label, mac, other)| [*label, *mac, *other]));
     v.extend(DATA_LABELS);
-    v.push(figcraft_engine::live::TOO_LARGE_TO_JOIN);
+    v.push(figiran_engine::live::TOO_LARGE_TO_JOIN);
     // The starter templates' names, descriptions and kinds.
-    v.extend(figcraft_engine::templates::TEMPLATES.iter().flat_map(|t| [t.name, t.description, t.kind.label()]));
+    v.extend(figiran_engine::templates::TEMPLATES.iter().flat_map(|t| [t.name, t.description, t.kind.label()]));
     v
 }
 
 /// Ids of main-menu items whose label isn't the command's (besides a closing "…").
 fn menu_worded_differently() -> BTreeSet<&'static str> {
     let bare = |s: &'static str| s.trim_end_matches('…');
-    figcraft_engine::catalog::MENU
+    figiran_engine::catalog::MENU
         .iter()
-        .filter(|m| figcraft_engine::find_command(m.id).is_some_and(|c| bare(c.label) != bare(m.label)))
+        .filter(|m| figiran_engine::find_command(m.id).is_some_and(|c| bare(c.label) != bare(m.label)))
         .map(|m| m.id)
         .collect()
 }
@@ -304,10 +304,10 @@ fn english_text_is_its_key_except_plurals() {
 
 /// The ids `[commands]` entries translate: every command and every main-menu item.
 fn command_ids() -> BTreeSet<&'static str> {
-    figcraft_engine::all_commands()
+    figiran_engine::all_commands()
         .iter()
         .map(|c| c.id)
-        .chain(figcraft_engine::catalog::MENU.iter().map(|m| m.id).filter(|id| !id.is_empty()))
+        .chain(figiran_engine::catalog::MENU.iter().map(|m| m.id).filter(|id| !id.is_empty()))
         .collect()
 }
 
@@ -379,7 +379,7 @@ fn lookups_fall_back_to_english_and_fill_placeholders() {
 
 #[test]
 fn a_live_failure_the_ui_knows_is_read_back_for_translation() {
-    use figcraft_engine::live::TOO_LARGE_TO_JOIN;
+    use figiran_engine::live::TOO_LARGE_TO_JOIN;
     let reason = TOO_LARGE_TO_JOIN.replace("{mb}", "1024");
     assert!(matches!(crate::live::failure_text(&reason), std::borrow::Cow::Owned(t) if t == reason));
     assert!(matches!(crate::live::failure_text("Couldn't reach the server"), std::borrow::Cow::Borrowed(_)));
@@ -565,11 +565,11 @@ fn right_to_left_languages_mirror_the_window() {
 
 #[test]
 fn the_built_in_arabic_face_draws_the_arabic_catalog() {
-    if !figcraft_text::CRAFT_FONTS.iter().any(|f| f.family == "Noto Sans Arabic" && f.style == "Regular") {
+    if !figiran_text::CRAFT_FONTS.iter().any(|f| f.family == "Noto Sans Arabic" && f.style == "Regular") {
         eprintln!("built without craft-fonts' Noto Sans Arabic; skipping");
         return;
     }
-    let Some(face) = figcraft_text::face_with_char('ع', &["Noto Sans Arabic"]) else {
+    let Some(face) = figiran_text::face_with_char('ع', &["Noto Sans Arabic"]) else {
         panic!("the supplied Noto Sans Arabic face must draw Arabic");
     };
     let ar = &LANGS[LANGS.iter().position(|l| l.code == "ar").unwrap()];
@@ -591,7 +591,7 @@ fn the_built_in_arabic_face_draws_the_arabic_catalog() {
 /// since Inter and egui's fonts have no Georgian: it draws every Georgian letter the catalog uses.
 #[test]
 fn the_built_in_georgian_face_draws_the_georgian_catalog() {
-    let Some(face) = figcraft_text::find_face("Noto Sans Georgian", "Regular").filter(|f| f.family == "Noto Sans Georgian") else {
+    let Some(face) = figiran_text::find_face("Noto Sans Georgian", "Regular").filter(|f| f.family == "Noto Sans Georgian") else {
         eprintln!("built without craft-fonts' Noto Sans Georgian; skipping");
         return;
     };
@@ -645,12 +645,12 @@ fn traditional_chinese_is_a_draft_in_the_taiwan_design_terms() {
 /// the same catalog after the preferences are saved and loaded (a restart).
 #[test]
 fn traditional_chinese_switches_and_the_preference_persists() {
-    let mut s = figcraft_engine::Session::new();
+    let mut s = figiran_engine::Session::new();
     s.execute("pref.language", &serde_json::json!({"language": "zh-TW"})).unwrap();
     assert_eq!(s.prefs.language, "zh-TW");
     assert_eq!(LANGS[resolve(&s.prefs.language, None)].code, "zh-Hant");
     let saved = serde_json::to_string(&s.prefs).unwrap();
-    let loaded: figcraft_engine::Prefs = serde_json::from_str(&saved).unwrap();
+    let loaded: figiran_engine::Prefs = serde_json::from_str(&saved).unwrap();
     assert_eq!(loaded.language, "zh-TW");
     assert_eq!(LANGS[resolve(&loaded.language, None)].code, "zh-Hant");
     s.execute("pref.language", &serde_json::json!({"language": "zh-Hans"})).unwrap();
@@ -730,7 +730,7 @@ fn plural_fallback_uses_the_language_of_its_catalog() {
 
 #[test]
 fn the_language_preference_takes_language_codes() {
-    let mut s = figcraft_engine::Session::new();
+    let mut s = figiran_engine::Session::new();
     assert_eq!(s.prefs.language, "system");
     s.execute("pref.language", &serde_json::json!({"language": "es-419"})).unwrap();
     assert_eq!(s.prefs.language, "es-419");

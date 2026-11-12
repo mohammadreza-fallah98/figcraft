@@ -1,4 +1,4 @@
-//! The FigCraft renderer.
+//! The FigIran renderer.
 //!
 //! [`render_view`] draws a page region at any zoom into a premultiplied RGBA pixmap (the canvas);
 //! [`render_node`] rasterises one node for export at a scale. Everything is CPU (tiny-skia) so it
@@ -29,9 +29,9 @@ pub use export_depth::{ExportDepthError, MAX_EXPORT_DEPTH, check_export_depth};
 pub use retained::{Begun, Retained, Steps, Work};
 pub use tiny_skia::{FillRule, Pixmap};
 
-use figcraft_color::{Color, ColorProfile};
-use figcraft_doc::{Document, ExportFormat, NodeId, NodeKind};
-use figcraft_geom::{Affine, Rect};
+use figiran_color::{Color, ColorProfile};
+use figiran_doc::{Document, ExportFormat, NodeId, NodeKind};
+use figiran_geom::{Affine, Rect};
 
 /// Which part of a page to draw, and how big.
 #[derive(Clone, Debug)]
@@ -95,7 +95,7 @@ pub(crate) fn new_pixmap(w: u32, h: u32) -> Option<Pixmap> {
     Pixmap::new(w, h)
 }
 
-/// The largest backdrop radius (background blur, glass: see [`figcraft_doc::Effect::backdrop_radius`])
+/// The largest backdrop radius (background blur, glass: see [`figiran_doc::Effect::backdrop_radius`])
 /// in the document (0 without any).
 pub(crate) fn max_backdrop_blur(doc: &Document) -> f64 {
     doc.max_backdrop_radius()
@@ -150,7 +150,7 @@ pub const RENDER_STACK: usize = 8 << 20;
 #[cfg(not(target_arch = "wasm32"))]
 fn band_pool() -> Option<&'static rayon::ThreadPool> {
     static POOL: std::sync::OnceLock<Option<rayon::ThreadPool>> = std::sync::OnceLock::new();
-    POOL.get_or_init(|| rayon::ThreadPoolBuilder::new().thread_name(|i| format!("figcraft-band-{i}")).stack_size(RENDER_STACK).build().ok()).as_ref()
+    POOL.get_or_init(|| rayon::ThreadPoolBuilder::new().thread_name(|i| format!("figiran-band-{i}")).stack_size(RENDER_STACK).build().ok()).as_ref()
 }
 
 /// Render `view` as `bands` horizontal bands in parallel. Bands overlap by what background blurs
@@ -315,13 +315,11 @@ pub fn render_alone(doc: &Document, id: NodeId, view: &View, how: Alone) -> Opti
     let n = tmp.node_mut(id)?;
     n.is_mask = false;
     match how {
-        Alone::WithEffects => {
-            n.effects.retain(|e| !matches!(e.kind, figcraft_doc::EffectKind::BackgroundBlur(_) | figcraft_doc::EffectKind::Glass(_)))
-        }
+        Alone::WithEffects => n.effects.retain(|e| !matches!(e.kind, figiran_doc::EffectKind::BackgroundBlur(_) | figiran_doc::EffectKind::Glass(_))),
         Alone::Plain => {
             n.effects.clear();
             n.opacity = 1.0;
-            n.blend = figcraft_color::BlendMode::Normal;
+            n.blend = figiran_color::BlendMode::Normal;
         }
     }
     let mut pix = Pixmap::new(view.width.clamp(1, 16_384), view.height.clamp(1, 16_384))?;
@@ -469,7 +467,7 @@ pub fn encode_webp(p: &Pixmap) -> Result<Vec<u8>, String> {
 /// a Display P3 WebP embeds it (an untagged WebP is read as sRGB). JPEG at quality 90. SVG, PDF and
 /// Vector Drawable are not pixel formats: an error.
 pub fn encode_export(p: &Pixmap, format: ExportFormat, profile: ColorProfile) -> Result<Vec<u8>, String> {
-    encode_export_with(p, format, profile, figcraft_doc::ExportSetting::DEFAULT_QUALITY)
+    encode_export_with(p, format, profile, figiran_doc::ExportSetting::DEFAULT_QUALITY)
 }
 
 /// [`encode_export`] with the JPEG `quality` (1-100); the other formats ignore it.

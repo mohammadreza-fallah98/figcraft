@@ -7,9 +7,9 @@
 //! toolbar, nothing. The bar above the selection stays away while a "+" is dragged, as for any drag.
 
 use egui::{Area, Color32, CornerRadius, Id, LayerId, Order, Pos2, Rect, Sense, Shape, Stroke, StrokeKind, pos2, vec2};
-use figcraft_doc::{BoardItem, NodeId};
-use figcraft_engine::ToolId;
-use figcraft_engine::board::{STICKY, connected_place, sticky_or_shape_at};
+use figiran_doc::{BoardItem, NodeId};
+use figiran_engine::ToolId;
+use figiran_engine::board::{STICKY, connected_place, sticky_or_shape_at};
 use serde_json::json;
 
 use crate::FigApp;
@@ -34,9 +34,9 @@ fn drag_id() -> Id {
 }
 
 /// The sticky or shape the handles are for: its id, its box on the page and the next one's size.
-fn target(app: &FigApp) -> Option<(NodeId, figcraft_geom::Rect, (f64, f64))> {
+fn target(app: &FigApp) -> Option<(NodeId, figiran_geom::Rect, (f64, f64))> {
     let editable = app.session.active_read_only().is_none();
-    if app.session.tool.busy() || !editable || app.session.tool.tool != ToolId::Move || !app.session.doc().is_ok_and(figcraft_engine::board::is_board)
+    if app.session.tool.busy() || !editable || app.session.tool.tool != ToolId::Move || !app.session.doc().is_ok_and(figiran_engine::board::is_board)
     {
         return None;
     }
@@ -199,7 +199,7 @@ fn object_under(app: &FigApp, except: NodeId, p: Pos2) -> Option<NodeId> {
 }
 
 /// Where the next one goes for `side`, faintly: its box and the connector's line to it.
-fn preview(app: &FigApp, ctx: &egui::Context, b: figcraft_geom::Rect, next: (f64, f64), side: &str, accent: Color32) {
+fn preview(app: &FigApp, ctx: &egui::Context, b: figiran_geom::Rect, next: (f64, f64), side: &str, accent: Color32) {
     let Some(((x, y), ..)) = connected_place((b.x0, b.y0), (b.width(), b.height()), next, side) else { return };
     let ghost = Rect::from_two_pos(app.to_screen(x, y), app.to_screen(x + next.0, y + next.1));
     let from = Rect::from_two_pos(app.to_screen(b.x0, b.y0), app.to_screen(b.x1, b.y1));
@@ -226,7 +226,7 @@ fn ghost_box(p: &egui::Painter, ghost: Rect, accent: Color32) {
 /// The dragged preview: the next one centred on `pointer` and the connector's line to it from
 /// `side` of the object's box `b`, or, over another object, that object outlined and the line to
 /// it; the line arrives at the side of the box facing the object.
-fn drag_preview(app: &FigApp, ctx: &egui::Context, (b, next, side): (figcraft_geom::Rect, (f64, f64), &str), pointer: Pos2, over: Option<NodeId>) {
+fn drag_preview(app: &FigApp, ctx: &egui::Context, (b, next, side): (figiran_geom::Rect, (f64, f64), &str), pointer: Pos2, over: Option<NodeId>) {
     let accent = crate::theme::canvas_accent(ctx);
     let from = Rect::from_two_pos(app.to_screen(b.x0, b.y0), app.to_screen(b.x1, b.y1));
     let p = ctx.layer_painter(LayerId::new(Order::Middle, Id::unique("board_connect_preview")));

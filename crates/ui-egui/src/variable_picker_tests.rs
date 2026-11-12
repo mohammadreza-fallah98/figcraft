@@ -4,8 +4,8 @@
 //! offers an area the size it had last frame, so the list used to stay a few rows high).
 
 use egui::{Id, Pos2, RawInput, Rect, pos2, vec2};
-use figcraft_doc::NodeId;
-use figcraft_engine::Session;
+use figiran_doc::NodeId;
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::layers_drag_tests::Ui;
@@ -25,7 +25,7 @@ fn scene() -> (Ui, NodeId) {
 /// Opens the picker for `r`'s stroke weight under `at`.
 fn open(u: &mut Ui, r: NodeId, at: Pos2) {
     let screen = RawInput { screen_rect: Some(Rect::from_min_size(Pos2::ZERO, vec2(1440.0, 900.0))), ..Default::default() };
-    let _ = u.ctx.run_ui(screen, |ui| crate::variable_ui::open(ui, &[r], "strokeWeight", figcraft_doc::VariableType::Number, at));
+    let _ = u.ctx.run_ui(screen, |ui| crate::variable_ui::open(ui, &[r], "strokeWeight", figiran_doc::VariableType::Number, at));
 }
 
 /// The picker's rect after a few frames.

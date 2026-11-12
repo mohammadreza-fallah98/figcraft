@@ -16,9 +16,9 @@ use std::sync::mpsc::{Receiver, RecvTimeoutError, Sender, TryRecvError, channel}
 use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
 
-use figcraft_collab::message::{self, ClientMsg, HostInfo, Presence, ServerMsg};
-use figcraft_doc::Document;
-use figcraft_engine::live::{Event, Published, Status};
+use figiran_collab::message::{self, ClientMsg, HostInfo, Presence, ServerMsg};
+use figiran_doc::Document;
+use figiran_engine::live::{Event, Published, Status};
 use tungstenite::protocol::frame::coding::CloseCode;
 use tungstenite::protocol::{CloseFrame, Role as WsRole, WebSocket};
 use tungstenite::{Bytes, Message};
@@ -205,7 +205,7 @@ fn upload(job: &Publish, mut cfg: GuestConfig) -> Result<(GuestConfig, Published
 fn connect(cfg: &GuestConfig) -> Result<Conn, String> {
     let (rd, wr, sock) = open(&cfg.invite.server, cfg.connect_timeout, &cfg.limits)?;
     let (reader, _) = tungstenite::client::client_with_config(cfg.invite.endpoint(), rd, Some(config(cfg.limits.max_server_message)))
-        .map_err(|e| format!("{} doesn't answer as a FigCraft session: {e}", cfg.invite.server.display()))?;
+        .map_err(|e| format!("{} doesn't answer as a FigIran session: {e}", cfg.invite.server.display()))?;
     let writer = WebSocket::from_raw_socket(wr, WsRole::Client, Some(config(cfg.limits.max_client_message)));
     reader.get_ref().set_read_timeout(Some(cfg.limits.idle_timeout)).map_err(|e| e.to_string())?;
     Ok(Conn { reader, writer, sock })

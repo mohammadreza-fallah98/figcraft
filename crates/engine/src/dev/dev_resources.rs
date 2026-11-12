@@ -7,7 +7,7 @@
 //! capped) and never fetched or opened by the engine. A link added without a name is named after
 //! its URL (no page title is looked up).
 
-use figcraft_doc::{DevResource, Document, NodeId, NodeKind};
+use figiran_doc::{DevResource, Document, NodeId, NodeKind};
 use serde_json::{Value, json};
 
 use crate::cmd::CommandSpec;

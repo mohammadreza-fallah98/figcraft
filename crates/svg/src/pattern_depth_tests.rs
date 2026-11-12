@@ -2,8 +2,8 @@
 //! image, so one depth cap bounds the whole export (#1082).
 
 use base64::Engine;
-use figcraft_color::{Color, Paint, PaintKind, PatternPaint};
-use figcraft_doc::{Document, Effect, NodeId, NodeKind};
+use figiran_color::{Color, Paint, PaintKind, PatternPaint};
+use figiran_doc::{Document, Effect, NodeId, NodeKind};
 
 use crate::{SvgOptions, export_svg};
 
@@ -41,7 +41,7 @@ fn export(outer: usize, inner: usize, shadowed: bool) -> String {
 fn red_image(svg: &str) -> bool {
     svg.split("base64,").skip(1).filter_map(|s| s.split('"').next()).any(|b64| {
         let png = base64::engine::general_purpose::STANDARD.decode(b64).unwrap();
-        let pix = figcraft_render::images::decode(&png).unwrap();
+        let pix = figiran_render::images::decode(&png).unwrap();
         pix.pixels().iter().any(|p| p.red() > 200 && p.green() < 60 && p.alpha() > 200)
     })
 }

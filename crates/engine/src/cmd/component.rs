@@ -2,7 +2,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use figcraft_doc::{Document, Node, NodeId, NodeKind, PropDef, VariableType, VariableValue};
+use figiran_doc::{Document, Node, NodeId, NodeKind, PropDef, VariableType, VariableValue};
 use serde_json::{Value, json};
 
 use super::edit::{roots, z_sorted};
@@ -339,7 +339,7 @@ fn go_to_library_main(s: &mut Session, library: &str, name: &str, key: NodeId) -
 pub(crate) fn place(s: &mut Session, p: &Value) -> Result<Value> {
     let cmd = "instance.place";
     let c = req_id(cmd, p, "component")?;
-    let pt = figcraft_geom::Point::new(req_num(cmd, p, "x")?, req_num(cmd, p, "y")?);
+    let pt = figiran_geom::Point::new(req_num(cmd, p, "x")?, req_num(cmd, p, "y")?);
     let page = s.page()?;
     let doc = s.doc_mut()?;
     let c = main_of(doc, c).ok_or_else(|| bad(cmd, "`component` must be a component or component set"))?;
@@ -349,7 +349,7 @@ pub(crate) fn place(s: &mut Session, p: &Value) -> Result<Value> {
         slot = crate::drop::DropSlot { parent: page, index: None, line: None };
     }
     let (w, h) = doc.node(c).map(|n| (n.width, n.height)).unwrap_or((0.0, 0.0));
-    let local = doc.world_transform(slot.parent).inverse() * figcraft_geom::Point::new(pt.x - w / 2.0, pt.y - h / 2.0);
+    let local = doc.world_transform(slot.parent).inverse() * figiran_geom::Point::new(pt.x - w / 2.0, pt.y - h / 2.0);
     let i = crate::components::create_instance_at(doc, c, slot.parent, local.x, local.y, slot.index)?;
     crate::library::count_inserted(doc, &[i]);
     s.set_selection(vec![i]);
@@ -399,7 +399,7 @@ fn create(s: &mut Session, p: &Value) -> Result<Value> {
     if was_group {
         n.fills.clear();
         n.clip = false;
-        n.blend = figcraft_color::BlendMode::PassThrough;
+        n.blend = figiran_color::BlendMode::PassThrough;
     }
     s.set_selection(vec![target]);
     Ok(json!({"id": target}))

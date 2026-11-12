@@ -13,7 +13,7 @@ struct Dir(PathBuf);
 
 impl Dir {
     fn new(name: &str) -> Self {
-        let d = std::env::temp_dir().join(format!("figcraft-caps-{name}-{}", std::process::id()));
+        let d = std::env::temp_dir().join(format!("figiran-caps-{name}-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&d);
         std::fs::create_dir_all(d.join("folder")).unwrap();
         Self(d)
@@ -76,7 +76,7 @@ fn documents_are_refused_as_folders_and_devices() {
 fn placed_images_are_capped_at_what_a_document_takes() {
     let d = Dir::new("images");
     let mut s = Session::new();
-    let big = d.sized("huge.png", figcraft_doc::ImageData::MAX_BYTES + 1);
+    let big = d.sized("huge.png", figiran_doc::ImageData::MAX_BYTES + 1);
     refused(&mut s, "image.place", json!({"path": big}), "more than the 256 MB allowed here");
     refused(&mut s, "image.place", json!({"path": d.p("folder")}), FOLDER);
     if cfg!(unix) {
@@ -90,7 +90,7 @@ fn fonts_and_plugins_are_refused_as_folders() {
     let mut s = Session::new();
     refused(&mut s, "text.loadFont", json!({"path": d.p("folder")}), FOLDER);
     // A plugin folder whose manifest is a folder.
-    std::fs::create_dir_all(d.0.join("plugin").join("figcraft-plugin.json")).unwrap();
+    std::fs::create_dir_all(d.0.join("plugin").join("figiran-plugin.json")).unwrap();
     refused(&mut s, "plugin.import", json!({"path": d.p("plugin")}), FOLDER);
     assert!(s.prefs.plugins.is_empty());
 }

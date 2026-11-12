@@ -4,7 +4,7 @@
 
 use std::io::Write;
 
-use figcraft_doc::Document;
+use figiran_doc::Document;
 
 use super::*;
 

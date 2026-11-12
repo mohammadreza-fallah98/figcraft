@@ -4,7 +4,7 @@
 //! resolves back to a row, and a press outside the panel closes it.
 
 use egui::{Event, Key, Modifiers, Pos2};
-use figcraft_engine::Session;
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::layers_drag_tests::Ui;
@@ -19,7 +19,7 @@ fn palette_runs_record_recents_newest_first_and_capped() {
         crate::menus::run_action(&mut u.app, &format!("command:{id}"));
     }
     let r = &u.app.session.prefs.recent_actions;
-    assert_eq!(r.len(), figcraft_engine::MAX_RECENT_ACTIONS, "recents are capped: {r:?}");
+    assert_eq!(r.len(), figiran_engine::MAX_RECENT_ACTIONS, "recents are capped: {r:?}");
     assert_eq!(r[0], "command:view.zoomIn", "a re-run moves to the front: {r:?}");
     assert_eq!(r.iter().filter(|k| k.as_str() == "command:view.zoomIn").count(), 1, "no duplicates: {r:?}");
     assert!(!r.contains(&"command:view.zoomOut".to_string()), "the oldest drops out: {r:?}");
@@ -77,7 +77,7 @@ fn gone_entries_drop_out_of_recents() {
 #[test]
 fn used_plugin_resolves_to_a_recent_row() {
     let mut u = Ui::new(Session::new());
-    let plugin: figcraft_engine::plugins::InstalledPlugin = serde_json::from_value(json!({
+    let plugin: figiran_engine::plugins::InstalledPlugin = serde_json::from_value(json!({
         "manifest": {
             "id": "dev.local.solar-icons",
             "name": "Solar icons",
@@ -127,10 +127,10 @@ fn rows(groups: &[(String, Vec<crate::menus::ActionRow>)]) -> Vec<&crate::menus:
 /// A search reaches commands no menu lists (in an "Other" group), not just menu items.
 #[test]
 fn search_covers_every_command() {
-    let menu = figcraft_engine::catalog::MENU;
-    let spec = figcraft_engine::all_commands()
+    let menu = figiran_engine::catalog::MENU;
+    let spec = figiran_engine::all_commands()
         .iter()
-        .find(|c| !menu.iter().any(|m| m.id == c.id) && !figcraft_engine::cmd::needs_params(c.id))
+        .find(|c| !menu.iter().any(|m| m.id == c.id) && !figiran_engine::cmd::needs_params(c.id))
         .expect("a command no menu lists that runs without parameters");
     let groups = crate::menus::command_sections(spec.id);
     let key = format!("command:{}", spec.id);
@@ -222,10 +222,10 @@ fn a_search_offers_only_what_runs_and_one_row_per_label() {
         let same = |l: &str| l.trim().trim_end_matches(['…', '.']).trim_end().to_lowercase();
         for (key, label) in &found {
             let id = key.trim_start_matches("command:");
-            if figcraft_engine::catalog::MENU.iter().any(|m| m.id == id) {
+            if figiran_engine::catalog::MENU.iter().any(|m| m.id == id) {
                 continue;
             }
-            assert!(!figcraft_engine::cmd::needs_params(id), "{q:?} offers {id}, which needs parameters");
+            assert!(!figiran_engine::cmd::needs_params(id), "{q:?} offers {id}, which needs parameters");
             let twins = found.iter().filter(|(_, l)| same(l) == same(label)).count();
             assert_eq!(twins, 1, "{q:?} offers {label:?} twice: {found:?}");
         }

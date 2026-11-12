@@ -1,4 +1,4 @@
-//! The FigCraft engine.
+//! The FigIran engine.
 //!
 //! Every user-visible action is a command with a stable id (`node.create`, `align.left`,
 //! `layout.add`, `component.create`…) taking JSON params. The egui UI, the CLI, the control channel
@@ -88,15 +88,15 @@ pub use sharing::team;
 
 pub use batch::{BatchScope, BatchStep};
 pub use cmd::{CommandSpec, all_commands, find_command};
-pub use figcraft_collab;
-pub use figcraft_doc as doc;
-pub use figcraft_svg::looks_like_svg;
+pub use figiran_collab;
+pub use figiran_doc as doc;
+pub use figiran_svg::looks_like_svg;
 pub use tools::{PointerEvent, PointerKind, ToolId};
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
-use figcraft_doc::{Document, Node, NodeId};
+use figiran_doc::{Document, Node, NodeId};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
@@ -139,7 +139,7 @@ pub struct Session {
     group_depth: usize,
     closed_in_group: Vec<DocState>,
     /// Recently used colours.
-    pub recent_colors: Vec<figcraft_color::Color>,
+    pub recent_colors: Vec<figiran_color::Color>,
     /// The last undoable command executed through [`Session::execute`], excluding "Repeat".
     pub last_command: Option<(String, Value)>,
     /// Status / toast message for the UI.

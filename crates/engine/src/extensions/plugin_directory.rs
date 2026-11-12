@@ -1,4 +1,4 @@
-//! Plugins from a server's plugin directory (`figcraft-server`): listing it, installing and updating
+//! Plugins from a server's plugin directory (`figiran-server`): listing it, installing and updating
 //! plugins from it, and publishing and unpublishing them with the server's key. See
 //! `docs/plugins.md` and `docs/server.md`.
 //!
@@ -12,11 +12,11 @@
 
 use std::cmp::Ordering;
 
-pub use figcraft_collab::message::PluginEntry;
-use figcraft_collab::message::{PluginReply, PluginReq};
-pub use figcraft_plugin::bundle;
-pub use figcraft_plugin::bundle::newer as newer_version;
-use figcraft_plugin::bundle::{Asset, Bundle, MAX_ASSETS, check_asset_name, compare_versions, newer, sha256_hex};
+pub use figiran_collab::message::PluginEntry;
+use figiran_collab::message::{PluginReply, PluginReq};
+pub use figiran_plugin::bundle;
+pub use figiran_plugin::bundle::newer as newer_version;
+use figiran_plugin::bundle::{Asset, Bundle, MAX_ASSETS, check_asset_name, compare_versions, newer, sha256_hex};
 use serde_json::{Value, json};
 
 use crate::cmd::CommandSpec;
@@ -26,7 +26,7 @@ use crate::plugins::{InstalledPlugin, MANIFEST_FILE, Manifest, installed, regist
 use crate::{EngineError, Result, Session, bad, spec};
 
 /// Why there's no plugin directory here (the browser build, sessions without the network).
-pub const NO_DIRECTORY: &str = "plugin directories on a server need the desktop app, figcraft-cli or the MCP server";
+pub const NO_DIRECTORY: &str = "plugin directories on a server need the desktop app, figiran-cli or the MCP server";
 /// Largest bundle downloaded or published (a server's own cap is at most this).
 pub const MAX_BUNDLE: usize = 32 << 20;
 /// The module's file name in an installed plugin's folder, and the folder its assets go in.
@@ -129,7 +129,7 @@ fn install(s: &mut Session, p: &Value) -> Result<Value> {
     }
     // What was shown and approved is the entry's access and commands: a bundle whose manifest
     // asks for more is refused, since the manifest is what the plugin then runs under.
-    if manifest.permissions.access == figcraft_plugin::manifest::Access::Write && !entry.access.trim().eq_ignore_ascii_case("write") {
+    if manifest.permissions.access == figiran_plugin::manifest::Access::Write && !entry.access.trim().eq_ignore_ascii_case("write") {
         return Err(fail("its manifest asks to write the document, but the directory showed it as read-only"));
     }
     if !entry.commands.is_empty()
@@ -226,7 +226,7 @@ fn bundle_from_disk(cmd: &str, path: &str) -> Result<Bundle> {
         file.push(MANIFEST_FILE);
     }
     let text =
-        String::from_utf8(read_file(&file, figcraft_plugin::manifest::MAX_MANIFEST_BYTES)?).map_err(|_| bad(cmd, "the manifest isn't UTF-8 text"))?;
+        String::from_utf8(read_file(&file, figiran_plugin::manifest::MAX_MANIFEST_BYTES)?).map_err(|_| bad(cmd, "the manifest isn't UTF-8 text"))?;
     let m = Manifest::parse(&text).map_err(|e| bad(cmd, e))?;
     let wasm = module_file(&file, &m)?;
     let mut assets = Vec::new();
@@ -268,7 +268,7 @@ fn bundle_from_disk(cmd: &str, _path: &str) -> Result<Bundle> {
 /// Publish a plugin folder (or an installed plugin) as a new version (needs the server's key).
 fn publish(s: &mut Session, p: &Value) -> Result<Value> {
     let cmd = "plugin.directory.publish";
-    let server = string(p, "server").ok_or_else(|| bad(cmd, "`server` required: ws://host:port/?key=… (`figcraft-server key` prints it)"))?;
+    let server = string(p, "server").ok_or_else(|| bad(cmd, "`server` required: ws://host:port/?key=… (`figiran-server key` prints it)"))?;
     let bundle = match (string(p, "path"), string(p, "plugin")) {
         (Some(path), _) => bundle_from_disk(cmd, &path)?,
         (None, Some(id)) => {
@@ -282,7 +282,7 @@ fn publish(s: &mut Session, p: &Value) -> Result<Value> {
                 }
             }
         }
-        (None, None) => return Err(bad(cmd, "pass `path` (a plugin folder or its figcraft-plugin.json) or `plugin` (an installed plugin's id)")),
+        (None, None) => return Err(bad(cmd, "pass `path` (a plugin folder or its figiran-plugin.json) or `plugin` (an installed plugin's id)")),
     };
     // Checked here too, for a clear message before anything is sent.
     bundle.check().map_err(|e| bad(cmd, e))?;
@@ -323,7 +323,7 @@ pub fn specs() -> Vec<CommandSpec> {
         spec!(
             "plugin.directory.publish",
             "Publish plugin to directory",
-            "{path (a plugin folder or its figcraft-plugin.json) | plugin (an installed plugin's id), server (ws://host:port/?key=…)} → {published: entry, server}",
+            "{path (a plugin folder or its figiran-plugin.json) | plugin (an installed plugin's id), server (ws://host:port/?key=…)} → {published: entry, server}",
             false,
             publish
         ),

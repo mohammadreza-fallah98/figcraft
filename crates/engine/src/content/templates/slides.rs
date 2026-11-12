@@ -2,7 +2,7 @@
 //! figure, a chart, closing) with their own text styles and a footer component whose page number
 //! is a property.
 
-use figcraft_doc::NodeId;
+use figiran_doc::NodeId;
 use serde_json::{Value, json};
 
 use super::glyphs;

@@ -1,7 +1,7 @@
 //! Client-scoped ids (collaboration), raw structure edits and page-less documents.
 
 use crate::{DocError, Document, Node, NodeId, NodeKind};
-use figcraft_geom::Affine;
+use figiran_geom::Affine;
 
 fn rect(doc: &mut Document, parent: NodeId) -> NodeId {
     doc.create(parent, NodeKind::Rectangle, "R", 0.0, 0.0, 10.0, 10.0).unwrap()
@@ -112,7 +112,7 @@ fn pages_can_be_inserted_onto_a_page_less_base() {
     assert!(d.pages.is_empty() && d.node_count() == 0);
     let p = Node::new(
         NodeId(C3 | 1),
-        NodeKind::Page { background: figcraft_color::Color::DEFAULT_PAGE, flows: vec![], prototype: Default::default() },
+        NodeKind::Page { background: figiran_color::Color::DEFAULT_PAGE, flows: vec![], prototype: Default::default() },
         "P",
         0.0,
         0.0,

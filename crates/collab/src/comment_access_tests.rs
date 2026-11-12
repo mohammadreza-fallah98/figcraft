@@ -4,7 +4,7 @@
 //! clients that can't read them get them listed as view links, and a level this build doesn't know
 //! reads as view.
 
-use figcraft_doc::{Comment, Document, Message, NodeKind};
+use figiran_doc::{Comment, Document, Message, NodeKind};
 
 use crate::change::{Change, DocProp, Entry, Json, Prop};
 use crate::message::{

@@ -3,7 +3,7 @@
 //! plugin's own.
 
 use egui::{CornerRadius, Rect, Sense, Stroke, StrokeKind, Ui, pos2, vec2};
-use figcraft_engine::widgets::{MenuItem, MenuKind, menu_of};
+use figiran_engine::widgets::{MenuItem, MenuKind, menu_of};
 use serde_json::json;
 
 use crate::FigApp;
@@ -83,7 +83,7 @@ fn item(ui: &mut Ui, t: &Tokens, m: &MenuItem, x: f32, cy: f32, wd: f32) -> Opti
             } else if resp.hovered() {
                 ui.painter().rect_filled(r.expand(2.0), CornerRadius::same(6), t.hover);
             }
-            if let Some(c) = figcraft_color::Color::from_hex(hex) {
+            if let Some(c) = figiran_color::Color::from_hex(hex) {
                 paint_choice(ui.painter(), r, &Mark::Color(c), t.icon);
             }
             if resp.clicked() && !on {

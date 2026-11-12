@@ -83,11 +83,11 @@ impl Presenter {
     /// Run the widget clicks the player took: each calls its plugin back on the player's copy (the
     /// prototype's own state of the widget), as on the canvas but without touching the file.
     /// Returns what went wrong, for a toast.
-    pub fn click_widgets(&mut self, s: &figcraft_engine::Session) -> Option<String> {
+    pub fn click_widgets(&mut self, s: &figiran_engine::Session) -> Option<String> {
         let mut error = None;
         for (id, target) in std::mem::take(&mut self.widget_clicks) {
             let Some(doc) = self.design.clone() else { break };
-            match figcraft_engine::widgets::click_on(s, doc, id, &target) {
+            match figiran_engine::widgets::click_on(s, doc, id, &target) {
                 Ok((d, _)) => {
                     self.design = Some(d);
                     self.relayout();
@@ -108,7 +108,7 @@ impl Presenter {
         let Some(doc) = self.doc.clone() else { return false };
         match a {
             Action::Navigate { dest, preserve_scroll } => {
-                let Some(top) = figcraft_engine::proto_run::navigate_target(&doc, *dest, &self.sections) else { return false };
+                let Some(top) = figiran_engine::proto_run::navigate_target(&doc, *dest, &self.sections) else { return false };
                 if !doc.contains(top) || (top == self.current && self.overlays.is_empty()) {
                     return false;
                 }
@@ -198,13 +198,13 @@ impl Presenter {
                 // The URL comes from the document and this action fires from whatever trigger the
                 // prototype sets, including a delay, so no click is implied: only a web or mail
                 // link is kept, as not the viewer's doing until `fire_from` says otherwise.
-                if figcraft_engine::doc_urls::openable(url) {
+                if figiran_engine::doc_urls::openable(url) {
                     self.urls.push((url.clone(), false, *new_tab));
                 }
                 true
             }
             Action::ChangeTo { dest } => {
-                let Some(inst) = figcraft_engine::proto_run::change_to_target(&doc, node, *dest) else { return false };
+                let Some(inst) = figiran_engine::proto_run::change_to_target(&doc, node, *dest) else { return false };
                 if !doc.contains(*dest) {
                     return false;
                 }
@@ -216,14 +216,14 @@ impl Presenter {
                 {
                     *component = *dest;
                 }
-                figcraft_engine::components::sync_instance(d, inst);
+                figiran_engine::components::sync_instance(d, inst);
                 self.settle(&before);
                 true
             }
             Action::SetVariable { variable, value, expr } => {
                 let Some(d) = self.design.as_mut() else { return false };
                 let before = d.clone();
-                let set = figcraft_engine::proto_run::set_variable(d, node, variable, value, expr.as_ref());
+                let set = figiran_engine::proto_run::set_variable(d, node, variable, value, expr.as_ref());
                 if set {
                     self.settle(&before);
                 }
@@ -232,19 +232,19 @@ impl Presenter {
             Action::SetVariableMode { collection, mode } => {
                 let Some(d) = self.design.as_mut() else { return false };
                 let before = d.clone();
-                let set = figcraft_engine::proto_run::set_mode_by_id(d, self.current, collection, mode);
+                let set = figiran_engine::proto_run::set_mode_by_id(d, self.current, collection, mode);
                 if set {
                     self.settle(&before);
                 }
                 set
             }
             Action::Conditional { blocks } => {
-                if depth >= figcraft_doc::proto::MAX_ACTION_DEPTH {
+                if depth >= figiran_doc::proto::MAX_ACTION_DEPTH {
                     return false;
                 }
                 // Evaluated now: earlier actions of the interaction may have changed variables.
                 let mut did = false;
-                for inner in figcraft_engine::proto_run::branch(&doc, node, blocks) {
+                for inner in figiran_engine::proto_run::branch(&doc, node, blocks) {
                     did |= self.perform_at(&inner, node, ActionTiming { depth: depth + 1, ..timing });
                 }
                 did
@@ -258,7 +258,7 @@ impl Presenter {
         // display frame before the time asked for, a little earlier still at times: ask that much
         // later, and count a frame due within a few milliseconds as due.
         let t = (now - self.arrived).max(0.0) + 0.005;
-        let clock = figcraft_render::images::animation_clock(doc, id, t);
+        let clock = figiran_render::images::animation_clock(doc, id, t);
         if let Some((_, next)) = clock {
             crate::repaint_in(ctx, next + f64::from(ctx.input(|i| i.predicted_dt)));
         }
@@ -268,8 +268,8 @@ impl Presenter {
         {
             return Some(t.clone());
         }
-        let bounds = figcraft_render::export_bounds(doc, id)?;
-        let pix = figcraft_render::render_node_at(doc, id, texture_scale(ctx, bounds, px_scale), t)?;
+        let bounds = figiran_render::export_bounds(doc, id)?;
+        let pix = figiran_render::render_node_at(doc, id, texture_scale(ctx, bounds, px_scale), t)?;
         let img = crate::render_worker::screen_image(&pix, doc.color_profile);
         let tex = ctx.load_texture(format!("present-{}", id.0), img, egui::TextureOptions::LINEAR);
         let ft = FrameTex { key, tex, bounds };
@@ -284,7 +284,7 @@ const MAX_TEXTURE_PIXELS: f64 = 16_777_216.0;
 
 /// The pixel scale, at most `px`, at which `bounds` makes a texture the GPU takes (no side past
 /// its limit) of at most [`MAX_TEXTURE_PIXELS`].
-pub(super) fn texture_scale(ctx: &egui::Context, bounds: figcraft_geom::Rect, px: f64) -> f64 {
+pub(super) fn texture_scale(ctx: &egui::Context, bounds: figiran_geom::Rect, px: f64) -> f64 {
     let side = ctx.input(|i| i.max_texture_side) as f64 - 2.0;
     let (w, h) = (bounds.width().max(1.0), bounds.height().max(1.0));
     let s = px.min(side / w.max(h)).min((MAX_TEXTURE_PIXELS / (w * h)).sqrt());

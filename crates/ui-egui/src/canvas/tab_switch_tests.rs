@@ -3,7 +3,7 @@
 //! file renders again.
 
 use egui::{Pos2, RawInput, Rect, vec2};
-use figcraft_engine::Session;
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::idle_tests::wait_for_render;
@@ -19,7 +19,7 @@ struct Harness {
 impl Harness {
     /// The UI with a file named after each of `names` (each with a rectangle); the last is shown.
     fn new(names: &[&str]) -> Self {
-        figcraft_text::scan_system_fonts();
+        figiran_text::scan_system_fonts();
         let mut s = Session::empty();
         for n in names {
             s.execute("file.new", &json!({"name": n})).unwrap();
@@ -59,7 +59,7 @@ impl Harness {
     }
 
     /// The file and page on screen.
-    fn shown(&self) -> (u64, figcraft_doc::NodeId) {
+    fn shown(&self) -> (u64, figiran_doc::NodeId) {
         let ds = self.app.session.ds().unwrap();
         (ds.uid, ds.page)
     }

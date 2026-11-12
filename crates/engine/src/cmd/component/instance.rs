@@ -402,7 +402,7 @@ pub(crate) fn swap_instance(doc: &mut Document, i: NodeId, c: NodeId) -> std::re
 pub(crate) fn swap_at(s: &mut Session, p: &Value) -> Result<Value> {
     let cmd = "instance.swapAt";
     let c = req_id(cmd, p, "component")?;
-    let pt = figcraft_geom::Point::new(req_num(cmd, p, "x")?, req_num(cmd, p, "y")?);
+    let pt = figiran_geom::Point::new(req_num(cmd, p, "x")?, req_num(cmd, p, "y")?);
     let page = s.page()?;
     let doc = s.doc()?;
     let c = main_of(doc, c).ok_or_else(|| bad(cmd, "`component` must be a component or component set"))?;

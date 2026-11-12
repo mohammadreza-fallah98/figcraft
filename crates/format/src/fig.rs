@@ -66,7 +66,7 @@ use std::collections::BTreeMap;
 use std::io::Read;
 use std::sync::Arc;
 
-use figcraft_doc::{Document, FileKind};
+use figiran_doc::{Document, FileKind};
 
 pub use export::export;
 
@@ -83,7 +83,7 @@ const MAX_SCHEMA: u64 = 16 * 1024 * 1024;
 /// stop at 64 bytes (128 hex digits).
 pub(crate) const MAX_IMAGE_HASH: usize = 64;
 /// Largest image member read.
-const MAX_IMAGE: u64 = figcraft_doc::ImageData::MAX_BYTES;
+const MAX_IMAGE: u64 = figiran_doc::ImageData::MAX_BYTES;
 /// Total decompressed ZIP image bytes read per import: the native image budget (`IMAGE_BUDGET`) on
 /// 64-bit targets, lower on 32-bit targets to leave address space for the canvas, layers and
 /// decoded pixels.

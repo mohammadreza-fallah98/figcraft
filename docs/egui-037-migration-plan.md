@@ -1,4 +1,4 @@
-# FigCraft egui 0.37 migration plan
+# FigIran egui 0.37 migration plan
 
 Status update (2026-10-25): The migration integrates main `92682728` and pins egui 0.37, winit and craft-window. Required-font CI run `egui037-fig-review-full-ci-20261025-0803` passed 3,306 test executions, zero failures and nine ignored across 71 summaries, including WASM and all three plugin bundles. Screenshot encoding now precedes a shared final-write/reply gate: timeout cancellation cannot overtake a committed file, and a fresh deadline check rejects a late write. A regression through the actual arrival path failed with the previous write behavior and passed with the gate. Native visible GUI/browser workflows, native IME, paired app performance and current-source platform/release installation remain open. Human review and human merge are required.
 
@@ -10,11 +10,11 @@ planning baselines. Native/browser workflows and paired app performance remain o
 No publication approval exists for this document or any derived branch/PR.
 
 Scope: the exact checkout
-`/home/codex/work/CraftApps/egui037-migration-20261022/figcraft-implementation`. This plan covers
-FigCraft only. Suite-wide fork work, shared `craft-libs` work and publication approval remain with
+`/home/codex/work/CraftApps/egui037-migration-20261022/figiran-implementation`. This plan covers
+FigIran only. Suite-wide fork work, shared `craft-libs` work and publication approval remain with
 the parent workflow. This revision resolves the adversarial review of the previous draft in place;
 the review file is
-`/home/codex/work/ssd2/task-evidence/egui037-migration-20261022/plan-reviews/figcraft-v1.md`.
+`/home/codex/work/ssd2/task-evidence/egui037-migration-20261022/plan-reviews/figiran-v1.md`.
 
 Capture acceptance follows the suite contract: a queued-not-issued hidden request and
 each settling frame must request `RequestPaintWhileHidden` from logic; only an issued
@@ -30,7 +30,7 @@ in-flight and completed images together.
 
 ### 1.1 Checkout and baseline
 
-- FigCraft integration checkout: `8167f13a6a416ca61fcb505a7eaf6be383f6c5c0`. Earlier baselines
+- FigIran integration checkout: `8167f13a6a416ca61fcb505a7eaf6be383f6c5c0`. Earlier baselines
   (`80f916326fb94f3a88cb24e64f396f564a0ebc06`, `8d790607ff1ad40e32343ca2116d8fdcf3244c8d`) are
   historical review anchors only.
 - The worktree contains the migration implementation; this document is not a claim that those
@@ -78,7 +78,7 @@ Verified source facts for the craft-libs anchor: the historical port source `861
 implementation must stay on that merged base and must not reuse either PR head as its tree.
 
 Language work: `storytold/craft-libs#198` is an issue/proposal, not a PR or a merged dependency.
-FigCraft consumes the final fork revisions; it does not copy language helpers from `craft-ui`.
+FigIran consumes the final fork revisions; it does not copy language helpers from `craft-ui`.
 
 ### 1.3 Evidence consulted (historical, not fresh validation)
 
@@ -89,7 +89,7 @@ FigCraft consumes the final fork revisions; it does not copy language helpers fr
 - `/home/codex/work/ssd2/task-evidence/egui037-migration-20261022/upstream-discussions.json`:
   issue/PR snapshots for #8535, #8489, #8555, #8583, #8512, #8657, #8577, #8731, #8736, #8763,
   #8764 and #8748.
-- `/home/codex/work/ssd2/task-evidence/egui037-audit-20261022/{fork,stock}/figcraft.errors`:
+- `/home/codex/work/ssd2/task-evidence/egui037-audit-20261022/{fork,stock}/figiran.errors`:
   historical compiler diagnostics, used only as clues.
 - `/home/codex/work/ssd2/task-evidence/craft-fork-egui037-20261021/RESULTS.md`,
   `craft-fork-ai-lines-20261022/SURVEY.md`, `craft-fork-plan-20261020/PLAN.md`.
@@ -99,9 +99,9 @@ No build, test, benchmark, browser run or GUI check was performed for this plan.
 ## 2. Decision summary
 
 1. Target the final reviewed storytold egui/winit revisions, not stock 0.37 alone and not the
-   aiongg candidates. FigCraft needs the language/bidi/IME patches, W15P PRIMARY, E21b outgoing
+   aiongg candidates. FigIran needs the language/bidi/IME patches, W15P PRIMARY, E21b outgoing
    surrounding text and the egui-wgpu fixes carried by the reviewed series.
-2. Keep FigCraft's existing `App::logic` + `App::ui(&mut Ui)` architecture. Do not rewrite to
+2. Keep FigIran's existing `App::logic` + `App::ui(&mut Ui)` architecture. Do not rewrite to
    `App::update`; it does not exist. Do not call `Context::root_ui` from `App::ui`; the root `Ui`
    is already borrowed (upstream #8535).
 3. Treat the real eframe lifecycle: native and web both call `App::logic` **inside** the
@@ -112,23 +112,23 @@ No build, test, benchmark, browser run or GUI check was performed for this plan.
    action queue/token; do not gate all commands on `current_pass_index() == 0`, which cannot be
    implemented in `FigApp::run`/`set_props` (neither receives a `Context`) and would starve fresh
    work.
-5. Use a small local completion-slot adapter in FigCraft, matching the shared capture contract,
+5. Use a small local completion-slot adapter in FigIran, matching the shared capture contract,
    with a weak callback reference, per-request cancellation, bounded aggregate image bytes,
    capture-time viewport/geometry/DPI and viewport-aware wakeup. Keep request IDs, paths, replies and
-   timeouts in FigCraft.
-6. Correct the actual a11y edge handling: FigCraft's panels are `resizable(false)`, so egui does not
-   create `left_panel.__resize`/`right_panel.__resize`. FigCraft's custom edges are
+   timeouts in FigIran.
+6. Correct the actual a11y edge handling: FigIran's panels are `resizable(false)`, so egui does not
+   create `left_panel.__resize`/`right_panel.__resize`. FigIran's custom edges are
    `Id::unique(("panel_edge", "left"/"right"))` with a focusable `Sense::click_and_drag()`.
    Make them non-focusable and test the real IDs. Preserve prefs.panel_widths; fixed
    panels and disabled eframe persistence require no PanelState migration.
 7. Add E21b/P7b outgoing IME surrounding text as an atomic compatibility prerequisite: bounded
    transient payload, built-in TextEdit producer, Wayland adapter, and a real model/preedit/UTF-8
-   index adapter for FigCraft's custom editor. Never pass `None` placeholders as the completed port.
+   index adapter for FigIran's custom editor. Never pass `None` placeholders as the completed port.
 8. Keep logical text at shaping, clipboard, accessibility, save and IME boundaries. Do not feed
-   display-bidi (visually reordered) strings into egui shaping, clipboard or IME. FigCraft does not
+   display-bidi (visually reordered) strings into egui shaping, clipboard or IME. FigIran does not
    use `craft-ui`'s `DockArea`; if it later adopts it, use the explicit opt-in direction policy with
    unchanged saved physical splits and logical tab order.
-9. Use pinned licensed font fixtures from the egui plan's section 10.6. Keep FigCraft's central
+9. Use pinned licensed font fixtures from the egui plan's section 10.6. Keep FigIran's central
    craft-fonts policy, do not copy font binaries into the repository, and do not claim color-emoji
    coverage while `epaint/color_fonts` is disabled.
 10. Stage reviewable PRs with a dependency DAG and rollback. Every build/test uses
@@ -140,20 +140,20 @@ No build, test, benchmark, browser run or GUI check was performed for this plan.
 
 | Target | Manifest / source | Current features / role | 0.37 action |
 |---|---|---|---|
-| Desktop app | `apps/figcraft/Cargo.toml`, `apps/figcraft/src/main.rs` | eframe `default_fonts`, `wgpu`, `accesskit`, `wayland`, `x11`; wgpu renderer; Windows `windows 0.62`; macOS `fmv-macos-events`; Linux `winit` `wayland-csd-adwaita-notitle` | Keep feature shape; add final eframe/egui revisions; enable `clipboard` explicitly; keep `system_fonts` off initially; repoint `craft-window` to the final craft-libs revision |
-| Browser app | `apps/figcraft-web/Cargo.toml`, `src/main.rs`, `src/web.rs` | wasm32 eframe `default_fonts`, `wgpu`, `accesskit`; `WebRunner`; WebGPU/WebGL2 | Update eframe/egui; keep `web_screen_reader` disabled as at baseline; `web_file` is an egui feature used by eframe for wasm, not a FigCraft feature to “verify” independently |
+| Desktop app | `apps/figiran/Cargo.toml`, `apps/figiran/src/main.rs` | eframe `default_fonts`, `wgpu`, `accesskit`, `wayland`, `x11`; wgpu renderer; Windows `windows 0.62`; macOS `fmv-macos-events`; Linux `winit` `wayland-csd-adwaita-notitle` | Keep feature shape; add final eframe/egui revisions; enable `clipboard` explicitly; keep `system_fonts` off initially; repoint `craft-window` to the final craft-libs revision |
+| Browser app | `apps/figiran-web/Cargo.toml`, `src/main.rs`, `src/web.rs` | wasm32 eframe `default_fonts`, `wgpu`, `accesskit`; `WebRunner`; WebGPU/WebGL2 | Update eframe/egui; keep `web_screen_reader` disabled as at baseline; `web_file` is an egui feature used by eframe for wasm, not a FigIran feature to “verify” independently |
 | UI crate | `crates/ui-egui/Cargo.toml`, `src/lib.rs` | egui/egui_extras 0.36, no eframe; about 1,478 egui references; no kittest dev-dependency | Update egui/egui_extras; add `default_fonts` and `egui_kittest` 0.37 for strict a11y tests; add the local capture adapter; mechanical API migration |
 | Text/render | `crates/text`, `crates/render` | no egui dependency; own harfrust/skrifa/tiny-skia | No code change expected; verify duplicate harfrust/skrifa versions and UI/document metrics |
-| CLI/server/MCP | `apps/figcraft-cli`, `apps/figcraft-server`, `crates/mcp` | no egui/eframe (MCP headless) | No dependency change; keep commands and outputs |
+| CLI/server/MCP | `apps/figiran-cli`, `apps/figiran-server`, `crates/mcp` | no egui/eframe (MCP headless) | No dependency change; keep commands and outputs |
 | Plugins | `plugins/` separate workspace | no egui | No change |
 
 Entry points:
 
-- Native: `apps/figcraft/src/main.rs` `main()` → `eframe::run_native`; `App::logic`,
+- Native: `apps/figiran/src/main.rs` `main()` → `eframe::run_native`; `App::logic`,
   `App::raw_input_hook`, `App::ui`, `App::on_exit`.
 - Child windows: `crates/ui-egui/src/windows.rs` `Windows`, `viewport`, `show`, `draw`,
   `enter`/`leave`, `as_window`.
-- Browser: `apps/figcraft-web/src/web.rs` `start`, `WebShell::ui`, `WebServices`.
+- Browser: `apps/figiran-web/src/web.rs` `start`, `WebShell::ui`, `WebServices`.
 - Headless/UI tests: `Context::default().run_ui(...)` in many `crates/ui-egui/src/*_tests.rs`
   files; `crates/ui-egui/src/idle_tests.rs` has the frame/idle harness; `windows_tests.rs` has the
   `run_logic` hidden-window harness.
@@ -166,8 +166,8 @@ Build/test entry points:
 - `xtask/src/main.rs`: `ci`, `layers`, `assets`, `wasm`, `bench`, `plugins`.
 - `crates/ui-egui/src/perf_tests.rs`: ignored `perf_ui_frames` and `report_components` benchmarks,
   currently printing arithmetic means only.
-- `apps/figcraft-cli/src/perf.rs`: release engine/render timings, currently a mean of several runs.
-- `apps/figcraft-web`: `trunk build --release`; `packaging/web/package.sh` enforces the 24 MiB
+- `apps/figiran-cli/src/perf.rs`: release engine/render timings, currently a mean of several runs.
+- `apps/figiran-web`: `trunk build --release`; `packaging/web/package.sh` enforces the 24 MiB
   wasm cap.
 - Windows ARM workflow only packages/installs; Windows x64 build/test and visible GUI checks must be
   run separately through the VM workflow. FreeBSD is a nightly VM build/package job; macOS is
@@ -177,7 +177,7 @@ Build/test entry points:
 
 On 0.36.2 the app already uses `eframe::App::logic` and `eframe::App::ui`:
 
-- `apps/figcraft/src/main.rs` `App::logic` drains the control queue, hidden requests, Apple events,
+- `apps/figiran/src/main.rs` `App::logic` drains the control queue, hidden requests, Apple events,
   close requests, title updates and recovery.
 - `App::ui` wraps `FigApp::ui` in `windows::guard`.
 - `crates/ui-egui/src/lib.rs` `FigApp::ui` calls `self.logic(&ctx)`, `autosave_tick`,
@@ -249,7 +249,7 @@ epaint_default_fonts = { git = "https://github.com/storytold/egui", rev = "STORY
 winit = { git = "https://github.com/storytold/winit", rev = "STORYTOLD_WINIT_FINAL_REV" }
 ```
 
-Only patch crates FigCraft actually resolves. `ecolor`, `emath` and `epaint_default_fonts` are pulled
+Only patch crates FigIran actually resolves. `ecolor`, `emath` and `epaint_default_fonts` are pulled
 by egui/default fonts; leaving any of them on crates.io creates mixed egui-family versions. Add
 `egui_glow` only if a glow build is introduced. If a crate is not resolved in the final graph,
 remove its patch row and record the `cargo tree` evidence.
@@ -263,10 +263,10 @@ cannot apply a 0.37 patch to a `^0.36` requirement. `craft-docpath` is independe
 the same final craft-libs revision for both crates after confirming its source hash, or keep its
 existing rev if the final commit changes unrelated behavior this task has not reviewed.
 
-FigCraft currently has no `craft-ui` dependency. Keep its capture adapter local in
+FigIran currently has no `craft-ui` dependency. Keep its capture adapter local in
 `crates/ui-egui/src/control.rs`, following the CL-2/CL-2F ownership, cancellation, byte-limit
 and viewport-wakeup contract. Eleven existing creative consumers adopt the shared helper;
-DeckCraft, FigCraft and ArtCraft Native use local adapters. Reuse the reviewed conformance cases
+DeckCraft, FigIran and FigIran Native use local adapters. Reuse the reviewed conformance cases
 and compare behavior with the shared prototype; do not add the entire crate solely for capture.
 
 ### 4.2 Feature decisions
@@ -275,9 +275,9 @@ and compare behavior with the shared prototype; do not add the entire crate sole
 |---|---|---|
 | Root `[workspace.dependencies]` | `egui = "0.37"`, `egui_extras = "0.37"`, `eframe = "0.37"` | Pin all three and verify in the lock |
 | `crates/ui-egui/Cargo.toml` | `egui = { workspace = true, features = ["default_fonts"] }` (or the workspace dep carries it) | 0.37 egui default features are empty; `theme::install_fonts` calls `FontDefinitions::default()` and tests without eframe need real fallback fonts |
-| `apps/figcraft/Cargo.toml` | Keep `default_fonts`; enable `clipboard` explicitly; keep `wgpu`, `accesskit`, `wayland`, `x11` | eframe 0.37 `default_fonts` forwards to egui; `clipboard` is optional in 0.37 |
-| `apps/figcraft-web/Cargo.toml` | Keep `default_fonts`, `wgpu`, `accesskit`; keep `web_screen_reader` disabled | Browser has no system-font provider; keep the 24 MiB wasm budget |
-| eframe `system_fonts` | Off initially | FigCraft already scans system fonts and installs only needed faces; enabling fontique adds a second scan and nondeterminism. Evaluate later with a separate measured PR |
+| `apps/figiran/Cargo.toml` | Keep `default_fonts`; enable `clipboard` explicitly; keep `wgpu`, `accesskit`, `wayland`, `x11` | eframe 0.37 `default_fonts` forwards to egui; `clipboard` is optional in 0.37 |
+| `apps/figiran-web/Cargo.toml` | Keep `default_fonts`, `wgpu`, `accesskit`; keep `web_screen_reader` disabled | Browser has no system-font provider; keep the 24 MiB wasm budget |
+| eframe `system_fonts` | Off initially | FigIran already scans system fonts and installs only needed faces; enabling fontique adds a second scan and nondeterminism. Evaluate later with a separate measured PR |
 | `clipboard` | Explicitly enable native `eframe/clipboard` in F2 to preserve 0.36 OS text clipboard behavior; verify E4/W15P and image alpha | 0.36 forced the integration feature; 0.37 makes it optional. Keep existing arboard image handling and browser clipboard paths separately tested |
 | `epaint/color_fonts` | Off by default | 0.37 color-glyph support is behind this feature. Do not claim color-emoji coverage in the normal build; if browser/native color emoji becomes an acceptance requirement, enable it in a separate feature job with the pinned Noto Color Emoji fixture and a color-glyph test |
 | `egui_extras` | `default-features = false`; no `svg` feature unless used | Current crate only uses tables |
@@ -287,10 +287,10 @@ and compare behavior with the shared prototype; do not add the entire crate sole
 Every command below is a payload for the managed workflow in section 7.1; do not run it directly:
 
 ```sh
-cargo tree --locked -p figcraft -i egui
-cargo tree --locked -p figcraft -i eframe
-cargo tree --locked -p figcraft -i winit
-cargo tree --locked -p figcraft -d
+cargo tree --locked -p figiran -i egui
+cargo tree --locked -p figiran -i eframe
+cargo tree --locked -p figiran -i winit
+cargo tree --locked -p figiran -d
 cargo metadata --locked --format-version 1
 ```
 
@@ -301,7 +301,7 @@ Acceptance:
 - `Cargo.lock` records the final storytold egui/winit/craft-libs revisions; no aiongg candidate SHA
   and no moving branch remains.
 - No registry 0.36 egui-family package remains; no duplicate `craft-window`.
-- `wgpu` resolves to one version. Current FigCraft lock is `30.0.1` while the candidate lock says
+- `wgpu` resolves to one version. Current FigIran lock is `30.0.1` while the candidate lock says
   `30.0.0`; both satisfy `30.0`, but the final lock must be inspected for wasm-bindgen and backend
   compatibility. Do not “fix” this by allowing two wgpu versions.
 - `cargo check --locked` native and wasm; `cargo test --locked --workspace`; clippy with
@@ -312,22 +312,22 @@ Acceptance:
 ## 5. Fork patch inventory and integration decisions
 
 The final fork's `PATCHES.md` is the provenance record. Every row below is kept in the reviewed
-series unless its decision says otherwise; none is deleted merely because FigCraft does not call the
+series unless its decision says otherwise; none is deleted merely because FigIran does not call the
 API directly. The candidate revision is a comparison input, not the production source.
 
-| Patch | Crates | Provenance / upstream | FigCraft impact | Decision / removal condition |
+| Patch | Crates | Provenance / upstream | FigIran impact | Decision / removal condition |
 |---|---|---|---|---|
 | E1 `8f3abf06` | eframe | suite ViewportHooks; not upstream | Compiles `NativeOptions`; no direct use | Keep for suite; remove when upstream has equivalent |
 | E2+E3 `9dd799ab` | egui-wgpu | surface fit + error scope; #8361 related | Large/multi-monitor windows, GPU setup errors | Keep; test large surface/error path on Windows/Linux real GPU |
 | E4 `66bacf23` | egui-winit | Wayland clipboard via winit (#8657 draft) | Text copy/paste on Hyprland | Keep the regular clipboard path; PRIMARY is **not** accepted through the candidate's arboard fallback |
 | **W15P + E4 P2b** | winit + egui-winit | winit-owned PRIMARY on the existing connection/event queue, per-seat `PrimarySelectionManagerState`; no second regular `wl_data_device` | Pointer- and keyboard-selected PRIMARY on Wayland | Required prerequisite and integration stage; native acceptance on wlroots/KWin/Mutter. arboard only as a measured fallback if W15P fails a proven requirement |
-| E5 `0e27d87e`, `777977b7`, `f7e89e23`, `5b2b8e19` | epaint/egui | bidi #8577 + fixes | RTL UI/document text, marks, caret | Keep; RTL/caret tests; remove FigCraft double-processing where egui now shapes logical text |
+| E5 `0e27d87e`, `777977b7`, `f7e89e23`, `5b2b8e19` | epaint/egui | bidi #8577 + fixes | RTL UI/document text, marks, caret | Keep; RTL/caret tests; remove FigIran double-processing where egui now shapes logical text |
 | E6 `0abfabcf` | egui | IME focus | Avoids composition interruption | Keep; IME test |
 | E7 `0670c58a` | egui-winit | Windows letter keys | Non-Latin layouts | Keep; Windows layout test |
 | E8 `1b03c10f` | egui | TextEdit glyph overshoot | Thai/Vietnamese/Arabic marks | Keep; screenshot/geometry |
 | E9 `b2f5cafc`, `e1341a3d`, `5105330d`, `75a5b3d3` | egui | RTL chrome | Menus/scrollbars/headers/title bars | Keep; RTL screenshots |
 | E10 `dc90c13e`, `c8e573f7`, `34b2c0d4` | eframe web | key/text-agent fixes | Browser shortcuts and IME | Keep; browser test |
-| E11 `92e61afd` | epaint | single-thread vello flush | Avoids panic under `multithreading` | Keep; compile/test; FigCraft does not enable vello multithreading |
+| E11 `92e61afd` | epaint | single-thread vello flush | Avoids panic under `multithreading` | Keep; compile/test; FigIran does not enable vello multithreading |
 | E12 `e955bb18`, `485c0b89`, `0185887c`, `7015ac23`, `4067b2c4`, `620e070e` | epaint/egui | LayoutJob direction, RTL alignment, L1, linear reorder | RTL layout and text painting | Keep; RTL tests |
 | E13 `5e4da7f4` | epaint/egui | grapheme caret/hit/delete | Emoji/accented text editing | Keep; editor tests |
 | E14 `cbd77549`, `b3722ac0` | epaint/egui | fallback baseline align | CJK/Indic fallback rows | Keep; CJK/Indic screenshot |
@@ -338,16 +338,16 @@ API directly. The candidate revision is a comparison input, not the production s
 | E19 `d64047bf`, `642b74f7`, `baeb4515` | egui-winit/egui | Latin layout chars | Shortcuts on non-Latin layouts | Keep; Windows/Linux layout test |
 | E20 `23955535` | egui | widget text language | RTL/localized widget text | Keep; RTL widget screenshot |
 | E21 `a70470b0` | egui-winit/egui | IME `DeleteSurroundingBytes` | macOS/Wayland IME | Keep; IME test |
-| **E21b/P7b** | egui, egui-winit, winit W27 | outgoing IME surrounding text; confirmed missing at candidate `a4f9a17f` | Custom FigCraft text editor and Wayland predictive IME | Required new prerequisite; see 6.5. Not existing E21 capability |
+| **E21b/P7b** | egui, egui-winit, winit W27 | outgoing IME surrounding text; confirmed missing at candidate `a4f9a17f` | Custom FigIran text editor and Wayland predictive IME | Required new prerequisite; see 6.5. Not existing E21 capability |
 
 Removal rule: a row may be removed only after an upstream release in use contains the same fix and
-the app tests pass against that release. Do not remove an unrelated fork fix because FigCraft does not
+the app tests pass against that release. Do not remove an unrelated fork fix because FigIran does not
 exercise it directly; the fork is shared across the suite.
 
 Optional new provenance patches, only if measurements require them:
 
 - **E22 text tessellation (#8731):** upstream reports ~61% more instructions per plain-text
-  `tessellate` in 0.37. If FigCraft's three-way text-heavy benchmark exceeds the threshold, carry
+  `tessellate` in 0.37. If FigIran's three-way text-heavy benchmark exceeds the threshold, carry
   the issue's row-level fast path with author/provenance recorded, plus a pixel/vertex/index
   equality test for mixed and color rows. Do not change color-glyph semantics.
 - **E23 DX12 shader compile (#8736):** upstream reports ~40 ms extra pipeline creation on FXC. If
@@ -355,11 +355,11 @@ Optional new provenance patches, only if measurements require them:
   that preserves clamp/repeat/mirrored-repeat and color-glyph filtering, with startup and image
   tests. A pipeline-overridable constant is acceptable only if it compiles on all backends.
 - **E24 TextEdit click-away (#8763 / PR #8764):** #8763 is the issue; #8764 is an unmerged proposed
-  fix, not released behavior. If FigCraft's fields or text-selection actions reproduce the 0.37
+  fix, not released behavior. If FigIran's fields or text-selection actions reproduce the 0.37
   selection collapse, carry the reviewed fix or add the app-level regression test. A necessary app
   workaround must preserve the range and undo semantics and have its own removal condition.
 - **E25 hidden deferred windows (#8748):** #8748 is closed and unmerged. Prefer the 0.37
-  `RequestPaintWhileHidden` path in FigCraft's window reconciliation before adding a fork patch.
+  `RequestPaintWhileHidden` path in FigIran's window reconciliation before adding a fork patch.
   If a child cannot be created, updated or closed while the root is hidden, record the failing test
   and then adopt a reviewed fork fix with provenance; do not treat #8748 as available behavior.
 
@@ -400,7 +400,7 @@ Codemod safety:
 
 0.36 `Panel::left("left_panel")` used `Id::unique("left_panel")`. 0.37 `Panel::left` takes
 `impl AsIdSalt` and computes `parent_ui.scope_id().with_salt(IdSalt::new("left_panel"))`
-(`crates/egui/src/containers/panel.rs` at the final source). FigCraft's
+(`crates/egui/src/containers/panel.rs` at the final source). FigIran's
 `crates/ui-egui/src/a11y.rs::focusables` currently excludes the old panel resize IDs, but its
 panels are `.resizable(false)` (`crates/ui-egui/src/lib.rs`) so egui creates no
 `left_panel.__resize`/`right_panel.__resize` widgets at all. The real custom edges are:
@@ -419,7 +419,7 @@ The fix is:
   `Id::unique(("panel_edge", "left"))` / `Id::unique(("panel_edge", "right"))` from
   `focusables` as a defense-in-depth assertion.
 - Do not derive or test `Id::new("left_panel").with("__resize")` as the live edge; that is dead
-  code while FigCraft's panels are non-resizable. If a future PR enables `Panel::resizable(true)`,
+  code while FigIran's panels are non-resizable. If a future PR enables `Panel::resizable(true)`,
   derive the real resize ID from the recorded root `Ui::scope_id()`:
   `root_scope.with("left_panel").with("__resize")`, and test it.
 - Record the root scope in `a11y::begin` from the passed root `Ui` (change the call from `&ctx` to
@@ -438,20 +438,20 @@ Current `crates/ui-egui/src/control.rs`:
 - `PendingShot` stores `id`, `path`, `reply`, `since`, `viewport`.
 - `drain` scans `ctx.input` for `Event::Screenshot` and completes every pending shot for that
   viewport in arrival order.
-- `shot_reply` encodes PNG and writes via `figcraft_engine::file_access::write`.
+- `shot_reply` encodes PNG and writes via `figiran_engine::file_access::write`.
 - `idle_tests` manufactures `Event::Screenshot`; `windows_tests` only tests the hidden-window error.
-- `apps/figcraft/src/control_server.rs` marks the request cancelled after the transport timeout, but
+- `apps/figiran/src/control_server.rs` marks the request cancelled after the transport timeout, but
   `PendingShot` does not retain that flag and `drain` only checks `now - since < SHOT_TIMEOUT`.
 
 0.37 replaces the event with a one-shot `ScreenshotCallback`; `UserData` and `Event::Screenshot`
 are gone. The callback receives `Arc<ColorImage>` and does not request a repaint. Design:
 
 1. Implement the suite capture contract locally in `crates/ui-egui/src/control.rs`, using the
-   reviewed CL-2/CL-2F semantics and conformance cases. FigCraft, DeckCraft and ArtCraft Native
+   reviewed CL-2/CL-2F semantics and conformance cases. FigIran, DeckCraft and FigIran Native
    have local adapters; eleven existing craft-ui consumers share its helper. The local slot owns one result per admitted request and
    exposes a weak handle to the callback; the callback holds only a `Weak` reference, never a strong
    `Context`/app/queue, so a late capture cannot retain the app through shutdown.
-2. On request, FigCraft records its own `ShotRequest { id, path: Option<String>, reply, deadline, serial, viewport,
+2. On request, FigIran records its own `ShotRequest { id, path: Option<String>, reply, deadline, serial, viewport,
    document_generation, capture_spec }` and admits it only if:
    - the capture is for a live viewport and document generation;
    - the request count and aggregate pending bytes are within the app budget;
@@ -571,7 +571,7 @@ first-pass guard is used only for `ui_setup`; it is not a command or queue guard
 
 #### Callback wiring
 
-- `apps/figcraft/src/main.rs::App::logic` calls
+- `apps/figiran/src/main.rs::App::logic` calls
   `with_app(|fig| windows::guard(fig, ctx, |fig| fig.background_tick(ctx, &mut clock)))` on every
   callback. Wrapping in `windows::guard` preserves `file_access::confined` automation roots and
   panic recovery for autosave/recovery/preference writes. Set `fig.logic_ticked = true` when the tick
@@ -645,13 +645,13 @@ first-pass guard is used only for `ui_setup`; it is not a command or queue guard
 
 - Add `source: MouseWheelSource` to every construction. `control.rs` synthetic scroll uses
   `Wheel`; unit tests use `Unknown` unless testing source-sensitive scroll behavior.
-- `Event::PasteImage` and `Event::MiddleClickPaste` are new but optional for FigCraft; do not replace
+- `Event::PasteImage` and `Event::MiddleClickPaste` are new but optional for FigIran; do not replace
   the existing arboard/WebServices paths without a regression test. The canvas paste path must still
   accept image bytes and the browser's `paste` event.
 - **PRIMARY:** E4's regular Wayland clipboard is not enough. The selected design is winit-owned
   PRIMARY on the existing connection/event queue and per-seat lifecycle, using SCTK 0.19.2
   `PrimarySelectionManagerState`/device/source/offer; do not bind a second regular
-  `wl_data_device`. W15P lands and is reviewed before the E4 P2b integration stage. FigCraft must
+  `wl_data_device`. W15P lands and is reviewed before the E4 P2b integration stage. FigIran must
   keep password exclusion, not reclaim an unchanged selection, and test pointer/keyboard triggering serials (including keyboard-only focus), per-seat origin/freshness, serial
   freshness, owner/seat changes, empty/absent offers, self-paste and canceled/slow transfers on
   wlroots/KWin/Mutter. arboard is only a measured fallback if W15P cannot meet a proven requirement;
@@ -670,7 +670,7 @@ first-pass guard is used only for `ui_setup`; it is not a command or queue guard
   `egui-winit` sends it on text/selection/owner changes through W27 on Wayland only; per-window
   caching must not bleed across widgets/windows. PlatformOutput append keeps the final IME output
   and payload together across passes.
-- **FigCraft's custom editor adapter:** `crates/ui-egui/src/shortcuts.rs::ime_output` currently
+- **FigIran's custom editor adapter:** `crates/ui-egui/src/shortcuts.rs::ime_output` currently
   emits only purpose/rect/cursor_rect/interruption (around line 552). It must supply the real model
   adapter: committed document text for the edited node, preedit removed, caret/anchor converted from
   the engine's character/scalar coordinates to UTF-8 byte indices, bounded to 4000 bytes, with
@@ -683,24 +683,24 @@ first-pass guard is used only for `ui_setup`; it is not a command or queue guard
   windows; focus loss/reset/late serial; password/no-context clears; multi-pass final-output
   selection. Native Wayland Vietnamese/predictive IME verifies the protocol trace and editor
   content/undo; macOS NSRange remains W26's separate path.
-- RTL/bidi: E5/E12/E13/E16 change caret/hit/row order. The fork now shapes logical text. FigCraft's
-  `bidi.rs` currently pre-reorders names with `figcraft_text::display` and draws cluster sections so
+- RTL/bidi: E5/E12/E13/E16 change caret/hit/row order. The fork now shapes logical text. FigIran's
+  `bidi.rs` currently pre-reorders names with `figiran_text::display` and draws cluster sections so
   egui's old shaper does not reverse them again. After E5/E12, remove double processing where egui
   manages the widget; keep only deliberately custom painting that needs visual-order metadata.
   Never pass a display-reordered string to egui shaping, `TextEdit`, clipboard, AccessKit names,
   save, or E21b surrounding text; those boundaries use the logical document string. `rtl_names_tests`
   and a mixed-logical/clipboard/IME test must pass. Any cache keyed by `FontId` must account for
   `FontFamily::Name` and `LayoutJob::direction`. Do not delete `bidi.rs` until E5/E12 tests prove the
-  fork covers FigCraft's custom name painting.
+  fork covers FigIran's custom name painting.
 - Accessibility language: call `ctx.set_language(i18n::current().map(|l| l.code.to_string()))` in
   `ui_setup` (fork E17). Assert the AccessKit root node's language changes with the UI language.
   This is optional only if the final pinned fork lacks E17; do not use a nonexistent upstream API.
 - `Ui::label_inputs_by` / `Response::accessible_name` are available in 0.37; use them only where
-  FigCraft currently has unnamed native widgets. Custom `a11y` node builders remain.
-- Shared `DockArea` direction: FigCraft keeps its own panels and does not adopt `craft-ui`'s
+  FigIran currently has unnamed native widgets. Custom `a11y` node builders remain.
+- Shared `DockArea` direction: FigIran keeps its own panels and does not adopt `craft-ui`'s
   `DockArea`. If a future PR does, it must pass an explicit opt-in `DockDirection`, preserve the
   serialized physical splits/rectangles and logical tab order, and use the same rectangles for
-  painting/hit/drag/keyboard with bottom-trailing resize grips. FigCraft must not reverse saved
+  painting/hit/drag/keyboard with bottom-trailing resize grips. FigIran must not reverse saved
   panel order or feed display-bidi text to the shared dock.
 
 ### 6.6 Fonts and glyph coverage
@@ -709,7 +709,7 @@ first-pass guard is used only for `ui_setup`; it is not a command or queue guard
   default features empty, that is `FontDefinitions::empty()` unless the app/UI crate enables
   `default_fonts`. Declare production fallback policy explicitly. The proposed 0.37 kittest
   dev dependency does not transitively enable fonts: only kittest's own dev-dependencies do.
-  Explicitly enable `default_fonts` and `monochrome_emoji_fonts` on FigCraft's egui test
+  Explicitly enable `default_fonts` and `monochrome_emoji_fonts` on FigIran's egui test
   dependency for these fixtures. Audit UI-library/test/native/web graphs independently.
 - Keep the optional `CRAFT_FONTS_DIR` build input. Record whether each baseline/candidate run had
   craft-fonts and its exact ref; a no-craft-fonts run is valid for CI but not for a font-metrics
@@ -719,13 +719,13 @@ first-pass guard is used only for `ui_setup`; it is not a command or queue guard
   a CJK name adds the expected face; shortcut symbols (⌘⌥⇧↵) have glyphs; a font-picker preview
   renders with the selected family.
 - If `system_fonts` is evaluated later, test color emoji and arbitrary scripts, and record startup
-  cost. Do not replace FigCraft's deterministic fallback with a blanket font provider in this
+  cost. Do not replace FigIran's deterministic fallback with a blanket font provider in this
   migration.
 - Preserve the first-font-frame behavior: when `ui_setup` installs fonts for the first time, set a
   `skip_draw` flag; `FigApp::ui` requests a repaint and returns without drawing. Do not draw one
   frame with missing fonts.
 - 0.37 changed text layout/font versions. Pixel/width tests may shift by subpixel amounts. Inspect
-  each difference; do not auto-update expected widths. The document renderer still uses FigCraft's
+  each difference; do not auto-update expected widths. The document renderer still uses FigIran's
   own harfrust/skrifa stack, so UI and canvas text may legitimately differ.
 - **Pinned licensed fixtures (egui plan section 10.6):** fetch
   `craft-fonts` at `2481a8a324b986a45954e90045ed1f8f2efaaf3c` as a test resource and keep the
@@ -763,7 +763,7 @@ first-pass guard is used only for `ui_setup`; it is not a command or queue guard
   remove the use rather than expecting a compile error, and test that panel content does not paint
   over the canvas, popups/menus and drag ghosts stay in their intended layers, and hit rects match
   what is visible.
-- Docking: FigCraft does not use `craft-ui` docking; do not add it as part of this migration. The
+- Docking: FigIran does not use `craft-ui` docking; do not add it as part of this migration. The
   capture completion slot stays local. If a future PR adopts `DockArea`,
   follow the explicit direction policy in 6.5.
 - Child windows: keep `windows.rs` deferred viewports and pane swapping. 0.37 adds
@@ -773,7 +773,7 @@ first-pass guard is used only for `ui_setup`; it is not a command or queue guard
 - Title bars: `craft-window` decides `TitleBar::Native/Inset/Custom`; `window_chrome` maps to
   `ViewportBuilder`. 0.37 keeps these builder methods. macOS traffic-light positioning is not
   changed without a Mac; `Frame::set_traffic_lights_position` is available if later measured.
-- GPU: `apps/figcraft/src/graphics.rs::backends/configure` still mutates
+- GPU: `apps/figiran/src/graphics.rs::backends/configure` still mutates
   `WgpuConfiguration`/`WgpuSetup::CreateNew(create).instance_descriptor.backends`; verify compile
   and preserve DX12-then-GL on Windows. E2/E3 stay. Measure `Renderer::new`/first frame on Windows
   DX12; do not report compile time as UI performance.
@@ -788,14 +788,14 @@ first-pass guard is used only for `ui_setup`; it is not a command or queue guard
 ### 7.1 Repository gates through `task.py`
 
 Read `/home/codex/work/maintenance/TASK-JOBS.md` before the first submission. Every future
-fmt/clippy/test/benchmark is a new job on one FigCraft task; a fresh target is allocated once, and
+fmt/clippy/test/benchmark is a new job on one FigIran task; a fresh target is allocated once, and
 `finish` is applied only after all checks, GUI workflows and evidence preservation are complete.
 Example template (do not run during planning):
 
 ```sh
-TASK=figcraft-egui037-migration
-SRC=/home/codex/work/CraftApps/egui037-migration-20261022/figcraft
-EV=/home/codex/work/ssd2/task-evidence/egui037-migration-20261022/figcraft-validation
+TASK=figiran-egui037-migration
+SRC=/home/codex/work/CraftApps/egui037-migration-20261022/figiran
+EV=/home/codex/work/ssd2/task-evidence/egui037-migration-20261022/figiran-validation
 
 python3 /home/codex/work/maintenance/task.py run \
   --job-id "$TASK-ci-01" --kind build --task "$TASK" \
@@ -807,7 +807,7 @@ python3 /home/codex/work/maintenance/task.py status "$TASK-ci-01" --tail-bytes 8
 python3 /home/codex/work/maintenance/task.py run \
   --job-id "$TASK-ui-tests-01" --kind build --task "$TASK" \
   --source "$SRC" --evidence "$EV" \
-  -- cargo test --locked -p figcraft-ui-egui
+  -- cargo test --locked -p figiran-ui-egui
 python3 /home/codex/work/maintenance/task.py status "$TASK-ui-tests-01" --tail-bytes 8192
 ```
 
@@ -819,8 +819,8 @@ equivalent for the repository; run individual payloads when evidence must identi
 `cargo test --workspace` builds without craft-fonts in CI; a with-craft-fonts configuration is a
 separate job and records the exact font ref/hash.
 
-Targeted suites, each its own job: `figcraft-ui-egui`, `figcraft-engine`, `figcraft --bin figcraft`,
-`figcraft-web`, `figcraft-cli`. Then native Windows x64 and wasm workflows. macOS/FreeBSD remain
+Targeted suites, each its own job: `figiran-ui-egui`, `figiran-engine`, `figiran --bin figiran`,
+`figiran-web`, `figiran-cli`. Then native Windows x64 and wasm workflows. macOS/FreeBSD remain
 unresolved unless real evidence is available; a compile-only result is not a platform pass.
 
 ### 7.2 New/updated regression tests
@@ -853,8 +853,8 @@ Pixel comparisons:
 - Prefer geometry, shape counts and semantic AccessKit assertions for control logic.
 - Use screenshot/pixel comparisons for synthetic scenes: empty document, frame with text, selected
   frame with handles, RTL name, CJK name, font picker, dark/light, 100% and 150%.
-- Fixtures are generated in code (`figcraft_engine::synthetic`,
-  `figcraft_engine::synthetic_ds`) or original assets already in the repository; no product
+- Fixtures are generated in code (`figiran_engine::synthetic`,
+  `figiran_engine::synthetic_ds`) or original assets already in the repository; no product
   screenshots or third-party assets.
 - Tolerance: exact geometry; for antialiasing/font raster changes allow at most 0.1% of pixels
   differing by more than 2/255 per channel and no pixel differing by more than 4/255; text layout
@@ -894,13 +894,13 @@ capture queue must each fail the targeted test; remove the deliberate defect aft
 Before modifying production code, from clean baseline `80f9163` with the old manifest/lock, record:
 
 - exact `Cargo.lock` hash, `rustc -Vv`, `cargo -V`, target triple, features, `CRAFT_FONTS_DIR`
-  presence/ref, `FIGCRAFT_EMBED_CJK`;
+  presence/ref, `FIGIRAN_EMBED_CJK`;
 - OS version, CPU, RAM, GPU/adapter/backend/driver, DPI/scale, window size, renderer (software vs
   real GPU), release profile, `WGPU_BACKEND`;
 - raw samples, command lines and timings in the durable evidence directory.
 
 Measure three sources on the same machine, checkout fixtures, fonts, features, DPI and viewport:
-unchanged 0.36.2 baseline (`49682f8b`/FigCraft `80f9163` lock), stock 0.37.0
+unchanged 0.36.2 baseline (`49682f8b`/FigIran `80f9163` lock), stock 0.37.0
 (`841a328b`) via a pinned minimal adapter/harness where the app cannot compile unchanged, and the
 final selected storytold fork. Record all three source/lock identities. An unavailable stock
 equivalence is an attribution limitation, not evidence that an upstream regression is unavoidable.
@@ -908,9 +908,9 @@ Candidate runs use paired A/B/A/B ordering; do not compare compile duration with
 
 ### 8.2 Operations and issue-specific workloads
 
-1. `figcraft-cli perf --layers 1000,10000,50000`: build/open, save/load, full render, retained pan,
+1. `figiran-cli perf --layers 1000,10000,50000`: build/open, save/load, full render, retained pan,
    one-layer edit, hit test, hover, node edit, undo/redo, boolean drag, normalize, inspect,
-   select-all+move. Existing rows in `apps/figcraft-cli/src/perf.rs::measure`.
+   select-all+move. Existing rows in `apps/figiran-cli/src/perf.rs::measure`.
 2. `perf_ui_frames` / `report_components`: idle, hover, wheel pan, one layer selected, Prototype
    tab, all screens expanded, scroll layers, filter, keyboard navigation, bottom-layer reveal,
    collapse all, Assets panel first/idle/scroll, edit a component, instance with many properties,
@@ -943,10 +943,10 @@ Candidate runs use paired A/B/A/B ordering; do not compare compile duration with
   30 samples, not 5. Report raw samples, median, p95, min/max, MAD and sample count; report p99 only
   where the sample count supports it. A coefficient of variation >5% triggers a rerun on an idle
   machine and a recorded explanation. Modify `crates/ui-egui/src/perf_tests.rs` and
-  `apps/figcraft-cli/src/perf.rs` to emit raw samples and these aggregates; the current means-only
+  `apps/figiran-cli/src/perf.rs` to emit raw samples and these aggregates; the current means-only
   output is not acceptance evidence.
 - Three-way acceptance on paired baseline/candidate (shared suite floors are no looser than 5%
-  median / 10% p95; FigCraft keeps its stricter engine/render/UI gates):
+  median / 10% p95; FigIran keeps its stricter engine/render/UI gates):
   - engine/render/UI median ≤ +3% and p95 ≤ +5% relative; absolute floor 0.05 ms for sub-ms
     operations. If evidence shows the stricter gate is noisy, record an explicit, pre-approved
     exception; never silently relax after seeing a failure.
@@ -963,7 +963,7 @@ Candidate runs use paired A/B/A/B ordering; do not compare compile duration with
   - screenshot/control latency ≤ +10% p95; save/reopen ≤ +5%.
 - A regression triggers profiling and a written cause/fix; it is never accepted by changing a golden
   or deleting a test. Software-renderer and real-GPU results are separate rows. A stock-0.37-only
-  failure is still an attribution result, not a FigCraft fork pass.
+  failure is still an attribution result, not a FigIran fork pass.
 
 The required X0 dependency is the complete P8 handoff. E24/E25's selection-action and
 hidden-child regressions map to fork P7c (conditional fixes after reproduction), not optional
@@ -992,7 +992,7 @@ the commit is unreachable. F2 still switches to the final reviewed craft-libs re
 ## 9. Reviewable PR stages and dependency DAG
 
 ```
-External prerequisites (not FigCraft PRs)
+External prerequisites (not FigIran PRs)
   X0: reviewed + approved storytold/egui final revision (complete P8: E1-E21 + P2b/P7/P7b/P7c)
   X1: reviewed + approved storytold/winit final revision (W1-W27 + W15P)
   X2: reviewed + approved storytold/craft-libs final revision
@@ -1000,7 +1000,7 @@ External prerequisites (not FigCraft PRs)
        reviewed CL-2/CL-2F capture contract for the local adapter; no b68de8c/ec8840a tree)
   X3: optional E22-E25 only after measurements, with provenance and fresh review
 
-FigCraft
+FigIran
   F0 baseline evidence (no production change)
       |
   F1 lifecycle/action refactor on 0.36:
@@ -1020,7 +1020,7 @@ Each stage is a separate reviewable PR/branch and must be green on its own:
 
 - **F1** includes the queued hidden screenshot/input behavior above and its basic
   paint/timeout regression in the atomic callback migration. It touches `crates/ui-egui/src/lib.rs`, `windows.rs`, `control.rs`, `present.rs` and
-  `apps/figcraft/src/main.rs` plus tests; no manifest/dependency change. It proves the new
+  `apps/figiran/src/main.rs` plus tests; no manifest/dependency change. It proves the new
   background/UI split and action tokens on 0.36 first, including the native/web call sequence,
   hidden logic, forced hidden paint, restore-with-buffered-input and two-window global work.
 - **F2** is atomic: root/app/UI manifests, `Cargo.lock`, final patches, `ui-egui`
@@ -1063,7 +1063,7 @@ agent/model/tool signature; contributor credit remains username-only (`@skylarta
    reviewed/published and E4 P2b integrated with native wlroots/KWin/Mutter evidence; otherwise the
    PRIMARY gate is unresolved/blocked.
 4. **E21b/P7b:** outgoing surrounding text is not present in the comparison candidate. The local
-   reviewed fork plus FigCraft's custom-editor producer implement the bounded payload and
+   reviewed fork plus FigIran's custom-editor producer implement the bounded payload and
    receipt/change-cause contract described in `docs/egui-037-local-followups.md`; the Wayland
    adapter and final immutable fork pin still require review, validation and publication. `None`
    placeholders are not a port.
@@ -1071,11 +1071,11 @@ agent/model/tool signature; contributor credit remains username-only (`@skylarta
    private/branch dependency breaks contributors. Fresh human approval is required before any push.
 6. **Language #198 / E5-E21:** the fork is the integration point. If the reviewed series changes or
    is reverted, bump the pin in a separate PR and rerun RTL/IME tests. Do not copy patches into
-   FigCraft.
+   FigIran.
 7. **Known 0.37 performance regressions (#8731, #8736, #8512):** decide only after three-way paired
    measurements. If thresholds fail and no provenance-recorded fix is accepted, the migration is
    blocked.
-8. **TextEdit click-away (#8763/#8764):** #8764 is a proposed, unmerged fix. Verify FigCraft's
+8. **TextEdit click-away (#8763/#8764):** #8764 is a proposed, unmerged fix. Verify FigIran's
    custom selection actions; if affected, fix/test before merge.
 9. **Hidden deferred children (#8748):** closed and unmerged. Verify with
    `RequestPaintWhileHidden`; otherwise adopt a reviewed fork fix or record the unresolved behavior.
@@ -1129,7 +1129,7 @@ agent/model/tool signature; contributor credit remains username-only (`@skylarta
   immutable revisions and public reachability immediately before implementation and before every
   publication.
 - Upstream issue measurements (#8731, #8736, #8512) are reported by others, not reproduced here;
-  this plan requires FigCraft's own three-way paired measurements.
+  this plan requires FigIran's own three-way paired measurements.
 - macOS, FreeBSD, real-GPU, screen-reader and Wayland/PRIMARY behavior remain unproven until
   evidence is recorded from real environments.
 - This revision was prepared by static inspection only. Reviewer claims were checked against the
@@ -1166,7 +1166,7 @@ Primary sources consulted:
 
 The user clarified that reviewed plans remain local and implementation proceeds before publication. The earlier requirement to publish/land this plan first is superseded; pushes and PR publication still require explicit approval.
 
-Canonical `storytold/figcraft` `main` now resolves to `8d790607ff1ad40e32343ca2116d8fdcf3244c8d`. The owned checkout was fast-forwarded to this revision. Earlier baseline SHAs and line anchors above are retained as historical review evidence; use this new revision and its exact lockfile for current-main integration and paired measurements. The original refs remain reachable.
+Canonical `mohammadreza-fallah98/figiran` `main` now resolves to `8d790607ff1ad40e32343ca2116d8fdcf3244c8d`. The owned checkout was fast-forwarded to this revision. Earlier baseline SHAs and line anchors above are retained as historical review evidence; use this new revision and its exact lockfile for current-main integration and paired measurements. The original refs remain reachable.
 
 No migration API redesign required by this delta; preserve the merged packaging, test and chrono changes where present.
 
@@ -1202,10 +1202,10 @@ both the migration history and that upstream target as parents. The selected egu
 `7ba8af4de70ba657a652266ddee2920bfc501c851520a49ac60c8044a5c23cc1`.
 The normal UI enables `default_fonts` and `monochrome_emoji_fonts`.
 
-Managed full CI `egui037-figcraft-final-ci-20261024-2312` passed with bundled fonts.
-Managed full CI `egui037-figcraft-system-font-ci-20261025-0402` also passed without
+Managed full CI `egui037-figiran-final-ci-20261024-2312` passed with bundled fonts.
+Managed full CI `egui037-figiran-system-font-ci-20261025-0402` also passed without
 bundled craft-fonts, using a licensed DejaVu Sans system-font fixture via XDG_DATA_HOME.
-The final qualification run `egui037-figcraft-final-qualification-ci-20261025-0453`
+The final qualification run `egui037-figiran-final-qualification-ci-20261025-0453`
 repeated that configuration successfully after the documentation reconciliation.
 Both runs completed formatting, strict lint, workspace tests, doctests, translations,
 layering, assets, WASM checks, and plugin fmt/lint/tests/release-WASM builds. Each log

@@ -1,15 +1,15 @@
 //! Ids a file being imported brings that the document already uses for something else.
 //!
 //! Style, variable and collection ids are numbered per file (`S:1`, `VariableID:1`,
-//! `VariableCollectionId:1`; see [`figcraft_doc::ids`]), so two files made apart use the same ones
+//! `VariableCollectionId:1`; see [`figiran_doc::ids`]), so two files made apart use the same ones
 //! for unrelated things. Kept as they were, the imported layers would show the document's
 //! variables and styles instead of their own.
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use figcraft_doc::ids::MODE_ID_INFIX;
-use figcraft_doc::proto::{Action, Expr, MAX_EXPR_DEPTH, walk_mut};
-use figcraft_doc::{Document, ModeId, NodeId, NodeKind, VariableValue, Variables};
+use figiran_doc::ids::MODE_ID_INFIX;
+use figiran_doc::proto::{Action, Expr, MAX_EXPR_DEPTH, walk_mut};
+use figiran_doc::{Document, ModeId, NodeId, NodeKind, VariableValue, Variables};
 
 /// A style, variable or collection of the file being imported.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]

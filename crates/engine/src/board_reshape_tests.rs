@@ -2,8 +2,8 @@
 //! their shape as the objects move; the start and end runs gain an extra run to stay on their
 //! ends; one undo step; saved with the file. Written from the public help on connectors.
 
-use figcraft_doc::{BoardItem, ConnectorPath, End, NodeId, Routing, Side};
-use figcraft_geom::Point;
+use figiran_doc::{BoardItem, ConnectorPath, End, NodeId, Routing, Side};
+use figiran_geom::Point;
 use serde_json::{Value, json};
 
 use crate::Session;
@@ -170,10 +170,10 @@ fn a_reshaped_path_is_saved_and_older_files_open() {
     let saved = serde_json::to_value(BoardItem::Connector(c.clone())).unwrap();
     assert_eq!(serde_json::from_value::<BoardItem>(saved).unwrap(), BoardItem::Connector(c.clone()));
     // Saved without one (every older file), it routes itself; none isn't written out.
-    let plain = figcraft_doc::Connector { path: None, ..c };
+    let plain = figiran_doc::Connector { path: None, ..c };
     let saved = serde_json::to_value(&plain).unwrap();
     assert!(saved.get("path").is_none(), "{saved}");
-    assert_eq!(serde_json::from_value::<figcraft_doc::Connector>(saved).unwrap(), plain);
+    assert_eq!(serde_json::from_value::<figiran_doc::Connector>(saved).unwrap(), plain);
     assert!(route(s.doc().unwrap(), &plain).is_some());
 }
 

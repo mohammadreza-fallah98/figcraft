@@ -58,7 +58,7 @@ const RENEW_BEFORE: Duration = Duration::from_secs(30);
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Status {
     SignedOut,
-    /// The login page is open in the browser; the app waits for its loopback redirect (or `figcraft://auth`).
+    /// The login page is open in the browser; the app waits for its loopback redirect (or `figiran://auth`).
     WaitingForBrowser,
     /// Trading the code (or the remembered refresh token) for a session.
     SigningIn,
@@ -270,7 +270,7 @@ impl Portal {
     }
 
     /// Listen for the browser's loopback redirect and give the login page's address with the port
-    /// and state; when no port can be had, the plain address (the browser then uses `figcraft://`).
+    /// and state; when no port can be had, the plain address (the browser then uses `figiran://`).
     fn start_loopback(&self, challenge: &str) -> String {
         self.stop_loopback();
         let plain = config::login_page_url(&self.0.base, challenge);
@@ -279,7 +279,7 @@ impl Portal {
         let weak = Arc::downgrade(&self.0);
         let started = Loopback::start(state.clone(), LOGIN_WAIT, move |code| {
             if let Some(inner) = weak.upgrade() {
-                Portal(inner).handle_auth_link(&format!("figcraft://auth?code={code}"));
+                Portal(inner).handle_auth_link(&format!("figiran://auth?code={code}"));
             }
         });
         match started {
@@ -331,7 +331,7 @@ impl Portal {
         }
     }
 
-    /// `link` was handed to the app: when it is a `figcraft://auth` link, use it (true); any other
+    /// `link` was handed to the app: when it is a `figiran://auth` link, use it (true); any other
     /// link isn't this module's (false).
     pub fn handle_auth_link(&self, link: &str) -> bool {
         if !crate::deeplink::is_auth_link(link) {

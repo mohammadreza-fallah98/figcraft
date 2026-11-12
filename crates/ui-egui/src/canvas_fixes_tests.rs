@@ -7,7 +7,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{Duration, Instant};
 
 use egui::{Event, Modifiers, PointerButton, Pos2, Shape};
-use figcraft_engine::Session;
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::layers_drag_tests::Ui;
@@ -75,11 +75,11 @@ fn frame_outlines_and_slices_draw_when_shown() {
 }
 
 /// A job a few hundred milliseconds of rendering big.
-fn big_job(doc: &Arc<figcraft_doc::Document>, page: figcraft_doc::NodeId, scale: f64) -> crate::render_worker::Job {
+fn big_job(doc: &Arc<figiran_doc::Document>, page: figiran_doc::NodeId, scale: f64) -> crate::render_worker::Job {
     crate::render_worker::Job {
         doc: doc.clone(),
         page,
-        view: figcraft_render::View { origin: (0.0, 0.0), scale, width: 2400, height: 2400 },
+        view: figiran_render::View { origin: (0.0, 0.0), scale, width: 2400, height: 2400 },
         outline: false,
         outline_extras: Default::default(),
         outlined: vec![],
@@ -160,7 +160,7 @@ fn the_pen_draws_the_handles_of_the_point_being_dragged_and_a_curved_band() {
 fn the_pencil_previews_its_stroke_in_its_colour_and_weight() {
     let mut u = Ui::new(Session::new());
     u.app.run("tool.set", json!({"tool": "pencil"}));
-    let (color, weight) = figcraft_engine::tools::PENCIL_STROKE;
+    let (color, weight) = figiran_engine::tools::PENCIL_STROKE;
     let preview = |shapes: &[Shape]| {
         shapes.iter().find_map(|s| match s {
             Shape::Path(p) if !p.closed && p.points.len() >= 3 && p.stroke.color == egui::epaint::ColorMode::Solid(crate::theme::c32(color)) => {
@@ -192,7 +192,7 @@ fn the_pencil_previews_white_over_a_dark_page() {
     let mut u = Ui::new(Session::new());
     u.app.run("page.setBackground", json!({"color": "#1E1E1E"}));
     u.app.run("tool.set", json!({"tool": "pencil"}));
-    let white = egui::epaint::ColorMode::Solid(crate::theme::c32(figcraft_color::Color::WHITE));
+    let white = egui::epaint::ColorMode::Solid(crate::theme::c32(figiran_color::Color::WHITE));
     let at = |u: &Ui, x: f64, y: f64| u.app.to_screen(x, y);
     u.button(at(&u, 10.0, 10.0), true);
     for i in 1..=6 {

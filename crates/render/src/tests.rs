@@ -1,6 +1,6 @@
 use super::*;
-use figcraft_color::{Color, ColorStop, Gradient, GradientKind, Paint};
-use figcraft_doc::{Effect, EffectKind, NodeKind, Region, Segment, Shadow, StrokeAlign, TextData, VectorNetwork, Vertex, WindingRule};
+use figiran_color::{Color, ColorStop, Gradient, GradientKind, Paint};
+use figiran_doc::{Effect, EffectKind, NodeKind, Region, Segment, Shadow, StrokeAlign, TextData, VectorNetwork, Vertex, WindingRule};
 
 fn px(p: &Pixmap, x: u32, y: u32) -> [u8; 4] {
     let i = ((y * p.width() + x) * 4) as usize;
@@ -8,8 +8,8 @@ fn px(p: &Pixmap, x: u32, y: u32) -> [u8; 4] {
     [d[0], d[1], d[2], d[3]]
 }
 
-fn doc_with_rect(fill: Color) -> (figcraft_doc::Document, figcraft_doc::NodeId, figcraft_doc::NodeId) {
-    let mut d = figcraft_doc::Document::new("t");
+fn doc_with_rect(fill: Color) -> (figiran_doc::Document, figiran_doc::NodeId, figiran_doc::NodeId) {
+    let mut d = figiran_doc::Document::new("t");
     let p = d.first_page().unwrap();
     let r = d.create(p, NodeKind::Rectangle, "R", 10.0, 10.0, 50.0, 30.0).unwrap();
     d.get_mut(r).unwrap().fills = vec![Paint::solid(fill)];
@@ -30,7 +30,7 @@ fn solid_rect_and_page_background() {
 
 #[test]
 fn vector_regions_use_their_own_paints_and_empty_regions_do_not_erase() {
-    let mut d = figcraft_doc::Document::new("regions");
+    let mut d = figiran_doc::Document::new("regions");
     let page = d.first_page().unwrap();
     let network = VectorNetwork {
         vertices: [(0.0, 0.0), (10.0, 0.0), (10.0, 10.0), (0.0, 10.0), (10.0, 0.0), (20.0, 0.0), (20.0, 10.0), (10.0, 10.0)]
@@ -64,9 +64,9 @@ fn vector_regions_use_their_own_paints_and_empty_regions_do_not_erase() {
 
 #[test]
 fn region_paint_space_preserves_gradient_image_and_pattern_placement() {
-    use figcraft_color::{ImageScaleMode, PaintKind, PatternPaint};
-    use figcraft_doc::RegionPaintSpace;
-    use figcraft_geom::{Affine, Rect, Shape};
+    use figiran_color::{ImageScaleMode, PaintKind, PatternPaint};
+    use figiran_doc::RegionPaintSpace;
+    use figiran_geom::{Affine, Rect, Shape};
 
     let mut d = Document::new("paint frames");
     let page = d.first_page().unwrap();
@@ -76,10 +76,8 @@ fn region_paint_space_preserves_gradient_image_and_pattern_placement() {
     for (i, pixel) in image.pixels_mut().iter_mut().enumerate() {
         *pixel = tiny_skia::PremultipliedColorU8::from_rgba((i % 8 * 30) as u8, (i / 8 * 60) as u8, 30, 255).unwrap();
     }
-    d.images.insert(
-        "region-frame-image".into(),
-        figcraft_doc::ImageData { bytes: std::sync::Arc::new(encode_png(&image).unwrap()), width: 8, height: 4 },
-    );
+    d.images
+        .insert("region-frame-image".into(), figiran_doc::ImageData { bytes: std::sync::Arc::new(encode_png(&image).unwrap()), width: 8, height: 4 });
     let mut pattern = PatternPaint::new(tile.0);
     pattern.spacing = (3.0, 4.0);
     let paints = [
@@ -120,7 +118,7 @@ fn region_paint_space_preserves_gradient_image_and_pattern_placement() {
 
 #[test]
 fn styled_vector_mask_unions_region_windings_and_excludes_unpainted_regions() {
-    let mut d = figcraft_doc::Document::new("region mask");
+    let mut d = figiran_doc::Document::new("region mask");
     let page = d.first_page().unwrap();
     let group = d.create(page, NodeKind::Group, "Mask group", 0.0, 0.0, 60.0, 20.0).unwrap();
     let mut network = VectorNetwork::default();
@@ -150,7 +148,7 @@ fn styled_vector_mask_unions_region_windings_and_excludes_unpainted_regions() {
         let n = d.get_mut(mask).unwrap();
         n.fills.clear();
         n.is_mask = true;
-        n.mask_type = figcraft_doc::MaskType::Vector;
+        n.mask_type = figiran_doc::MaskType::Vector;
     }
     let content = d.create(group, NodeKind::Rectangle, "Content", 0.0, 0.0, 60.0, 20.0).unwrap();
     d.get_mut(content).unwrap().fills = vec![Paint::solid(Color::BLACK)];
@@ -164,7 +162,7 @@ fn styled_vector_mask_unions_region_windings_and_excludes_unpainted_regions() {
 
 #[test]
 fn inherited_paint_frames_keep_overlapping_regions_in_vector_masks() {
-    use figcraft_geom::{Affine, Point, Shape};
+    use figiran_geom::{Affine, Point, Shape};
 
     let mut d = Document::new("inherited region mask");
     let page = d.first_page().unwrap();
@@ -179,14 +177,14 @@ fn inherited_paint_frames_keep_overlapping_regions_in_vector_masks() {
             loops: vec![(s..s + 4).collect()],
             winding: WindingRule::EvenOdd,
             fills: None,
-            paint_space: Some(figcraft_doc::RegionPaintSpace { width: 20.0, height: 20.0, transform: Affine::translate((x, 0.0)) }),
+            paint_space: Some(figiran_doc::RegionPaintSpace { width: 20.0, height: 20.0, transform: Affine::translate((x, 0.0)) }),
         });
     }
     let mask = d.create(group, NodeKind::Vector { network }, "Mask", 0.0, 0.0, 30.0, 20.0).unwrap();
     let n = d.get_mut(mask).unwrap();
     n.fills = vec![Paint::solid(Color::BLACK)];
     n.is_mask = true;
-    n.mask_type = figcraft_doc::MaskType::Vector;
+    n.mask_type = figiran_doc::MaskType::Vector;
     let (outline, rule) = node_outline(&d, d.node(mask).unwrap()).unwrap();
     assert_eq!(rule, FillRule::Winding);
     assert_ne!(outline.winding(Point::new(15.0, 10.0)), 0, "independent inherited regions retain their overlap");
@@ -240,7 +238,7 @@ fn inner_shadow_and_blur_dont_crash() {
     n.effects.push(Effect::layer_blur());
     n.effects.push(Effect::background_blur());
     n.effects.push(Effect {
-        kind: EffectKind::Noise(figcraft_doc::Noise { size: 1.0, density: 0.5, color: Color::BLACK, ..Default::default() }),
+        kind: EffectKind::Noise(figiran_doc::Noise { size: 1.0, density: 0.5, color: Color::BLACK, ..Default::default() }),
         visible: true,
     });
     let _ = render_view(&d, p, &view(100, 100), &Options::default()).unwrap();
@@ -271,7 +269,7 @@ fn gradients_render() {
 
 #[test]
 fn frame_clips_children() {
-    let mut d = figcraft_doc::Document::new("t");
+    let mut d = figiran_doc::Document::new("t");
     let p = d.first_page().unwrap();
     let f = d.create(p, NodeKind::Frame, "F", 0.0, 0.0, 50.0, 50.0).unwrap();
     let r = d.create(f, NodeKind::Rectangle, "R", 25.0, 25.0, 50.0, 50.0).unwrap();
@@ -303,7 +301,7 @@ fn strokes_align() {
 #[test]
 fn side_strokes_follow_rounded_corners() {
     // border-l-4 rounded-r-lg: a straight 4 px bar on the left, nothing on the other edges.
-    let mut d = figcraft_doc::Document::new("t");
+    let mut d = figiran_doc::Document::new("t");
     let p = d.first_page().unwrap();
     let f = d.create(p, NodeKind::Frame, "F", 10.0, 10.0, 120.0, 60.0).unwrap();
     let n = d.get_mut(f).unwrap();
@@ -331,7 +329,7 @@ fn a_rounded_shape_strokes_only_the_side_asked_for() {
     for kind in [NodeKind::Rectangle, NodeKind::Frame] {
         for align in [StrokeAlign::Inside, StrokeAlign::Center, StrokeAlign::Outside] {
             for side in 0..4 {
-                let mut d = figcraft_doc::Document::new("t");
+                let mut d = figiran_doc::Document::new("t");
                 let p = d.first_page().unwrap();
                 let f = d.create(p, kind.clone(), "F", 10.0, 20.0, 120.0, 60.0).unwrap();
                 let n = d.get_mut(f).unwrap();
@@ -354,7 +352,7 @@ fn a_rounded_shape_strokes_only_the_side_asked_for() {
 
 #[test]
 fn mask_clips_siblings() {
-    let mut d = figcraft_doc::Document::new("t");
+    let mut d = figiran_doc::Document::new("t");
     let p = d.first_page().unwrap();
     let g = d.create(p, NodeKind::Group, "G", 0.0, 0.0, 100.0, 100.0).unwrap();
     let m = d.create(g, NodeKind::Ellipse { start: 0.0, sweep: std::f64::consts::TAU, inner: 0.0 }, "M", 0.0, 0.0, 50.0, 50.0).unwrap();
@@ -369,18 +367,18 @@ fn mask_clips_siblings() {
 
 #[test]
 fn luminance_and_vector_masks() {
-    let mut d = figcraft_doc::Document::new("t");
+    let mut d = figiran_doc::Document::new("t");
     let p = d.first_page().unwrap();
     let g = d.create(p, NodeKind::Group, "G", 0.0, 0.0, 100.0, 100.0).unwrap();
     // The mask: white on the left half, black on the right.
     let m = d.create(g, NodeKind::Rectangle, "M", 0.0, 0.0, 100.0, 100.0).unwrap();
-    let grad = figcraft_color::Gradient {
-        kind: figcraft_color::GradientKind::Linear,
+    let grad = figiran_color::Gradient {
+        kind: figiran_color::GradientKind::Linear,
         stops: vec![
-            figcraft_color::ColorStop { position: 0.0, color: Color::WHITE },
-            figcraft_color::ColorStop { position: 0.49, color: Color::WHITE },
-            figcraft_color::ColorStop { position: 0.51, color: Color::BLACK },
-            figcraft_color::ColorStop { position: 1.0, color: Color::BLACK },
+            figiran_color::ColorStop { position: 0.0, color: Color::WHITE },
+            figiran_color::ColorStop { position: 0.49, color: Color::WHITE },
+            figiran_color::ColorStop { position: 0.51, color: Color::BLACK },
+            figiran_color::ColorStop { position: 1.0, color: Color::BLACK },
         ],
         from: (0.0, 0.5),
         to: (1.0, 0.5),
@@ -394,7 +392,7 @@ fn luminance_and_vector_masks() {
     let pix = render_view(&d, p, &view(100, 100), &Options::default()).unwrap();
     assert_eq!(px(&pix, 80, 50), [0, 0, 0, 255]);
     // Luminance: only the white half shows.
-    d.get_mut(m).unwrap().mask_type = figcraft_doc::MaskType::Luminance;
+    d.get_mut(m).unwrap().mask_type = figiran_doc::MaskType::Luminance;
     let pix = render_view(&d, p, &view(100, 100), &Options::default()).unwrap();
     assert_eq!(px(&pix, 20, 50), [0, 0, 0, 255]);
     assert_eq!(px(&pix, 80, 50)[0], 0xF5, "black hides");
@@ -402,22 +400,22 @@ fn luminance_and_vector_masks() {
     let e = d.create(g, NodeKind::Ellipse { start: 0.0, sweep: std::f64::consts::TAU, inner: 0.0 }, "E", 0.0, 0.0, 50.0, 50.0).unwrap();
     d.get_mut(e).unwrap().fills = vec![Paint::solid(Color::new(0.0, 0.0, 0.0, 0.0))];
     d.get_mut(e).unwrap().is_mask = true;
-    d.get_mut(e).unwrap().mask_type = figcraft_doc::MaskType::Vector;
+    d.get_mut(e).unwrap().mask_type = figiran_doc::MaskType::Vector;
     d.get_mut(g).unwrap().children = vec![e, r];
     let pix = render_view(&d, p, &view(100, 100), &Options::default()).unwrap();
     assert_eq!(px(&pix, 25, 25), [0, 0, 0, 255], "inside the outline");
     assert_eq!(px(&pix, 80, 80)[0], 0xF5, "outside");
     // As an alpha mask the transparent ellipse hides everything.
-    d.get_mut(e).unwrap().mask_type = figcraft_doc::MaskType::Alpha;
+    d.get_mut(e).unwrap().mask_type = figiran_doc::MaskType::Alpha;
     let pix = render_view(&d, p, &view(100, 100), &Options::default()).unwrap();
     assert_eq!(px(&pix, 25, 25)[0], 0xF5);
 }
 
 #[test]
 fn boolean_subtract_renders_hole() {
-    let mut d = figcraft_doc::Document::new("t");
+    let mut d = figiran_doc::Document::new("t");
     let p = d.first_page().unwrap();
-    let b = d.create(p, NodeKind::BooleanOp { op: figcraft_doc::BoolOp::Subtract }, "B", 0.0, 0.0, 100.0, 100.0).unwrap();
+    let b = d.create(p, NodeKind::BooleanOp { op: figiran_doc::BoolOp::Subtract }, "B", 0.0, 0.0, 100.0, 100.0).unwrap();
     d.get_mut(b).unwrap().fills = vec![Paint::solid(Color::BLACK)];
     d.create(b, NodeKind::Rectangle, "A", 0.0, 0.0, 100.0, 100.0).unwrap();
     d.create(b, NodeKind::Rectangle, "Hole", 25.0, 25.0, 50.0, 50.0).unwrap();
@@ -428,29 +426,29 @@ fn boolean_subtract_renders_hole() {
 
 #[test]
 fn text_renders_something() {
-    let mut d = figcraft_doc::Document::new("t");
+    let mut d = figiran_doc::Document::new("t");
     let p = d.first_page().unwrap();
     let mut td = TextData::new("Hello");
     td.style.font_size = 32.0;
     d.create(p, NodeKind::Text(td), "T", 0.0, 0.0, 200.0, 50.0).unwrap();
     let pix = render_view(&d, p, &view(200, 60), &Options { background: Some(Color::WHITE), ..Default::default() }).unwrap();
     let dark = pix.data().as_chunks::<4>().0.iter().filter(|c| c[0] < 100).count();
-    if figcraft_text::find_face("Inter", "Regular").is_some() {
+    if figiran_text::find_face("Inter", "Regular").is_some() {
         assert!(dark > 50, "{dark}");
     }
 }
 
 /// The machine's colour emoji face, if it has one (this test skips without: no font ships here).
 fn emoji_face() -> Option<(String, String)> {
-    figcraft_text::scan_system_fonts();
-    let mut db = figcraft_text::db().write().unwrap();
+    figiran_text::scan_system_fonts();
+    let mut db = figiran_text::db().write().unwrap();
     db.emoji_fallbacks().into_iter().find(|f| f.has_color()).map(|f| (f.family.clone(), f.style.clone()))
 }
 
 #[test]
 fn colour_emoji_draw_their_pixels() {
     let Some((family, style)) = emoji_face() else { return };
-    let mut d = figcraft_doc::Document::new("t");
+    let mut d = figiran_doc::Document::new("t");
     let p = d.first_page().unwrap();
     let mut td = TextData::new("\u{1F600}");
     (td.style.font_family, td.style.font_style) = (family.clone(), style.clone());
@@ -484,8 +482,8 @@ fn export_png_roundtrip() {
 
 #[test]
 fn exports_carry_the_colour_profile() {
-    use figcraft_color::ColorProfile;
-    use figcraft_doc::ExportFormat;
+    use figiran_color::ColorProfile;
+    use figiran_doc::ExportFormat;
     use image::ImageDecoder;
     let (d, _, r) = doc_with_rect(Color::from_hex("00FF00").unwrap());
     let pix = render_node(&d, r, 1.0).unwrap();
@@ -513,11 +511,11 @@ fn exports_carry_the_colour_profile() {
 
 #[test]
 fn images_are_managed_into_the_file_profile() {
-    use figcraft_color::{ColorProfile, ImageScaleMode, Paint};
+    use figiran_color::{ColorProfile, ImageScaleMode, Paint};
     let (mut d, _, r) = doc_with_rect(Color::WHITE);
     let mut red = Pixmap::new(4, 4).unwrap();
     red.fill(tiny_skia::Color::from_rgba8(255, 0, 0, 255));
-    d.images.insert("red".into(), figcraft_doc::ImageData { bytes: std::sync::Arc::new(encode_png(&red).unwrap()), width: 4, height: 4 });
+    d.images.insert("red".into(), figiran_doc::ImageData { bytes: std::sync::Arc::new(encode_png(&red).unwrap()), width: 4, height: 4 });
     d.get_mut(r).unwrap().fills = vec![Paint::image("red", ImageScaleMode::Fill)];
     let center = |d: &Document| {
         let pix = render_node(d, r, 1.0).unwrap();
@@ -542,7 +540,7 @@ fn hostile_sizes() {
     let n = d.get_mut(r).unwrap();
     n.width = f64::NAN;
     n.height = 1e12;
-    n.effects.push(Effect { kind: EffectKind::LayerBlur(figcraft_doc::Blur::uniform(1e9)), visible: true });
+    n.effects.push(Effect { kind: EffectKind::LayerBlur(figiran_doc::Blur::uniform(1e9)), visible: true });
     let _ = render_view(&d, p, &view(64, 64), &Options::default());
     let _ = render_node(&d, r, f64::NAN);
     let _ = render_view(&d, p, &View { origin: (f64::NAN, 0.0), scale: 0.0, width: 0, height: 0 }, &Options::default());
@@ -565,7 +563,7 @@ fn inner_shadow_reaches_every_edge() {
 fn rect_clip_frame_matches_same_rect_fill_on_fractional_edges() {
     let white = Options { background: Some(Color::WHITE), ..Default::default() };
     for (x, y, w, h) in [(0.5, 0.5, 10.0, 10.0), (0.0, 0.0, 10.5, 10.5), (0.0, 0.0, 10.0, 10.0)] {
-        let mut clipped = figcraft_doc::Document::new("clipped");
+        let mut clipped = figiran_doc::Document::new("clipped");
         let p = clipped.first_page().unwrap();
         let f = clipped.create(p, NodeKind::Frame, "F", x, y, w, h).unwrap();
         clipped.get_mut(f).unwrap().fills.clear();
@@ -573,7 +571,7 @@ fn rect_clip_frame_matches_same_rect_fill_on_fractional_edges() {
         let c = clipped.create(f, NodeKind::Rectangle, "C", -5.0, -5.0, w + 10.0, h + 10.0).unwrap();
         clipped.get_mut(c).unwrap().fills = vec![Paint::solid(Color::BLACK)];
 
-        let mut direct = figcraft_doc::Document::new("direct");
+        let mut direct = figiran_doc::Document::new("direct");
         let dp = direct.first_page().unwrap();
         let r = direct.create(dp, NodeKind::Rectangle, "R", x, y, w, h).unwrap();
         direct.get_mut(r).unwrap().fills = vec![Paint::solid(Color::BLACK)];

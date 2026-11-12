@@ -1,7 +1,7 @@
 //! Sketch prototype links, hotspots, export options, layout grids, smart layout and locked
 //! overrides.
 
-use figcraft_doc::{Document, ExportFormat, Node, NodeKind};
+use figiran_doc::{Document, ExportFormat, Node, NodeKind};
 use serde_json::{Value, json};
 
 use super::fixture::*;

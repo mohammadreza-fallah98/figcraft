@@ -2,8 +2,8 @@
 //! guide's own axis, and Cmd/Ctrl suspends that while the guides keep their pixel snapping.
 
 use egui::{Event, Modifiers, Pos2};
-use figcraft_doc::NodeId;
-use figcraft_engine::Session;
+use figiran_doc::NodeId;
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::layers_drag_tests::Ui;

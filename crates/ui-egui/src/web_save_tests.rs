@@ -2,8 +2,8 @@
 //! dialogs or paths): the file arrives as a download instead of nothing happening (#969).
 
 use base64::Engine as _;
-use figcraft_doc::{ExportSetting, NodeId};
-use figcraft_engine::Session;
+use figiran_doc::{ExportSetting, NodeId};
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::FigApp;
@@ -22,17 +22,17 @@ fn toast(app: &FigApp) -> String {
 }
 
 #[test]
-fn save_downloads_the_figcraft_file() {
+fn save_downloads_the_figiran_file() {
     let (mut app, got, _) = browser(true);
     app.save();
     let got = got.lock().unwrap();
     let [(name, bytes)] = got.as_slice() else { panic!("one download, got {}", got.len()) };
-    assert_eq!(name, "Untitled.figcraft");
+    assert_eq!(name, "Untitled.figiran");
     let mut reopened = Session::new();
     let data = base64::engine::general_purpose::STANDARD.encode(bytes);
     reopened.execute("file.open", &json!({"data": data, "name": name})).unwrap();
     assert!(!app.session.ds().unwrap().is_dirty());
-    assert_eq!(toast(&app), "Saved Untitled.figcraft");
+    assert_eq!(toast(&app), "Saved Untitled.figiran");
 }
 
 #[test]
@@ -51,7 +51,7 @@ fn a_refused_download_says_so() {
     let (mut app, got, _) = browser(false);
     app.save_as_dialog();
     assert_eq!(got.lock().unwrap().len(), 1);
-    assert_eq!(toast(&app), "Couldn't download Untitled.figcraft");
+    assert_eq!(toast(&app), "Couldn't download Untitled.figiran");
     assert!(app.session.ds().unwrap().is_dirty(), "no file arrived: closing must still warn about the edits");
 }
 

@@ -1,5 +1,5 @@
 //! Plugins: WebAssembly modules that act on the document through the same commands as the menus,
-//! CLI and MCP server, inside the sandbox of `figcraft-plugin`. This module is the policy: which
+//! CLI and MCP server, inside the sandbox of `figiran-plugin`. This module is the policy: which
 //! commands a plugin may call (its manifest's permissions, and never files, other documents, the
 //! undo history, dialogs or plugins), one undo step per run or panel callback, the panels plugins
 //! keep open, their settings and the installed-plugin list kept in the preferences. Widgets (plugin
@@ -9,7 +9,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use figcraft_plugin::{Instance, Limits, PluginError, RunOutput, UiChange};
+use figiran_plugin::{Instance, Limits, PluginError, RunOutput, UiChange};
 use serde::{Deserialize, Serialize, Serializer};
 use serde_json::{Map, Value, json};
 
@@ -17,7 +17,7 @@ use crate::cmd::{CommandSpec, find_command};
 use crate::params::{get, num, string};
 use crate::{EngineError, Result, Session, bad, spec};
 
-pub use figcraft_plugin::{Access, MANIFEST_FILE, Manifest, Panel, Param, ParamKind};
+pub use figiran_plugin::{Access, MANIFEST_FILE, Manifest, Panel, Param, ParamKind};
 
 /// What one plugin may keep in its settings (keys and JSON values, in bytes), and its longest key.
 const MAX_SETTINGS_BYTES: usize = 64 * 1024;
@@ -80,7 +80,7 @@ pub struct OpenPanel {
     pub values: Map<String, Value>,
     instance: Instance,
     /// API 5: the widget whose callback opened the panel; its callbacks can redraw it.
-    pub widget: Option<figcraft_doc::NodeId>,
+    pub widget: Option<figiran_doc::NodeId>,
 }
 
 /// Show `panel` as plugin `m`'s one open panel (replacing any it has), keeping `instance` loaded
@@ -91,7 +91,7 @@ pub(crate) fn open_panel(
     opener: (&str, Value, String),
     panel: Panel,
     instance: Instance,
-    widget: Option<figcraft_doc::NodeId>,
+    widget: Option<figiran_doc::NodeId>,
 ) {
     let (command, params, label) = opener;
     let values = panel.values(&Map::new());
@@ -159,7 +159,7 @@ fn refusal(m: &Manifest, command: &str, params: &Value) -> Option<String> {
     {
         return Some(why);
     }
-    // A widget's own data is FigCraft's to write, so no plugin can forge or retarget a widget.
+    // A widget's own data is FigIran's to write, so no plugin can forge or retarget a widget.
     if writes_widget_data(params, 0) {
         return Some(format!("plugins can't write `{}…` layer data", crate::widgets::DATA_PREFIX));
     }
@@ -250,7 +250,7 @@ fn sanitize_mime(mime: &str) -> String {
     }
 }
 
-impl figcraft_plugin::Host for EngineHost<'_> {
+impl figiran_plugin::Host for EngineHost<'_> {
     fn call(&mut self, command: &str, params: &str) -> std::result::Result<String, String> {
         let params: Value = serde_json::from_str(params).map_err(|e| format!("params for `{command}` aren't JSON: {e}"))?;
         if let Some(why) = refusal(self.manifest, command, &params) {
@@ -377,7 +377,7 @@ pub(crate) fn read_file(path: &std::path::Path, max: usize) -> Result<Vec<u8>> {
     crate::file_access::read_capped(path, max as u64)
 }
 
-/// The manifest at `path` (the file, or the folder holding `figcraft-plugin.json`), its absolute
+/// The manifest at `path` (the file, or the folder holding `figiran-plugin.json`), its absolute
 /// path and its module.
 #[cfg(not(target_arch = "wasm32"))]
 fn load_from_disk(cmd: &str, path: &str) -> Result<(Manifest, String, Vec<u8>)> {
@@ -385,7 +385,7 @@ fn load_from_disk(cmd: &str, path: &str) -> Result<(Manifest, String, Vec<u8>)> 
     if crate::file_access::is_dir(&file) {
         file.push(MANIFEST_FILE);
     }
-    let text = read_file(&file, figcraft_plugin::manifest::MAX_MANIFEST_BYTES)?;
+    let text = read_file(&file, figiran_plugin::manifest::MAX_MANIFEST_BYTES)?;
     let text = String::from_utf8(text).map_err(|_| bad(cmd, "the manifest isn't UTF-8 text"))?;
     let manifest = Manifest::parse(&text).map_err(|e| bad(cmd, e))?;
     let wasm = module_file(&file, &manifest)?;
@@ -480,9 +480,9 @@ fn import(s: &mut Session, p: &Value) -> Result<Value> {
             let wasm = base64::engine::general_purpose::STANDARD.decode(b64.trim()).map_err(|e| bad(cmd, format!("`wasm`: {e}")))?;
             (m, None, wasm)
         }
-        (None, None) => return Err(bad(cmd, "pass `path` (a figcraft-plugin.json or its folder), or `manifest` and `wasm`")),
+        (None, None) => return Err(bad(cmd, "pass `path` (a figiran-plugin.json or its folder), or `manifest` and `wasm`")),
     };
-    figcraft_plugin::check_module(&wasm, &Limits::default()).map_err(|e| plugin_error(&manifest.name, e))?;
+    figiran_plugin::check_module(&wasm, &Limits::default()).map_err(|e| plugin_error(&manifest.name, e))?;
     let mut out = describe(s, &InstalledPlugin { manifest: manifest.clone(), path: path.clone(), source: None });
     out["replaced"] = json!(register(s, InstalledPlugin { manifest, path, source: None }, wasm));
     out["loaded"] = json!(true);
@@ -688,7 +688,7 @@ pub fn specs() -> Vec<CommandSpec> {
         spec!(
             "plugin.import",
             "Import plugin from manifest…",
-            "{path (figcraft-plugin.json or its folder) | manifest (object or JSON text), wasm (base64)} replaces a plugin with the same id",
+            "{path (figiran-plugin.json or its folder) | manifest (object or JSON text), wasm (base64)} replaces a plugin with the same id",
             false,
             import
         ),

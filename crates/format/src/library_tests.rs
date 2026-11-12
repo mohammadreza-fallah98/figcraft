@@ -1,11 +1,11 @@
-//! Published libraries inside `.figcraft` archives.
+//! Published libraries inside `.figiran` archives.
 
 use std::io::{Read, Write};
 
 use super::*;
 use crate::{add_image, load_bytes, read_member, save_bytes};
-use figcraft_doc::color::{ImageScaleMode, Paint};
-use figcraft_doc::{Document, LibraryAsset, NodeKind};
+use figiran_doc::color::{ImageScaleMode, Paint};
+use figiran_doc::{Document, LibraryAsset, NodeKind};
 
 fn png() -> Vec<u8> {
     let img = image::RgbaImage::from_pixel(2, 2, image::Rgba([0, 128, 255, 255]));
@@ -16,7 +16,7 @@ fn png() -> Vec<u8> {
 
 /// A published file: component "Tile" with an image fill; the file itself no longer uses the
 /// image (it only lives on in the library).
-fn published() -> (Document, figcraft_doc::NodeId, String) {
+fn published() -> (Document, figiran_doc::NodeId, String) {
     let mut d = Document::new("Kit");
     let p = d.first_page().unwrap();
     let tile = d
@@ -41,7 +41,7 @@ fn published() -> (Document, figcraft_doc::NodeId, String) {
         version: 3,
         components: vec![
             LibraryAsset { id: tile, name: "Tile".into(), set: false, version: 2, published: true },
-            LibraryAsset { id: figcraft_doc::NodeId(999), name: "Gone".into(), set: false, version: 1, published: true },
+            LibraryAsset { id: figiran_doc::NodeId(999), name: "Gone".into(), set: false, version: 1, published: true },
         ],
         ..Default::default()
     };
@@ -60,7 +60,7 @@ fn library_roundtrip_with_its_own_images() {
     let lib = back.published.unwrap();
     assert_eq!(lib.manifest.version, 3);
     assert!(lib.doc.images.get(&hash).is_some_and(|i| (i.width, i.height) == (2, 2)));
-    assert!(lib.manifest.component(figcraft_doc::NodeId(999)).is_none(), "assets the snapshot lacks are dropped");
+    assert!(lib.manifest.component(figiran_doc::NodeId(999)).is_none(), "assets the snapshot lacks are dropped");
     assert!(lib.manifest.component(tile).is_some());
     // Files using it read only the library entries.
     let read = read_library(std::io::Cursor::new(&bytes)).unwrap().unwrap();

@@ -1,8 +1,8 @@
 //! Variable width strokes render along the path, past the weight where the profile widens them.
 
 use super::*;
-use figcraft_color::{Color, Paint};
-use figcraft_doc::{NodeKind, WidthPreset, WidthProfile};
+use figiran_color::{Color, Paint};
+use figiran_doc::{NodeKind, WidthPreset, WidthProfile};
 
 fn dark(p: &Pixmap, x: u32, y: u32) -> bool {
     let i = ((y * p.width() + x) * 4) as usize;
@@ -10,8 +10,8 @@ fn dark(p: &Pixmap, x: u32, y: u32) -> bool {
 }
 
 /// A horizontal line from (10, 50) to (90, 50) with a 20 wide black stroke.
-fn line_doc(profile: Option<WidthProfile>) -> (figcraft_doc::Document, figcraft_doc::NodeId) {
-    let mut d = figcraft_doc::Document::new("t");
+fn line_doc(profile: Option<WidthProfile>) -> (figiran_doc::Document, figiran_doc::NodeId) {
+    let mut d = figiran_doc::Document::new("t");
     let p = d.first_page().unwrap();
     let l = d.create(p, NodeKind::Line, "L", 10.0, 50.0, 80.0, 0.0).unwrap();
     let n = d.get_mut(l).unwrap();
@@ -21,7 +21,7 @@ fn line_doc(profile: Option<WidthProfile>) -> (figcraft_doc::Document, figcraft_
     (d, p)
 }
 
-fn render(d: &figcraft_doc::Document, p: figcraft_doc::NodeId) -> Pixmap {
+fn render(d: &figiran_doc::Document, p: figiran_doc::NodeId) -> Pixmap {
     render_view(d, p, &View { origin: (0.0, 0.0), scale: 1.0, width: 100, height: 100 }, &Options::default()).unwrap()
 }
 
@@ -34,9 +34,9 @@ fn changing_the_dash_cap_redraws_the_dashes() {
     (n.stroke.weight, n.stroke.dashes) = (10.0, vec![20.0, 20.0]);
     // Two 40-long patterns fit the 80-long line, so a whole dash ends at x = 60 on the page.
     assert!(!dark(&render(&d, p), 62, 50), "butt: a gap");
-    d.get_mut(line).unwrap().stroke.dash_cap = Some(figcraft_doc::StrokeCap::Square);
+    d.get_mut(line).unwrap().stroke.dash_cap = Some(figiran_doc::StrokeCap::Square);
     assert!(dark(&render(&d, p), 62, 50), "square: 5 further");
-    d.get_mut(line).unwrap().stroke.dash_cap = Some(figcraft_doc::StrokeCap::None);
+    d.get_mut(line).unwrap().stroke.dash_cap = Some(figiran_doc::StrokeCap::None);
     assert!(!dark(&render(&d, p), 62, 50));
 }
 

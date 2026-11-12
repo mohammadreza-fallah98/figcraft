@@ -34,12 +34,12 @@ const AUTOSAVE: &str = "Autosave";
 /// never dropped, so a history full of them takes nothing (None).
 pub(crate) fn add_version(ds: &mut DocState, name: &str, description: &str, auto: bool) -> Option<Value> {
     let autos = ds.versions.iter().filter(|v| v.auto).count();
-    if ((auto && autos >= MAX_AUTOSAVES) || ds.versions.len() >= figcraft_format::MAX_VERSIONS)
+    if ((auto && autos >= MAX_AUTOSAVES) || ds.versions.len() >= figiran_format::MAX_VERSIONS)
         && let Some(oldest) = ds.versions.iter().position(|v| v.auto)
     {
         ds.versions_mut().remove(oldest);
     }
-    if ds.versions.len() >= figcraft_format::MAX_VERSIONS {
+    if ds.versions.len() >= figiran_format::MAX_VERSIONS {
         return None;
     }
     let mut v = snapshot_version(ds, name, description);
@@ -115,10 +115,10 @@ pub(crate) fn unique_id(taken: impl Fn(&str) -> bool) -> String {
 /// `file.saveVersion`; on a branch tab the version goes into the branch's own history.
 pub(super) fn save_version(s: &mut Session, p: &Value) -> Result<Value> {
     let ds = s.ds_mut()?;
-    if ds.versions.len() >= figcraft_format::MAX_VERSIONS {
+    if ds.versions.len() >= figiran_format::MAX_VERSIONS {
         return Err(EngineError::Disabled(
             "file.saveVersion".into(),
-            format!("the version history is full ({} versions): delete old versions first", figcraft_format::MAX_VERSIONS),
+            format!("the version history is full ({} versions): delete old versions first", figiran_format::MAX_VERSIONS),
         ));
     }
     let name =
@@ -128,7 +128,7 @@ pub(super) fn save_version(s: &mut Session, p: &Value) -> Result<Value> {
     add_version(ds, &name, description.trim(), false).ok_or_else(|| {
         EngineError::Disabled(
             "file.saveVersion".into(),
-            format!("the version history is full ({} versions): delete old versions first", figcraft_format::MAX_VERSIONS),
+            format!("the version history is full ({} versions): delete old versions first", figiran_format::MAX_VERSIONS),
         )
     })
 }

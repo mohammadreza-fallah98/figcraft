@@ -13,9 +13,9 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, OnceLock};
 
-use figcraft_doc::BoolOp;
-use figcraft_geom::BezPath;
-use figcraft_pathops::{FoldBudget, PathOpsError};
+use figiran_doc::BoolOp;
+use figiran_geom::BezPath;
+use figiran_pathops::{FoldBudget, PathOpsError};
 
 use crate::draw::hash_path;
 
@@ -95,7 +95,7 @@ pub fn fold_cached(operands: &[(BezPath, BoolOp)]) -> Option<BezPath> {
         return None;
     }
     let folded =
-        if operands.len() < 2 { figcraft_pathops::boolean_ops(operands.iter().map(|(p, op)| (p, *op))) } else { fold_from_cache(operands, &keys) };
+        if operands.len() < 2 { figiran_pathops::boolean_ops(operands.iter().map(|(p, op)| (p, *op))) } else { fold_from_cache(operands, &keys) };
     match folded {
         Ok(p) => Some(p),
         Err(PathOpsError::TooComplex) => {
@@ -146,7 +146,7 @@ fn fold_from_cache(operands: &[(BezPath, BoolOp)], keys: &[u64]) -> Result<BezPa
     for ((p, op), key) in operands.iter().zip(keys).skip(start + 1) {
         STEPS.with(|s| s.set(s.get() + 1));
         budget.spend(&acc, p)?;
-        acc = figcraft_pathops::boolean_step(&acc, p, *op)?;
+        acc = figiran_pathops::boolean_step(&acc, p, *op)?;
         fresh.push((*key, Arc::new(acc.clone())));
     }
     let mut c = locked(cache());

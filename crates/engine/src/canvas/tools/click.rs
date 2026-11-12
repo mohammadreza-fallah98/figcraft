@@ -98,7 +98,7 @@ impl Session {
         // pointer (an open path or a line has no inside: only its stroke counts).
         if edits
             && let [id] = sel[..]
-            && doc.node(id).is_some_and(|n| n.kind.is_shape() && figcraft_doc::geometry::is_closed(n))
+            && doc.node(id).is_some_and(|n| n.kind.is_shape() && figiran_doc::geometry::is_closed(n))
             && doc.world_bounds(id).is_some_and(|b| b.contains(ev.p()))
             && hit_here.is_none_or(|h| h == id || doc.is_ancestor(id, h))
         {
@@ -139,7 +139,7 @@ impl Session {
             return crate::vectoredit::begin_many(self, &ids);
         }
         // Groups, frames and boolean groups: select one level deeper (the layer under the pointer).
-        let deeper = figcraft_doc::geometry::enter_target(&doc, leaf, &sel);
+        let deeper = figiran_doc::geometry::enter_target(&doc, leaf, &sel);
         if deeper != target || !sel.contains(&deeper) {
             self.set_selection(vec![deeper]);
         }
@@ -162,7 +162,7 @@ impl Session {
         let doc = self.doc()?;
         let n = doc.get(id)?;
         let local = doc.world_transform(id).inverse() * p;
-        let Some((layout, dy)) = figcraft_text::layout_node(n) else { return Ok(0) };
+        let Some((layout, dy)) = figiran_text::layout_node(n) else { return Ok(0) };
         Ok(layout.hit(local.x, local.y - dy))
     }
 
@@ -211,7 +211,7 @@ impl Session {
             let _ = crate::cmd::edit::apply_copied_props("edit.setDefaultProperties", d, id, defaults);
         }
         let line = d.node_mut(id).map_or(14.0, |n| {
-            if let Some((w, h)) = figcraft_text::auto_size(n) {
+            if let Some((w, h)) = figiran_text::auto_size(n) {
                 n.width = w.max(1.0);
                 n.height = h;
             }
@@ -246,8 +246,8 @@ impl Session {
             if !shape || locked_in(doc, id) || crate::components::inside_instance(doc, id) {
                 return None;
             }
-            let geom = figcraft_doc::geometry::stroke_geometry(n)?;
-            let line = figcraft_geom::measure::polylines(&geom)?.into_iter().next()?;
+            let geom = figiran_doc::geometry::stroke_geometry(n)?;
+            let line = figiran_geom::measure::polylines(&geom)?.into_iter().next()?;
             // Measured on the page (a layer scaled more one way than the other is still reached
             // where it shows), the start by length along the layer's own path.
             let world = doc.world_transform(id);
@@ -289,7 +289,7 @@ impl Session {
         let (doc, page) = (ds.doc.clone(), ds.page);
         let Some((path, start)) = self.path_at(&doc, page, ev) else { return Ok(()) };
         let Some(pn) = doc.node(path) else { return Ok(()) };
-        let (Some(parent), Some(geom)) = (pn.parent, figcraft_doc::geometry::stroke_geometry(pn)) else { return Ok(()) };
+        let (Some(parent), Some(geom)) = (pn.parent, figiran_doc::geometry::stroke_geometry(pn)) else { return Ok(()) };
         let index = doc.index_in_parent(path);
         self.begin_interaction("Text on a path")?;
         let ds = self.ds_mut()?;
@@ -360,10 +360,10 @@ impl Session {
     pub(super) fn eyedrop(&mut self, ev: &PointerEvent) -> Result<()> {
         let ds = self.ds()?;
         let doc = ds.doc.clone();
-        let view = figcraft_render::View { origin: (ev.x, ev.y), scale: ev.zoom.max(0.01), width: 1, height: 1 };
-        let Some(pix) = figcraft_render::render_view(&doc, ds.page, &view, &Default::default()) else { return Ok(()) };
-        let rgba = figcraft_render::to_rgba8(&pix);
-        let c = figcraft_color::Color::from_rgba8(
+        let view = figiran_render::View { origin: (ev.x, ev.y), scale: ev.zoom.max(0.01), width: 1, height: 1 };
+        let Some(pix) = figiran_render::render_view(&doc, ds.page, &view, &Default::default()) else { return Ok(()) };
+        let rgba = figiran_render::to_rgba8(&pix);
+        let c = figiran_color::Color::from_rgba8(
             rgba.first().copied().unwrap_or(0),
             rgba.get(1).copied().unwrap_or(0),
             rgba.get(2).copied().unwrap_or(0),

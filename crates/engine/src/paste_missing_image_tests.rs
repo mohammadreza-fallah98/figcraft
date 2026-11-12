@@ -20,10 +20,10 @@ fn exported() -> Vec<u8> {
         .write_to(&mut std::io::Cursor::new(&mut png), image::ImageFormat::Png)
         .unwrap();
     let doc = s.doc_mut().unwrap();
-    let (hash, _, _) = figcraft_format::add_image(doc, png).unwrap();
+    let (hash, _, _) = figiran_format::add_image(doc, png).unwrap();
     let n = doc.get_mut(photo).unwrap();
     n.name = "Photo".into();
-    n.fills = vec![figcraft_color::Paint::image(hash, figcraft_color::ImageScaleMode::Fill)];
+    n.fills = vec![figiran_color::Paint::image(hash, figiran_color::ImageScaleMode::Fill)];
     doc.get_mut(plain).unwrap().name = "Plain".into();
     let r = s.execute("file.export", &json!({"format": "fig"})).unwrap();
     base64::engine::general_purpose::STANDARD.decode(r["data"].as_str().unwrap()).unwrap()

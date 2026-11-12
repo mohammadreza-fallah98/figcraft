@@ -1,5 +1,5 @@
 use base64::Engine as _;
-use figcraft_doc::{Document, NodeKind};
+use figiran_doc::{Document, NodeKind};
 use serde_json::{Value, json};
 
 use crate::{EngineError, Session};
@@ -9,7 +9,7 @@ fn id(v: &Value) -> u64 {
 }
 
 fn temp(name: &str) -> std::path::PathBuf {
-    let dir = std::env::temp_dir().join(format!("figcraft-penpot-export-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("figiran-penpot-export-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     dir.join(name)
 }
@@ -96,17 +96,17 @@ fn penpot_export_without_a_path_returns_the_file() {
 fn missing_provider_fonts_stay_offline_and_text_stays_editable() {
     let mut source = Document::new("Offline font");
     let page = source.first_page().unwrap();
-    let mut text = figcraft_doc::TextData::new("Offline text");
-    text.style.font_family = "FigCraft Missing Provider Q7".into();
+    let mut text = figiran_doc::TextData::new("Offline text");
+    text.style.font_family = "FigIran Missing Provider Q7".into();
     source.create(page, NodeKind::Text(text), "Label", 0.0, 0.0, 200.0, 30.0).unwrap();
-    let bytes = figcraft_format::penpot::export(&source).unwrap().0;
+    let bytes = figiran_format::penpot::export(&source).unwrap().0;
     let data = base64::engine::general_purpose::STANDARD.encode(bytes);
     for command in ["file.open", "file.import"] {
         let mut s = Session::new();
         let result = s.execute(command, &json!({"name": "offline.penpot", "data": data})).unwrap();
         let doc = s.doc().unwrap();
         let label = doc.nodes().find(|n| n.name == "Label").unwrap();
-        assert_eq!(label.kind.text().unwrap().style.font_family, "FigCraft Missing Provider Q7");
+        assert_eq!(label.kind.text().unwrap().style.font_family, "FigIran Missing Provider Q7");
         assert_eq!(label.kind.text().unwrap().characters, "Offline text");
         assert!(label.plugin_data.contains_key("penpot.googleFontRefs"));
         assert!(result["warnings"].as_array().unwrap().iter().any(|w| w.as_str().is_some_and(|w| w.contains("Missing"))));
@@ -136,7 +136,7 @@ fn penpot_export_survives_junk_params() {
 
 #[test]
 fn local_penpot_samples_export_and_open_again() {
-    let Some(dir) = std::env::var_os("FIGCRAFT_PENPOT_SAMPLES") else { return };
+    let Some(dir) = std::env::var_os("FIGIRAN_PENPOT_SAMPLES") else { return };
     let Ok(dir) = std::fs::read_dir(dir) else { return };
     for p in dir.flatten().map(|e| e.path()).filter(|p| p.extension().is_some_and(|x| x == "penpot")) {
         let mut s = Session::new();

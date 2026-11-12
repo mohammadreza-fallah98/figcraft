@@ -4,8 +4,8 @@
 
 use std::sync::{Arc, Mutex};
 
-use figcraft_collab::message::{Peer, Presence, ServerMsg};
-use figcraft_engine::live::{Event, MAX_PEERS};
+use figiran_collab::message::{Peer, Presence, ServerMsg};
+use figiran_engine::live::{Event, MAX_PEERS};
 
 use crate::guest::GuestConfig;
 use crate::inbox::Inbox;

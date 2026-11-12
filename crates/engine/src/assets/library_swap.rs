@@ -6,7 +6,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use figcraft_doc::{Document, ImportedComponent, ImportedRecord, LibraryManifest, NodeId, NodeKind, PublishedLibrary, VariableValue};
+use figiran_doc::{Document, ImportedComponent, ImportedRecord, LibraryManifest, NodeId, NodeKind, PublishedLibrary, VariableValue};
 use serde_json::Value;
 
 use crate::cmd::component::{main_of, swap_instance};

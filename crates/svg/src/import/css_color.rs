@@ -11,7 +11,7 @@
 
 use std::ops::Range;
 
-use figcraft_color::{Color, ColorProfile, Oklch};
+use figiran_color::{Color, ColorProfile, Oklch};
 
 /// What a call that can't be read becomes: a mid grey, so it doesn't pass for a black on purpose.
 const FALLBACK: Color = Color::from_rgb8_const(0x80, 0x80, 0x80);

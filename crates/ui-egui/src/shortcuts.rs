@@ -1,4 +1,4 @@
-//! Keyboard handling: the shortcuts of [`figcraft_engine::keymap`], tool keys, nudging, opacity
+//! Keyboard handling: the shortcuts of [`figiran_engine::keymap`], tool keys, nudging, opacity
 //! digits and text editing keys.
 
 use std::sync::Mutex;
@@ -6,8 +6,8 @@ use std::sync::atomic::{AtomicU8, Ordering};
 
 use egui::ime_context::{CommittedText, ImeMutationStamp, ImeObservation, ImeTarget};
 use egui::{Context, Event, Key, Modifiers};
-use figcraft_engine::keymap::{self, Platform};
-use figcraft_engine::textedit::ImeInsertion;
+use figiran_engine::keymap::{self, Platform};
+use figiran_engine::textedit::ImeInsertion;
 use serde_json::json;
 
 use crate::FigApp;
@@ -279,7 +279,7 @@ pub(crate) fn prepare_field_save(app: &FigApp, ctx: &Context) -> Option<AfterFie
             _ => None,
         })
     })?;
-    if !crate::menus::available(command) || (app.ui.right_tab == crate::RightTab::Inspect && !figcraft_engine::devinspect::dev_mode_allows(command)) {
+    if !crate::menus::available(command) || (app.ui.right_tab == crate::RightTab::Inspect && !figiran_engine::devinspect::dev_mode_allows(command)) {
         return None;
     }
     let document = app.session.ds().ok().filter(|d| app.shows(d.uid)).map(|d| d.uid)?;
@@ -565,7 +565,7 @@ pub(crate) fn key_box(app: &mut FigApp, key: Key, m: Modifiers) -> bool {
 
 /// The sibling `dir` rows away from layer `id` in the Layers panel (down for 1, up for -1,
 /// wrapping), as `select.next` and `select.previous` walk: the list shows the last child on top.
-fn pick_sibling(doc: &figcraft_doc::Document, id: figcraft_doc::NodeId, dir: i64) -> Option<figcraft_doc::NodeId> {
+fn pick_sibling(doc: &figiran_doc::Document, id: figiran_doc::NodeId, dir: i64) -> Option<figiran_doc::NodeId> {
     let siblings = &doc.node(doc.node(id)?.parent?)?.children;
     let n = i64::try_from(siblings.len()).ok()?;
     let idx = i64::try_from(siblings.iter().position(|c| *c == id)?).ok()?;
@@ -612,7 +612,7 @@ pub(crate) fn key_pick(app: &mut FigApp, key: Key, m: Modifiers) -> bool {
 impl FigApp {
     /// The layer the pick cursor is on, while its document is the one in front and the layer is
     /// still there, on the page shown (#1836).
-    pub(crate) fn picked(&self) -> Option<figcraft_doc::NodeId> {
+    pub(crate) fn picked(&self) -> Option<figiran_doc::NodeId> {
         let (uid, id) = self.ui.pick?;
         let ds = self.session.ds().ok()?;
         (ds.uid == uid && ds.doc.page_of(id) == Some(ds.page)).then_some(id)
@@ -650,7 +650,7 @@ impl FigApp {
             Some(r) => r.inflate(8.0 / zoom, 8.0 / zoom),
             None => {
                 let c = self.to_page(self.canvas.rect.center());
-                figcraft_geom::Rect::new(c.x - 100.0 / zoom, c.y - 75.0 / zoom, c.x + 100.0 / zoom, c.y + 75.0 / zoom)
+                figiran_geom::Rect::new(c.x - 100.0 / zoom, c.y - 75.0 / zoom, c.x + 100.0 / zoom, c.y + 75.0 / zoom)
             }
         };
         self.ui.key_box = Some([r.x0, r.y0, r.x1, r.y1]);
@@ -696,7 +696,7 @@ pub fn opacity_digit(app: &mut FigApp, key: Key, now: f64) -> bool {
 fn enter_text(app: &mut FigApp) -> bool {
     let sel = app.session.selection();
     if sel.len() > 1 {
-        let ids = app.session.doc().ok().and_then(|d| figcraft_engine::vectoredit::enter_targets(d, &sel));
+        let ids = app.session.doc().ok().and_then(|d| figiran_engine::vectoredit::enter_targets(d, &sel));
         return ids.is_some_and(|ids| {
             app.run("vector.edit.begin", json!({"ids": ids}));
             true
@@ -707,7 +707,7 @@ fn enter_text(app: &mut FigApp) -> bool {
     }
     let Some(id) = sel.first().copied() else { return false };
     // A board object (a sticky, a shape with text, a label): type in its text.
-    match figcraft_engine::board::edit_text(&mut app.session, id) {
+    match figiran_engine::board::edit_text(&mut app.session, id) {
         Ok(true) => return true,
         Ok(false) => {}
         Err(e) => {
@@ -715,10 +715,10 @@ fn enter_text(app: &mut FigApp) -> bool {
             return true;
         }
     }
-    let kind = app.session.doc().ok().and_then(|d| d.node(id)).map(|n| (matches!(n.kind, figcraft_doc::NodeKind::Text(_)), n.kind.is_shape()));
+    let kind = app.session.doc().ok().and_then(|d| d.node(id)).map(|n| (matches!(n.kind, figiran_doc::NodeKind::Text(_)), n.kind.is_shape()));
     match kind {
         Some((true, _)) => {
-            let _ = figcraft_engine::textedit::begin(&mut app.session, id, None, false);
+            let _ = figiran_engine::textedit::begin(&mut app.session, id, None, false);
             true
         }
         Some((_, true)) => {
@@ -798,7 +798,7 @@ fn text_keys(app: &mut FigApp, ctx: &Context, events: &[Event], ime_input: Optio
 /// noting the application change the mutation caused.
 fn insert_text(app: &mut FigApp, ctx: &Context, t: &str) {
     let before = ime_stamp(app);
-    if let Err(e) = figcraft_engine::textedit::insert(&mut app.session, t) {
+    if let Err(e) = figiran_engine::textedit::insert(&mut app.session, t) {
         app.toast(e.to_string());
     }
     if ime_stamp(app) != before {
@@ -813,7 +813,7 @@ fn ime_event(app: &mut FigApp, ctx: &Context, ev: &egui::ImeEvent) {
         // List AutoFormat inside the same command is an application transformation.
         egui::ImeEvent::Commit(t) => {
             let before = ime_stamp(app);
-            match figcraft_engine::textedit::insert_ime_commit(&mut app.session, t) {
+            match figiran_engine::textedit::insert_ime_commit(&mut app.session, t) {
                 Ok(ImeInsertion::Plain) => ime_receipt(app, ctx, before),
                 Ok(ImeInsertion::Transformed) => note_ime_application_change(app, ctx),
                 Ok(ImeInsertion::Nothing) => {}
@@ -823,7 +823,7 @@ fn ime_event(app: &mut FigApp, ctx: &Context, ev: &egui::ImeEvent) {
         // The composition shows inline at the caret; the document gets it on Commit.
         egui::ImeEvent::Preedit { text, active_range_chars } => {
             let cursor = active_range_chars.as_ref().map(|r| r.start);
-            if let Err(e) = figcraft_engine::textedit::preedit(&mut app.session, text, cursor) {
+            if let Err(e) = figiran_engine::textedit::preedit(&mut app.session, text, cursor) {
                 app.toast(e.to_string());
             }
         }
@@ -831,7 +831,7 @@ fn ime_event(app: &mut FigApp, ctx: &Context, ev: &egui::ImeEvent) {
         // deletes it before the paired Commit inserts the replacement.
         egui::ImeEvent::DeleteSurroundingBytes { before_bytes, after_bytes } => {
             let before = ime_stamp(app);
-            match figcraft_engine::textedit::delete_surrounding_bytes(&mut app.session, *before_bytes, *after_bytes) {
+            match figiran_engine::textedit::delete_surrounding_bytes(&mut app.session, *before_bytes, *after_bytes) {
                 Ok(true) => ime_receipt(app, ctx, before),
                 Ok(false) => {}
                 Err(e) => app.toast(e.to_string()),
@@ -839,7 +839,7 @@ fn ime_event(app: &mut FigApp, ctx: &Context, ev: &egui::ImeEvent) {
         }
         egui::ImeEvent::DeleteSurrounding { before_chars, after_chars } => {
             let before = ime_stamp(app);
-            match figcraft_engine::textedit::delete_surrounding_chars(&mut app.session, *before_chars, *after_chars) {
+            match figiran_engine::textedit::delete_surrounding_chars(&mut app.session, *before_chars, *after_chars) {
                 Ok(true) => ime_receipt(app, ctx, before),
                 Ok(false) => {}
                 Err(e) => app.toast(e.to_string()),
@@ -855,14 +855,14 @@ fn ime_event(app: &mut FigApp, ctx: &Context, ev: &egui::ImeEvent) {
 /// deletes the selection exactly like a user's Cut; only the OS clipboard write is fenced.
 fn copy_or_cut(app: &mut FigApp, ctx: &Context, cut: bool) {
     let before = ime_stamp(app);
-    let selected = figcraft_engine::textedit::selected_text(&app.session).filter(|t| !t.is_empty());
+    let selected = figiran_engine::textedit::selected_text(&app.session).filter(|t| !t.is_empty());
     if !app.control_synthetic
         && let Some(text) = &selected
     {
         app.clipboard_set_text(text);
     }
     if cut && selected.is_some() {
-        let _ = figcraft_engine::textedit::key(&mut app.session, "Delete", false, false, false);
+        let _ = figiran_engine::textedit::key(&mut app.session, "Delete", false, false, false);
     }
     if ime_stamp(app) != before {
         note_ime_application_change(app, ctx);
@@ -889,18 +889,18 @@ fn text_key_event(app: &mut FigApp, ctx: &Context, key: Key, physical: Option<Ke
     }
     if key == Key::Z && m.command {
         note_ime_application_change(app, ctx);
-        let _ = figcraft_engine::textedit::end(&mut app.session);
+        let _ = figiran_engine::textedit::end(&mut app.session);
         app.run(if m.shift { "edit.redo" } else { "edit.undo" }, json!({}));
         return false;
     }
     let Some(name) = text_key_name(key, m.command) else { return false };
     if name == "Enter" && m.command {
-        let _ = figcraft_engine::textedit::end(&mut app.session);
+        let _ = figiran_engine::textedit::end(&mut app.session);
         return false;
     }
     let before = ime_stamp(app);
     let (word, line) = keymap::text_motion(platform(), name, mods(m));
-    if let Err(e) = figcraft_engine::textedit::key(&mut app.session, name, m.shift, word, line) {
+    if let Err(e) = figiran_engine::textedit::key(&mut app.session, name, m.shift, word, line) {
         app.toast(e.to_string());
     }
     if ime_stamp(app) != before {
@@ -948,7 +948,7 @@ fn triple_click_line(app: &mut FigApp, ctx: &Context) {
 }
 
 /// The text index of the line under `p`, when the edit's node contains it.
-fn text_line_index(app: &FigApp, id: figcraft_doc::NodeId, p: figcraft_geom::Point) -> Option<usize> {
+fn text_line_index(app: &FigApp, id: figiran_doc::NodeId, p: figiran_geom::Point) -> Option<usize> {
     let inside = app.session.doc().ok().and_then(|d| d.world_bounds(id)).is_some_and(|b| b.contains(p));
     if !inside {
         return None;
@@ -970,7 +970,7 @@ fn text_shortcut(app: &mut FigApp, key: Key, physical: Option<Key>, m: Modifiers
 /// Tell the platform where the caret is (inside the composition while composing) so IME
 /// candidate windows open next to it.
 ///
-/// This is FigCraft's one custom IME producer. Geometry stays the actual caret (the composition
+/// This is FigIran's one custom IME producer. Geometry stays the actual caret (the composition
 /// cursor while composing); the descriptor also carries the reviewed E21b payload: a stable
 /// per-edit owner, a viewport-scoped context generation, a bounded committed-text snapshot around
 /// the selection (UTF-8 byte offsets, reversed direction preserved, pre-edit excluded) and an
@@ -992,7 +992,7 @@ pub(crate) fn ime_output(app: &mut FigApp, ctx: &Context) {
     };
     let frame_nr = ctx.cumulative_frame_nr_for(viewport);
     let pass_nr = ctx.cumulative_pass_nr_for(viewport);
-    let surrounding = figcraft_engine::textedit::ime_surrounding(&app.session);
+    let surrounding = figiran_engine::textedit::ime_surrounding(&app.session);
     let committed = surrounding.as_ref().ok().map(|s| CommittedText::new(&s.text, s.cursor, s.anchor));
     // The tracker compares every receipt with the last observation's baseline. An unavailable
     // baseline therefore needs the same engine revision as `ime_stamp`; otherwise a later
@@ -1036,7 +1036,7 @@ fn ime_target(app: &FigApp) -> Option<ImeTarget> {
         return None;
     }
     // Document and node only: caret, selection, text, revision and geometry are ordinary updates.
-    let owner = egui::Id::unique(("figcraft.ime.text", ds.uid, te.id.0));
+    let owner = egui::Id::unique(("figiran.ime.text", ds.uid, te.id.0));
     Some(ImeTarget::new(owner, te.editing_session))
 }
 
@@ -1046,12 +1046,12 @@ fn ime_cursor_rect(app: &FigApp) -> Option<egui::Rect> {
     let preedit = app.preedit_view();
     let doc = preedit.map(|p| &*p.doc).or_else(|| app.session.doc().ok())?;
     let node = doc.node(te.id)?;
-    let (layout, dy) = figcraft_text::layout_node(node)?;
+    let (layout, dy) = figiran_text::layout_node(node)?;
     let w = doc.world_transform(te.id);
     let (cx, li) = layout.caret(preedit.map(|p| p.cursor).unwrap_or(te.caret));
     let (top, h) = layout.lines.get(li).map(|l| (l.top, l.height)).unwrap_or((0.0, 14.0));
-    let p0 = w * figcraft_geom::Point::new(cx, top + dy);
-    let p1 = w * figcraft_geom::Point::new(cx, top + h + dy);
+    let p0 = w * figiran_geom::Point::new(cx, top + dy);
+    let p1 = w * figiran_geom::Point::new(cx, top + h + dy);
     let (a, b) = (app.to_screen(p0.x, p0.y), app.to_screen(p1.x, p1.y));
     (a.x.is_finite() && a.y.is_finite() && b.x.is_finite() && b.y.is_finite()).then(|| egui::Rect::from_two_pos(a, b + egui::vec2(1.0, 0.0)))
 }
@@ -1063,7 +1063,7 @@ fn ime_cursor_rect(app: &FigApp) -> Option<egui::Rect> {
 fn ime_stamp(app: &FigApp) -> Option<ImeMutationStamp> {
     let ds = app.session.ds().ok()?;
     ds.text_edit.as_ref()?;
-    Some(match figcraft_engine::textedit::ime_surrounding(&app.session) {
+    Some(match figiran_engine::textedit::ime_surrounding(&app.session) {
         Ok(s) => ImeMutationStamp::from_committed(&s.text, s.cursor, s.anchor, None),
         // A bounded snapshot is unavailable (for example, a selection wider than the budget).
         // The document revision is still a trustworthy, engine-owned transition token for this

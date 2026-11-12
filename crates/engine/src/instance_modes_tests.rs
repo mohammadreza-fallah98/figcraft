@@ -5,7 +5,7 @@ use serde_json::{Value, json};
 
 use crate::Session;
 use crate::params::id_of;
-use figcraft_doc::NodeId;
+use figiran_doc::NodeId;
 
 fn run(s: &mut Session, cmd: &str, p: Value) -> Value {
     s.execute(cmd, &p).unwrap_or_else(|e| panic!("{cmd} {p}: {e}"))
@@ -182,7 +182,7 @@ fn a_file_from_before_modes_were_overrides_keeps_the_modes_chosen_inside_its_ins
     let (button, _, nested) = modal(&mut s);
     // Saved before `modes` was an override group: the copy has its mode but no marker.
     s.doc_mut().unwrap().node_mut(nested).unwrap().overrides.remove("modes");
-    let path = std::env::temp_dir().join(format!("figcraft-instance-modes-{}.figcraft", std::process::id()));
+    let path = std::env::temp_dir().join(format!("figiran-instance-modes-{}.figiran", std::process::id()));
     let p = path.to_string_lossy().into_owned();
     run(&mut s, "file.saveAs", json!({"path": p}));
     let mut s = Session::new();

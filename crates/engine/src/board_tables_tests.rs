@@ -1,7 +1,7 @@
 //! Boards: templates (each placed as board objects in one undo step) and tables (made from auto
 //! layout frames, edited by rows and columns, typed into with the text tools, synced live).
 
-use figcraft_doc::{BoardItem, NodeId, NodeKind};
+use figiran_doc::{BoardItem, NodeId, NodeKind};
 use serde_json::{Value, json};
 
 use crate::board_tests::{board, id, node};
@@ -129,7 +129,7 @@ fn a_table_is_auto_layout_frames_with_a_header_and_column_lines() {
     assert!(s.execute("board.table", &json!({"rows": 50, "columns": 20})).is_ok(), "the largest table");
     // It saves and reopens.
     let doc = s.doc().unwrap();
-    let (back, _) = figcraft_format::from_json(&figcraft_format::to_json(doc).unwrap().to_string()).unwrap();
+    let (back, _) = figiran_format::from_json(&figiran_format::to_json(doc).unwrap().to_string()).unwrap();
     assert_eq!(back.node(t).unwrap().board, Some(BoardItem::Table));
 }
 
@@ -184,7 +184,7 @@ fn table_edits_add_and_remove_rows_and_columns_keeping_text() {
 fn a_double_click_types_in_the_cell_and_its_row_grows_with_the_text() {
     // Measure with system fonts when the optional craft-fonts checkout is absent,
     // without depending on another test having scanned them first.
-    figcraft_text::scan_system_fonts();
+    figiran_text::scan_system_fonts();
     let mut s = board();
     let r = s.execute("board.table", &json!({"x": 0, "y": 0})).unwrap();
     let t = id(&r, "id");

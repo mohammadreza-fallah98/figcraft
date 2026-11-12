@@ -6,7 +6,7 @@
 
 use std::io::Cursor;
 
-use figcraft_color::ColorProfile;
+use figiran_color::ColorProfile;
 use image::{DynamicImage, ImageDecoder, ImageFormat, RgbaImage};
 use moxcms::{Chromaticity, ColorPrimaries, DataColorSpace, Layout, ParsingOptions, ProfileText, ToneReprCurve, TransformOptions, XyY};
 

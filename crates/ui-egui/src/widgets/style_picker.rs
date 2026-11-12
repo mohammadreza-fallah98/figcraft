@@ -9,11 +9,11 @@
 //! it. Colour slots also list colour variables to bind (this file's, then each enabled library's).
 
 use egui::{Align2, Color32, CornerRadius, Id, Rect, Response, Sense, Stroke, Ui, pos2, vec2};
-use figcraft_color::{Paint, PaintKind};
-use figcraft_doc::{
+use figiran_color::{Paint, PaintKind};
+use figiran_doc::{
     Document, GridKind, ListStyle, Node, NodeId, ParagraphStyle, PublishedLibrary, Style, StyleKind, TextStyle, VariableType, trim_num,
 };
-use figcraft_engine::library;
+use figiran_engine::library;
 use serde_json::{Value, json};
 
 use crate::FigApp;
@@ -196,7 +196,7 @@ fn link_of(app: &FigApp, doc: &Document, ids: &[NodeId], slot: StyleSlot) -> Opt
     if slot != StyleSlot::Text {
         return crate::right::common(doc, ids, |n| slot.linked(n));
     }
-    let range = figcraft_engine::textedit::selected_range(&app.session);
+    let range = figiran_engine::textedit::selected_range(&app.session);
     let styles = crate::typography::target_styles(doc, ids, range);
     let mut links = styles.iter().map(|s| s.style_id.clone());
     let Some(first) = links.next() else { return Some(None) };
@@ -386,7 +386,7 @@ fn preview(ui: &Ui, r: Rect, s: &Style, slot: StyleSlot) {
     let t = Tokens::get(ui.ctx());
     match &s.kind {
         StyleKind::Paint { paints } => {
-            let p = paints.last().cloned().unwrap_or_else(|| Paint::solid(figcraft_color::Color::TRANSPARENT));
+            let p = paints.last().cloned().unwrap_or_else(|| Paint::solid(figiran_color::Color::TRANSPARENT));
             widgets::paint_swatch(ui.painter(), r, &p);
         }
         _ => icons::paint(ui.painter(), r, slot.icon(), t.menu_text),
@@ -564,7 +564,7 @@ fn listing(app: &FigApp, ui: &mut Ui, doc: &Document, p: &mut Picker, out: &mut 
     }
     let colors = if slot.paints() {
         // Variables scoped to every selected layer's fill (or stroke), as the Design panel's pickers offer.
-        let scopes: Vec<_> = p.ids.iter().filter_map(|id| figcraft_engine::cmd::variables::field_scope(doc, *id, slot.key())).collect();
+        let scopes: Vec<_> = p.ids.iter().filter_map(|id| figiran_engine::cmd::variables::field_scope(doc, *id, slot.key())).collect();
         crate::variable_ui::groups(doc, &libs, |_, v| {
             v.kind == VariableType::Color && (q.is_empty() || v.name.to_lowercase().contains(&q)) && scopes.iter().all(|s| v.in_scope(s))
         })
@@ -665,7 +665,7 @@ fn property_row(ui: &mut Ui, label: &str, paint: Option<&Paint>, slot: StyleSlot
 /// The variable on `field` of the style a [`property_row`] just drew: its name at the row's end
 /// (a click unbinds it), or, with the pointer over the row, the button that opens the variable
 /// picker for it. True when the pointer is on it (the row's own click isn't meant then).
-fn binding_cell(ui: &mut Ui, doc: &Document, style: &Style, field: &str, kind: figcraft_doc::VariableType, out: &mut Frame) -> bool {
+fn binding_cell(ui: &mut Ui, doc: &Document, style: &Style, field: &str, kind: figiran_doc::VariableType, out: &mut Frame) -> bool {
     let t = Tokens::get(ui.ctx());
     let row = ui.min_rect();
     let row = Rect::from_min_max(pos2(row.min.x, row.max.y - ROW_H), row.max);
@@ -694,8 +694,8 @@ fn binding_cell(ui: &mut Ui, doc: &Document, style: &Style, field: &str, kind: f
 
 /// The field of effect `fx` (item `i` of an effect style) a variable binds from its row, and its
 /// type: a shadow's colour, a blur's radius.
-fn effect_binding(fx: &figcraft_doc::Effect, i: usize) -> Option<(String, figcraft_doc::VariableType)> {
-    use figcraft_doc::{EffectKind as K, VariableType as V};
+fn effect_binding(fx: &figiran_doc::Effect, i: usize) -> Option<(String, figiran_doc::VariableType)> {
+    use figiran_doc::{EffectKind as K, VariableType as V};
     match fx.kind {
         K::DropShadow(_) | K::InnerShadow(_) => Some((format!("effects/{i}/color"), V::Color)),
         K::LayerBlur(_) | K::BackgroundBlur(_) => Some((format!("effects/{i}/radius"), V::Number)),
@@ -704,7 +704,7 @@ fn effect_binding(fx: &figcraft_doc::Effect, i: usize) -> Option<(String, figcra
 }
 
 /// A layout grid's summary ("Columns 12", "Grid 8").
-fn grid_label(g: &figcraft_doc::LayoutGrid) -> String {
+fn grid_label(g: &figiran_doc::LayoutGrid) -> String {
     match g.kind {
         GridKind::Grid => trf("Grid {size}", &[("size", &g.size)]),
         GridKind::Columns => trf("Columns {count}", &[("count", &g.count)]),
@@ -932,7 +932,7 @@ fn font_family_menu(ui: &Ui, id: &str, def: &TextStyle, family_resp: &Response, 
     if let Some(f) = crate::typography::font_picker(ui, family_resp, Some(&def.font_family), 260.0, apply_variable).and_then(|p| p.picked) {
         set_text(def, id, out, |d| {
             d.font_family = f.clone();
-            let styles = figcraft_text::family_styles(&f);
+            let styles = figiran_text::family_styles(&f);
             if !styles.is_empty() && !styles.contains(&d.font_style) {
                 d.set_font_style(styles.iter().find(|s| s.eq_ignore_ascii_case("Regular")).or(styles.first()).cloned().unwrap_or_default());
             }
@@ -950,7 +950,7 @@ fn font_style_menu(id: &str, def: &TextStyle, style_resp: &Response, out: &mut F
         }
         ui.separator();
         egui::ScrollArea::vertical().max_height(320.0).show(ui, |ui| {
-            for s in figcraft_text::family_styles(&def.font_family) {
+            for s in figiran_text::family_styles(&def.font_family) {
                 let mark = if def.font_style == s { "✓ " } else { "   " };
                 if crate::right::menu_item(ui, &format!("{mark}{s}"), "") {
                     set_text(def, id, out, |d| d.set_font_style(s.clone()));
@@ -1053,7 +1053,7 @@ fn editor(ui: &mut Ui, doc: &Document, p: &mut Picker, out: &mut Frame) {
                     let clicked = property_row(ui, &label, Some(paint), slot);
                     // A solid paint's colour takes a variable.
                     let on_binding = matches!(paint.kind, PaintKind::Solid { .. })
-                        && binding_cell(ui, doc, &style, &format!("fills/{i}/color"), figcraft_doc::VariableType::Color, out);
+                        && binding_cell(ui, doc, &style, &format!("fills/{i}/color"), figiran_doc::VariableType::Color, out);
                     if clicked && !on_binding {
                         out.act = Some(Act::EditPaint(style.id.clone(), i));
                     }
@@ -1070,7 +1070,7 @@ fn editor(ui: &mut Ui, doc: &Document, p: &mut Picker, out: &mut Frame) {
             StyleKind::Grid { grids } => {
                 for (i, g) in grids.iter().enumerate() {
                     property_row(ui, &grid_label(g), None, slot);
-                    binding_cell(ui, doc, &style, &format!("layoutGrids/{i}/size"), figcraft_doc::VariableType::Number, out);
+                    binding_cell(ui, doc, &style, &format!("layoutGrids/{i}/size"), figiran_doc::VariableType::Number, out);
                 }
             }
             StyleKind::Text { style: def, .. } => text_properties(ui, doc, &style, def, out),
@@ -1314,7 +1314,7 @@ pub fn local_styles(app: &mut FigApp, ui: &mut Ui, doc: &Document) {
                 let icon_r = Rect::from_center_size(pos2(x + 8.0, r.center().y), vec2(16.0, 16.0));
                 match &s.kind {
                     StyleKind::Paint { paints } => {
-                        let p = paints.last().cloned().unwrap_or_else(|| Paint::solid(figcraft_color::Color::TRANSPARENT));
+                        let p = paints.last().cloned().unwrap_or_else(|| Paint::solid(figiran_color::Color::TRANSPARENT));
                         widgets::paint_swatch(ui.painter(), icon_r, &p);
                     }
                     _ => icons::paint(ui.painter(), icon_r, slot.icon(), t.icon_secondary),

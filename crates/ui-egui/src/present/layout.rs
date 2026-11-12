@@ -13,14 +13,14 @@ pub struct Place {
 }
 
 impl Place {
-    pub(super) fn centered(fb: figcraft_geom::Rect, center: Pos2, scale: f64) -> Self {
+    pub(super) fn centered(fb: figiran_geom::Rect, center: Pos2, scale: f64) -> Self {
         let size = vec2((fb.width() * scale) as f32, (fb.height() * scale) as f32);
         Place { page_min: (fb.x0, fb.y0), origin: center - size / 2.0, scale }
     }
     pub fn pt(&self, x: f64, y: f64) -> Pos2 {
         pos2(self.origin.x + ((x - self.page_min.0) * self.scale) as f32, self.origin.y + ((y - self.page_min.1) * self.scale) as f32)
     }
-    pub fn rect(&self, r: figcraft_geom::Rect) -> Rect {
+    pub fn rect(&self, r: figiran_geom::Rect) -> Rect {
         Rect::from_min_max(self.pt(r.x0, r.y0), self.pt(r.x1, r.y1))
     }
     /// The page point under screen point `q`.
@@ -32,7 +32,7 @@ impl Place {
 /// The hotspots of the screen `root` (its visible layers with interactions, bottom-most first)
 /// placed on screen and clipped by `screen`.
 pub(super) fn hotspots(doc: &Document, root: NodeId, place: &Place, screen: Rect) -> Vec<(NodeId, Rect)> {
-    figcraft_engine::proto_run::hotspots(doc, root)
+    figiran_engine::proto_run::hotspots(doc, root)
         .into_iter()
         .map(|(id, b)| (id, place.rect(b).intersect(screen)))
         .filter(|(_, r)| r.is_positive())

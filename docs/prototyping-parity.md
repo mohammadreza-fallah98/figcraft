@@ -13,7 +13,7 @@ tests; the tail: `crates/engine/src/proto_tail_tests.rs`, 4 tests, and
 `crates/ui-egui/src/present/tail_tests.rs`, 5 tests), and all pass. Not yet checked against
 larger real prototypes. Remaining: 2–5 h.
 
-| Group | Figma | FigCraft | Missing |
+| Group | Figma | FigIran | Missing |
 |---|---|---|---|
 | Triggers | On click, on drag, while hovering, while pressing, key/gamepad, mouse enter, mouse leave, mouse down, mouse up, after delay, on media hit, on media end | 10: OnClick, OnHover, OnPress, OnDrag, MouseEnter, MouseLeave, MouseDown, MouseUp, AfterDelay, KeyPress (keys, combinations and controller buttons) | media triggers; controllers on macOS, Linux and FreeBSD |
 | Actions | Navigate to, change to, back, scroll to, open link, open / swap / close overlay, set variable, set variable mode, conditional, play/pause/mute/seek media | 11: Navigate, Back, ScrollTo (with an offset), OpenOverlay, SwapOverlay, CloseOverlay, OpenUrl, ChangeTo, SetVariable, SetVariableMode, Conditional | media actions |
@@ -23,7 +23,7 @@ larger real prototypes. Remaining: 2–5 h.
 ## Rules from the documentation
 
 Status: **pass** (a case in the suite holds), **fixed** (the suite found a divergence, now fixed),
-**added** (the setting was missing and now exists), **extra** (FigCraft's own, beyond the reference
+**added** (the setting was missing and now exists), **extra** (FigIran's own, beyond the reference
 tool; opt-in), **silent** (the documentation doesn't say; the case pins the current behaviour).
 
 | Rule | Status | Evidence / notes |

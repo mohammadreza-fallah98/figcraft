@@ -2,7 +2,7 @@
 
 use std::sync::{LazyLock, Mutex};
 
-use figcraft_doc::{Document, ListStyle, NodeId, NodeKind, TextData};
+use figiran_doc::{Document, ListStyle, NodeId, NodeKind, TextData};
 
 use crate::{EngineError, Preedit, Result, Session, TextEdit};
 
@@ -453,7 +453,7 @@ pub fn key(s: &mut Session, key: &str, shift: bool, word: bool, line: bool) -> R
                     } else if word {
                         word_left(&chars, a)
                     } else {
-                        figcraft_text::backspace_step(&t.characters, a)
+                        figiran_text::backspace_step(&t.characters, a)
                     };
                     (from, a)
                 } else {
@@ -462,7 +462,7 @@ pub fn key(s: &mut Session, key: &str, shift: bool, word: bool, line: bool) -> R
                     } else if word {
                         word_right(&chars, a)
                     } else {
-                        figcraft_text::grapheme_step(&t.characters, a, true).min(n)
+                        figiran_text::grapheme_step(&t.characters, a, true).min(n)
                     };
                     (a, to)
                 };
@@ -477,7 +477,7 @@ pub fn key(s: &mut Session, key: &str, shift: bool, word: bool, line: bool) -> R
     let layout = {
         let doc = s.doc()?;
         let node = doc.get(te.id)?;
-        figcraft_text::layout_node(node).map(|(l, _)| l)
+        figiran_text::layout_node(node).map(|(l, _)| l)
     };
     let (a, b) = range(&te);
     // Without Shift, a selection collapses first: plain arrows stop at its edge, word/line moves
@@ -497,7 +497,7 @@ pub fn key(s: &mut Session, key: &str, shift: bool, word: bool, line: bool) -> R
         // Plain arrows move on screen through right-to-left runs, by char elsewhere.
         "Left" | "Right" => match layout.as_ref().and_then(|l| l.visual_step(cur, key == "Right")) {
             Some(i) => i.min(n),
-            None => figcraft_text::grapheme_step(&t.characters, cur, key == "Right").min(n),
+            None => figiran_text::grapheme_step(&t.characters, cur, key == "Right").min(n),
         },
         "Home" if line => 0,
         "End" if line => n,

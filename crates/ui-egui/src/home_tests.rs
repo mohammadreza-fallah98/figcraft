@@ -5,9 +5,9 @@
 
 use egui::accesskit::Role;
 use egui::{Event, Key, Modifiers, PointerButton, Pos2, Rect, Shape};
-use figcraft_engine::Session;
-use figcraft_engine::online::OnlineFile;
-use figcraft_engine::templates::TEMPLATES;
+use figiran_engine::Session;
+use figiran_engine::online::OnlineFile;
+use figiran_engine::templates::TEMPLATES;
 use serde_json::json;
 
 use crate::home::{Section, cached_thumbnails};
@@ -189,9 +189,9 @@ fn typing_in_the_search_field_filters() {
 fn home_search_finds_known_files_and_opens_an_existing_tab() {
     let mut session = Session::new();
     session.execute("file.rename", &json!({"name": "North Trail"})).unwrap();
-    session.docs[0].path = Some("C:/designs/North Trail.figcraft".into());
+    session.docs[0].path = Some("C:/designs/North Trail.figiran".into());
     session.prefs.recent_files =
-        vec!["C:/designs/North Trail.figcraft".into(), "C:/designs/South Trail.figcraft".into(), "C:/designs/Other.figcraft".into()];
+        vec!["C:/designs/North Trail.figiran".into(), "C:/designs/South Trail.figiran".into(), "C:/designs/Other.figiran".into()];
     session.prefs.online_files.push(OnlineFile {
         server: "wss://share.example/".into(),
         file: "trail".into(),
@@ -224,14 +224,14 @@ fn home_search_finds_known_files_and_opens_an_existing_tab() {
 
 #[test]
 fn home_search_shows_a_saved_files_preview() {
-    let dir = std::env::temp_dir().join(format!("figcraft-home-search-preview-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("figiran-home-search-preview-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
-    let path = dir.join("Search preview.figcraft");
+    let path = dir.join("Search preview.figiran");
     let image = image::RgbaImage::from_pixel(64, 32, image::Rgba([30, 140, 210, 255]));
     let mut png = Vec::new();
     image.write_to(&mut std::io::Cursor::new(&mut png), image::ImageFormat::Png).unwrap();
-    let doc = figcraft_doc::Document::new("Search preview");
-    std::fs::write(&path, figcraft_format::save_bytes(&doc, Some(&png)).unwrap()).unwrap();
+    let doc = figiran_doc::Document::new("Search preview");
+    std::fs::write(&path, figiran_format::save_bytes(&doc, Some(&png)).unwrap()).unwrap();
 
     let mut session = Session::empty();
     session.prefs.recent_files.push(path.to_string_lossy().into_owned());
@@ -254,7 +254,7 @@ fn home_search_shows_a_saved_files_preview() {
 #[test]
 fn home_search_field_filters_as_typed_and_a_section_click_clears_it() {
     let mut u = first_run();
-    u.app.session.prefs.recent_files = vec!["C:/designs/Glacier.figcraft".into(), "C:/designs/Forest.figcraft".into()];
+    u.app.session.prefs.recent_files = vec!["C:/designs/Glacier.figiran".into(), "C:/designs/Forest.figiran".into()];
     let s = shapes(&mut u);
     click(&mut u, text_center(&s, "Search files and templates"));
     u.frame(vec![Event::Text("glacier".into())]);
@@ -277,7 +277,7 @@ fn home_search_field_filters_as_typed_and_a_section_click_clears_it() {
 /// the selection are still there (nothing is read again).
 #[test]
 fn a_search_keeps_the_other_recent_files_pictures_and_the_selection() {
-    let dir = std::env::temp_dir().join(format!("figcraft-home-search-cache-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("figiran-home-search-cache-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let mut png = Vec::new();
     image::RgbaImage::from_pixel(8, 8, image::Rgba([30, 140, 210, 255]))
@@ -286,8 +286,8 @@ fn a_search_keeps_the_other_recent_files_pictures_and_the_selection() {
     let paths: Vec<String> = ["Alpine", "Basin"]
         .into_iter()
         .map(|name| {
-            let path = dir.join(format!("{name}.figcraft"));
-            std::fs::write(&path, figcraft_format::save_bytes(&figcraft_doc::Document::new(name), Some(&png)).unwrap()).unwrap();
+            let path = dir.join(format!("{name}.figiran"));
+            std::fs::write(&path, figiran_format::save_bytes(&figiran_doc::Document::new(name), Some(&png)).unwrap()).unwrap();
             path.to_string_lossy().into_owned()
         })
         .collect();
@@ -382,7 +382,7 @@ fn a_first_run_offers_templates_on_recents_and_recent_files_replace_them() {
     assert_eq!(u.app.session.doc().unwrap().name, "Landing page");
     // With a recent file, the list shows in the row's place.
     u.app.ui.home = true;
-    u.app.session.prefs.recent_files = vec!["/tmp/ridgeline.figcraft".into()];
+    u.app.session.prefs.recent_files = vec!["/tmp/ridgeline.figiran".into()];
     let s = settle(&mut u);
     assert!(has_text(&s, "Recent files") && has_text(&s, "ridgeline"));
     assert!(!has_text(&s, "Start from a template") && !has_text(&s, "See all templates"));
@@ -392,8 +392,8 @@ fn a_first_run_offers_templates_on_recents_and_recent_files_replace_them() {
 #[test]
 fn an_open_files_long_name_and_path_share_their_row_without_overlapping() {
     let name = "Quarterly planning: onboarding flow review with annotations and handoff notes";
-    let long = "/Users/alex/Documents/Clients/Northwind Traders/2026 Website relaunch/Design reviews/Week 42/onboarding-flow-review.figcraft";
-    let short = "/tmp/wireframes.figcraft";
+    let long = "/Users/alex/Documents/Clients/Northwind Traders/2026 Website relaunch/Design reviews/Week 42/onboarding-flow-review.figiran";
+    let short = "/tmp/wireframes.figiran";
     let mut s = Session::new();
     s.execute("file.rename", &json!({"name": name})).unwrap();
     s.docs[0].path = Some(long.into());
@@ -409,7 +409,7 @@ fn an_open_files_long_name_and_path_share_their_row_without_overlapping() {
     // One that doesn't: the name, then the end of its path, side by side.
     let all = texts(&s);
     let rect = |(_, p, size): &(String, Pos2, egui::Vec2)| Rect::from_min_size(*p, *size);
-    let detail = all.iter().find(|(t, _, _)| t.ends_with("/onboarding-flow-review.figcraft")).expect("the path");
+    let detail = all.iter().find(|(t, _, _)| t.ends_with("/onboarding-flow-review.figiran")).expect("the path");
     let detail_rect = rect(detail);
     let shown_name =
         all.iter().find(|e| e.0.starts_with('Q') && (rect(e).center().y - detail_rect.center().y).abs() < 2.0).expect("the name on the path's row");
@@ -448,7 +448,7 @@ fn the_getting_started_card_closes_stays_closed_and_comes_back_from_help() {
     assert!(!has_text(&s, "Getting started") && !has_text(&s, "Draw a frame"));
     assert!(has_text(&s, "Start from a template"), "the rest of the screen stays");
     // The preference is kept with the others, so it stays closed next time.
-    let kept: figcraft_engine::Prefs = serde_json::from_value(serde_json::to_value(&u.app.session.prefs).unwrap()).unwrap();
+    let kept: figiran_engine::Prefs = serde_json::from_value(serde_json::to_value(&u.app.session.prefs).unwrap()).unwrap();
     assert!(kept.getting_started_dismissed);
     // Help ▸ Getting started: back on the home screen, from wherever.
     u.app.run("file.new", json!({}));
@@ -492,7 +492,7 @@ impl Temp {
         static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
         let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
         let n = NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-        let path = std::env::temp_dir().join(format!("figcraft-home-drop-{}-{stamp}-{n}", std::process::id()));
+        let path = std::env::temp_dir().join(format!("figiran-home-drop-{}-{stamp}-{n}", std::process::id()));
         std::fs::create_dir(&path).unwrap();
         Self(path)
     }
@@ -568,7 +568,7 @@ fn dropping_a_file_without_one_on_disk_opens_it_as_a_new_unsaved_document() {
     assert_eq!(u.app.ui.last_error, None);
     assert_eq!(u.app.session.docs.len(), 1, "the dropped contents open");
     assert_eq!(u.app.session.docs[0].path, None, "with no save path made up for them");
-    assert!(u.app.session.docs[0].doc.nodes().any(|n| matches!(n.kind, figcraft_doc::NodeKind::Rectangle)), "the SVG's content");
+    assert!(u.app.session.docs[0].doc.nodes().any(|n| matches!(n.kind, figiran_doc::NodeKind::Rectangle)), "the SVG's content");
     assert!(!u.app.ui.home, "and the editor shows it");
     assert!(!path.exists(), "nothing is written");
 }
@@ -614,18 +614,18 @@ fn a_dropped_file_whose_contents_arrive_later_opens_once_they_do() {
     assert_eq!(u.app.ui.last_error, None);
     assert_eq!(u.app.session.docs.len(), 1, "the contents open");
     assert_eq!(u.app.session.docs[0].path, None);
-    assert!(u.app.session.docs[0].doc.nodes().any(|n| matches!(n.kind, figcraft_doc::NodeKind::Rectangle)), "the SVG's content");
+    assert!(u.app.session.docs[0].doc.nodes().any(|n| matches!(n.kind, figiran_doc::NodeKind::Rectangle)), "the SVG's content");
     assert!(!u.app.ui.home);
 }
 
 #[test]
 fn a_dropped_file_that_cannot_be_read_says_so_and_opens_nothing() {
-    let arrived = std::rc::Rc::new(std::cell::RefCell::new(Some(Err(crate::unreadable("Unreadable.figcraft")))));
+    let arrived = std::rc::Rc::new(std::cell::RefCell::new(Some(Err(crate::unreadable("Unreadable.figiran")))));
     let mut u = first_run();
     u.app.ui.home = true;
     u.app.ui.pending_opens.push(crate::pending_open::PendingOpen {
-        label: "Unreadable.figcraft".into(),
-        params: json!({"name": "Unreadable.figcraft"}),
+        label: "Unreadable.figiran".into(),
+        params: json!({"name": "Unreadable.figiran"}),
         command: "file.open",
         target: None,
         read: Some(later(&arrived)),
@@ -635,13 +635,13 @@ fn a_dropped_file_that_cannot_be_read_says_so_and_opens_nothing() {
     }
     assert!(u.app.ui.pending_opens.is_empty());
     assert!(u.app.session.docs.is_empty());
-    assert_eq!(u.app.ui.last_error.as_deref(), Some("Couldn't read Unreadable.figcraft."));
+    assert_eq!(u.app.ui.last_error.as_deref(), Some("Couldn't read Unreadable.figiran."));
 }
 
 #[test]
 fn dropping_a_native_file_on_the_home_screen_opens_it() {
     let dir = Temp::new();
-    let path = dir.path("Dropped.figcraft");
+    let path = dir.path("Dropped.figiran");
     let mut saved = Session::new();
     saved.execute("file.saveAs", &json!({"path": path.to_string_lossy()})).unwrap();
     assert!(path.exists());
@@ -653,7 +653,7 @@ fn dropping_a_native_file_on_the_home_screen_opens_it() {
     assert_eq!(u.app.ui.pending_opens.len(), 1);
     assert!(u.app.session.docs.is_empty(), "nothing opens in the frame of the drop");
     let s = flat(&u.frame_output(vec![]).shapes);
-    assert!(has_text(&s, "Opening as a new file") && has_text(&s, "Opening the file…") && has_text(&s, "Dropped.figcraft"), "the card shows");
+    assert!(has_text(&s, "Opening as a new file") && has_text(&s, "Opening the file…") && has_text(&s, "Dropped.figiran"), "the card shows");
     assert_eq!(u.app.ui.pending_opens.len(), 1);
     assert!(u.app.session.docs.is_empty(), "the card is drawn first");
     assert_eq!(u.app.inspect()["pendingOpens"], 1);
@@ -705,7 +705,7 @@ fn dropping_a_native_file_on_canvas_keeps_its_receiving_document_after_tab_switc
 #[test]
 fn dropping_a_document_on_canvas_opens_it_as_a_new_file() {
     let dir = Temp::new();
-    let path = dir.path("Dropped.figcraft");
+    let path = dir.path("Dropped.figiran");
     let mut saved = Session::new();
     saved.execute("file.saveAs", &json!({"path": path.to_string_lossy()})).unwrap();
     let mut u = Ui::new(Session::new());
@@ -727,14 +727,14 @@ fn dropping_a_document_on_canvas_opens_it_as_a_new_file() {
 fn a_document_dropped_on_canvas_without_a_file_on_disk_opens_as_a_new_file() {
     // Every drop in the browser (#916).
     let dir = Temp::new();
-    let saved = dir.path("Saved.figcraft");
+    let saved = dir.path("Saved.figiran");
     Session::new().execute("file.saveAs", &json!({"path": saved.to_string_lossy()})).unwrap();
     let bytes = std::fs::read(&saved).unwrap();
     let mut u = Ui::new(Session::new());
     u.app.ui.home = false;
     u.frame(vec![]);
     let pos = u.app.canvas.rect.center();
-    let file: egui::DroppedFileHandle = std::sync::Arc::new(DroppedBytes("Shared.figcraft".into(), bytes));
+    let file: egui::DroppedFileHandle = std::sync::Arc::new(DroppedBytes("Shared.figiran".into(), bytes));
     u.frame_raw(egui::RawInput { events: vec![Event::PointerMoved(pos)], dropped_files: vec![file], ..Default::default() });
     for _ in 0..3 {
         u.frame(vec![]);
@@ -787,7 +787,7 @@ fn canvas_import_uses_queued_page_and_restores_the_page_selected_while_waiting()
     let second_page = session.page().unwrap();
     let second_page_shape = session.execute("node.create", &json!({"type": "rectangle", "x": 30, "y": 40, "width": 12, "height": 14})).unwrap()["id"]
         .as_u64()
-        .map(figcraft_doc::NodeId)
+        .map(figiran_doc::NodeId)
         .unwrap();
     session.execute("page.select", &json!({"id": first_page})).unwrap();
     session.execute("file.new", &json!({"name": "Other tab"})).unwrap();
@@ -898,7 +898,7 @@ fn dropping_an_unsupported_file_on_the_home_screen_opens_nothing() {
     drop_file(&mut u, &path);
     assert!(u.app.session.docs.is_empty());
     assert!(u.app.ui.home);
-    assert_eq!(u.app.ui.toast.as_ref().map(|t| t.0.as_str()), Some("Drop a .figcraft, .fig, .jam, .sketch, .json, .svg or image file."));
+    assert_eq!(u.app.ui.toast.as_ref().map(|t| t.0.as_str()), Some("Drop a .figiran, .fig, .jam, .sketch, .json, .svg or image file."));
 }
 
 #[test]

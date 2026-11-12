@@ -1,11 +1,11 @@
 //! Image entries are checked as they apply: bytes carried under a content-hash key must be
-//! exactly what that key hashes to (lowercase sha256, the form `figcraft_format::image_hash`
+//! exactly what that key hashes to (lowercase sha256, the form `figiran_format::image_hash`
 //! produces), a side stays within the 65 535 px bound the implementation enforces and decoded
 //! bytes within its 32 MiB cap. Without this a collaborator could poison the shared
 //! content-addressed image store or balloon memory (#1086).
 
 use base64::Engine as _;
-use figcraft_doc::Document;
+use figiran_doc::Document;
 use serde_json::json;
 use sha2::{Digest as _, Sha256};
 
@@ -90,7 +90,7 @@ fn absurd_dimensions_are_refused() {
 }
 
 /// Bytes past the cap are refused, and so is base64 text too long to decode within it (checked
-/// before decoding). The cap is `figcraft_doc::ImageData::MAX_BYTES` (256 MiB); a small one keeps
+/// before decoding). The cap is `figiran_doc::ImageData::MAX_BYTES` (256 MiB); a small one keeps
 /// the test light.
 #[test]
 fn oversized_image_bytes_are_refused() {
@@ -106,7 +106,7 @@ fn oversized_image_bytes_are_refused() {
 
 #[test]
 fn a_zero_sized_image_still_applies() {
-    // The format crate stores 0×0 for bytes it can't probe (`image_data` in `figcraft_format`),
+    // The format crate stores 0×0 for bytes it can't probe (`image_data` in `figiran_format`),
     // so a shared document can legitimately carry one; the bytes still have to be honest.
     let bytes = b"undecodable bytes kept from a file load".as_slice();
     let mut doc = Document::new("t");
@@ -141,7 +141,7 @@ fn a_key_that_cannot_name_an_archive_member_is_refused() {
     }
 }
 
-/// The cap matches what the importers read (`figcraft_doc::ImageData::MAX_BYTES`): an image a
+/// The cap matches what the importers read (`figiran_doc::ImageData::MAX_BYTES`): an image a
 /// document took from a `.fig`, `.sketch` or REST import reaches everyone in a live session.
 #[test]
 fn an_image_as_large_as_an_import_takes_still_applies() {
@@ -215,11 +215,11 @@ fn a_restart_replays_past_a_logged_image_replacement() {
 }
 
 /// A document whose rectangle shows `img1` (the first bytes), and that rectangle.
-fn in_use() -> (Document, figcraft_doc::NodeId) {
+fn in_use() -> (Document, figiran_doc::NodeId) {
     let mut doc = Document::new("t");
     let page = doc.first_page().unwrap();
-    let id = doc.create(page, figcraft_doc::NodeKind::Rectangle, "R", 0.0, 0.0, 10.0, 10.0).unwrap();
-    doc.get_mut(id).unwrap().fills = vec![figcraft_color::Paint::image("img1", figcraft_color::ImageScaleMode::Fill)];
+    let id = doc.create(page, figiran_doc::NodeKind::Rectangle, "R", 0.0, 0.0, 10.0, 10.0).unwrap();
+    doc.get_mut(id).unwrap().fills = vec![figiran_color::Paint::image("img1", figiran_color::ImageScaleMode::Fill)];
     apply_doc(&mut doc, &put("img1", 2, 1, b"the first bytes")).unwrap();
     (doc, id)
 }
@@ -252,7 +252,7 @@ fn an_image_no_longer_in_use_can_be_removed() {
 fn a_snapshot_with_a_broken_layer_change_still_fails_to_open() {
     let mut snapshot = crate::Replica::new(crate::sim_tests::base()).snapshot().unwrap();
     // A property of a layer that isn't there: an error when applied (unlike deleting it).
-    let missing = figcraft_doc::NodeId(u64::MAX);
+    let missing = figiran_doc::NodeId(u64::MAX);
     snapshot.push(Change::Set { id: missing, prop: crate::change::Prop::Name, value: Json(json!("x")) });
     assert!(crate::Replica::from_snapshot(&snapshot).is_err());
 }

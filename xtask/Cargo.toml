@@ -10,4 +10,4 @@ workspace = true
 
 [dependencies]
 serde_json = { workspace = true }
-figcraft-engine = { workspace = true }
+figiran-engine = { workspace = true }

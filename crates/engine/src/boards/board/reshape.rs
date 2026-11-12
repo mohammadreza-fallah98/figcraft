@@ -1,7 +1,7 @@
 //! A connector's path reshaped by hand: a selected connector's path handles (one for each run of
 //! an elbow, one for a curve), dragged, and `board.reshape`, which a drag ends in.
 
-use figcraft_doc::{attached_sides, path_handles, reshaped};
+use figiran_doc::{attached_sides, path_handles, reshaped};
 
 use super::connectors::{END_HANDLE_PX, connector_of, selected_connector_ends};
 use super::derived::{place_route, route, route_ends};
@@ -63,7 +63,7 @@ pub fn selected_connector_handles(doc: &Document, sel: &[NodeId], zoom: f64) -> 
         let (_, c) = connector_of("", doc, id).ok()?;
         let pts = route(doc, &c)?;
         let long = |i: usize| pts.windows(2).nth(i).is_some_and(|w| (w[1] - w[0]).hypot() * zoom >= MIN_RUN_PX);
-        let curved = c.routing == figcraft_doc::Routing::Curved;
+        let curved = c.routing == figiran_doc::Routing::Curved;
         Some(path_handles(&pts, c.routing).into_iter().filter(|(i, _)| curved || long(*i)).collect())
     };
     handles().unwrap_or_default()

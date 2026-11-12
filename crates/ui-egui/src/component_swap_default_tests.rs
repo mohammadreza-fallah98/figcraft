@@ -4,8 +4,8 @@
 
 use egui::accesskit::{Node, Role};
 use egui::{Event, MouseWheelUnit, Pos2, TouchPhase, pos2, vec2};
-use figcraft_doc::{NodeId, NodeKind, PropDef};
-use figcraft_engine::Session;
+use figiran_doc::{NodeId, NodeKind, PropDef};
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::layers_drag_tests::Ui;

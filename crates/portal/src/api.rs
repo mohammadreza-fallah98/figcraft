@@ -1,6 +1,6 @@
 //! The portal's JSON, read defensively: every response is `{ isSuccess, data, errorMessages }`
 //! (camelCase); a non-2xx answer, a failed flag or a missing `data` is an error with the portal's
-//! own message. A join link is only accepted when it is a `figcraft://join` link.
+//! own message. A join link is only accepted when it is a `figiran://join` link.
 
 use serde::Deserialize;
 use serde::de::DeserializeOwned;
@@ -158,7 +158,7 @@ pub struct OpenedProject {
     pub project_id: i64,
     pub project_name: String,
     pub access: Access,
-    /// `figcraft://join?…`, carrying the person's own link token: it is never shown or logged.
+    /// `figiran://join?…`, carrying the person's own link token: it is never shown or logged.
     pub join_url: String,
 }
 
@@ -170,9 +170,9 @@ struct RawOpened {
     project_name: String,
 }
 
-/// `url` is a `figcraft://join?…` link (the only thing opening a project may hand to the app).
+/// `url` is a `figiran://join?…` link (the only thing opening a project may hand to the app).
 pub fn is_join_url(url: &str) -> bool {
-    url.get(..16).is_some_and(|s| s.eq_ignore_ascii_case("figcraft://join?")) && !url.chars().any(|c| c.is_whitespace() || c.is_control())
+    url.get(..15).is_some_and(|s| s.eq_ignore_ascii_case("figiran://join?")) && !url.chars().any(|c| c.is_whitespace() || c.is_control())
 }
 
 /// Read the answer to opening project `project_id`.

@@ -1,8 +1,8 @@
 //! A connector end placed on any part of an object: holding Cmd/Ctrl while moving it puts it right
 //! where the pointer is, and it stays at that part of the object when the object moves or resizes.
 
-use figcraft_doc::{End, NodeId, Side};
-use figcraft_geom::Point;
+use figiran_doc::{End, NodeId, Side};
+use figiran_geom::Point;
 use serde_json::json;
 
 use crate::Session;
@@ -46,7 +46,7 @@ fn without_cmd_an_end_keeps_snapping_to_a_side() {
     let end = *drawn(&s, k).last().unwrap();
     drag_end(&mut s, end, Point::new(650.0, 25.0), false);
     assert_eq!(connector(&s, k).to, End::Node { node: b, side: Side::Right, at: None });
-    assert!(near(*drawn(&s, k).last().unwrap(), Point::new(700.0 + figcraft_doc::END_GAP, 50.0)), "END_GAP outside the side");
+    assert!(near(*drawn(&s, k).last().unwrap(), Point::new(700.0 + figiran_doc::END_GAP, 50.0)), "END_GAP outside the side");
 }
 
 #[test]
@@ -89,12 +89,12 @@ fn a_reshaped_path_keeps_the_end_where_it_is() {
 #[test]
 fn it_saves_only_when_placed_by_hand() {
     let (mut s, _, b, k) = scene();
-    let saved = |s: &Session| figcraft_format::to_json(s.doc().unwrap()).unwrap().to_string();
+    let saved = |s: &Session| figiran_format::to_json(s.doc().unwrap()).unwrap().to_string();
     assert!(!saved(&s).contains("\"at\":"), "older files stay as they are");
     s.execute("board.reattach", &json!({"id": k, "end": "to", "target": b, "at": [0.5, 0.25]})).unwrap();
     assert!(saved(&s).contains("\"at\":[0.5,0.25]"));
-    let bytes = figcraft_format::save_bytes(s.doc().unwrap(), None).unwrap();
-    let (open, _) = figcraft_format::load_bytes(&bytes).unwrap();
+    let bytes = figiran_format::save_bytes(s.doc().unwrap(), None).unwrap();
+    let (open, _) = figiran_format::load_bytes(&bytes).unwrap();
     let kept = open.node(k).and_then(|n| n.board.clone());
-    assert!(matches!(kept, Some(figcraft_doc::BoardItem::Connector(c)) if matches!(c.to, End::Node { at: Some([0.5, 0.25]), .. })));
+    assert!(matches!(kept, Some(figiran_doc::BoardItem::Connector(c)) if matches!(c.to, End::Node { at: Some([0.5, 0.25]), .. })));
 }

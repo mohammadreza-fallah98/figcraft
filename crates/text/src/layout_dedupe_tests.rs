@@ -2,15 +2,15 @@
 //! (blocks, alternation, pathological alternation), fields the fingerprint skips still split by
 //! equality, and −0.0 merges like `PartialEq` does.
 
-use figcraft_doc::{StyleRun, TextData, TextStyle};
+use figiran_doc::{StyleRun, TextData, TextStyle};
 
 use crate::layout::layout;
 
-fn solid(hex: &str) -> Option<Vec<figcraft_doc::color::Paint>> {
-    Some(vec![figcraft_doc::color::Paint::solid(figcraft_doc::color::Color::from_hex(hex).unwrap())])
+fn solid(hex: &str) -> Option<Vec<figiran_doc::color::Paint>> {
+    Some(vec![figiran_doc::color::Paint::solid(figiran_doc::color::Color::from_hex(hex).unwrap())])
 }
 
-fn style_with(fills: Option<Vec<figcraft_doc::color::Paint>>) -> TextStyle {
+fn style_with(fills: Option<Vec<figiran_doc::color::Paint>>) -> TextStyle {
     TextStyle { fills, ..Default::default() }
 }
 
@@ -59,9 +59,9 @@ fn fields_the_fingerprint_skips_still_split_by_equality() {
 
     // Two gradients hash to the same tag; their stops still split them.
     let grad = |base: &str| {
-        Some(vec![figcraft_doc::color::Paint::gradient(figcraft_doc::color::Gradient::default_for(
-            figcraft_doc::color::GradientKind::Linear,
-            figcraft_doc::color::Color::from_hex(base).unwrap(),
+        Some(vec![figiran_doc::color::Paint::gradient(figiran_doc::color::Gradient::default_for(
+            figiran_doc::color::GradientKind::Linear,
+            figiran_doc::color::Color::from_hex(base).unwrap(),
         ))])
     };
     let t = text_with_runs(vec![(0, 1, style_with(grad("#FF0000"))), (1, 2, style_with(grad("#00FF00")))]);

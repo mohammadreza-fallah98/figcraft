@@ -1,6 +1,6 @@
-use figcraft_color::Paint;
-use figcraft_doc::NodeId;
-use figcraft_engine::{
+use figiran_color::Paint;
+use figiran_doc::NodeId;
+use figiran_engine::{
     Session,
     selection_colors::{self, SelectionColor, collect},
 };
@@ -29,7 +29,7 @@ fn aggregate_descendants_deduplicate_roots_and_ignore_images_and_hidden_paints()
     let colors = collect(s.doc().unwrap(), &[parent, a]);
     assert_eq!(colors.len(), 2);
     assert_eq!(group(&s, &[parent, a], "FF0000").targets.len(), 2);
-    run(&mut s, "fill.add", json!({"id":a,"paint":Paint::image("synthetic",figcraft_color::ImageScaleMode::Fill)}));
+    run(&mut s, "fill.add", json!({"id":a,"paint":Paint::image("synthetic",figiran_color::ImageScaleMode::Fill)}));
     run(&mut s, "fill.add", json!({"id":a,"paint":{"type":"solid","color":"#0000ff","visible":false}}));
     assert_eq!(collect(s.doc().unwrap(), &[parent]).len(), 2);
     run(&mut s, "select.set", json!({"ids":[parent]}));
@@ -190,7 +190,7 @@ fn equal_resolved_colors_from_different_styles_or_variables_stay_separate() {
 
 #[test]
 fn gradients_and_multiple_paints_are_edited_without_replacing_other_slots() {
-    use figcraft_color::{Color, Gradient, GradientKind};
+    use figiran_color::{Color, Gradient, GradientKind};
     let mut s = Session::new();
     let a = rectangle(&mut s, "#ff0000");
     let paint = Paint::gradient(Gradient::default_for(GradientKind::Linear, Color::BLACK));
@@ -381,7 +381,7 @@ fn detaching_a_selection_color_keeps_its_value() {
 
 #[test]
 fn color_variables_refuse_gradients_other_types_and_unknown_names() {
-    use figcraft_color::{Color, Gradient, GradientKind};
+    use figiran_color::{Color, Gradient, GradientKind};
     let mut s = Session::new();
     let a = rectangle(&mut s, "#ff0000");
     let gradient = Paint::gradient(Gradient::default_for(GradientKind::Linear, Color::BLACK));
@@ -416,7 +416,7 @@ fn scopes_filter_the_menu_but_the_command_binds_anyway() {
     let fill_slot: Vec<_> = red.targets.iter().filter(|t| t.fills).cloned().collect();
     let stroke_slot: Vec<_> = red.targets.iter().filter(|t| !t.fills).cloned().collect();
     let doc = s.doc().unwrap();
-    let offered = |targets: &[figcraft_engine::selection_colors::PaintTarget], v: &str| figcraft_engine::selection_colors::in_scope(doc, targets, v);
+    let offered = |targets: &[figiran_engine::selection_colors::PaintTarget], v: &str| figiran_engine::selection_colors::in_scope(doc, targets, v);
     assert!(offered(&stroke_slot, "Line"));
     assert!(!offered(&red.targets, "Line") && !offered(&fill_slot, "Line") && !offered(&stroke_slot, "Hidden"));
     run(&mut s, "selection.bindColorVariable", json!({"targets":stroke_slot,"variable":"Line"}));
@@ -439,7 +439,7 @@ fn a_style_created_from_a_row_links_its_fills_and_strokes_in_one_undo_step() {
     let doc = s.doc().unwrap();
     let style = doc.style(id.as_str().unwrap()).unwrap();
     assert_eq!(style.name, "Brand/Red");
-    assert!(matches!(&style.kind, figcraft_doc::StyleKind::Paint { paints } if paints.len() == 1 && paints[0] == red.paint));
+    assert!(matches!(&style.kind, figiran_doc::StyleKind::Paint { paints } if paints.len() == 1 && paints[0] == red.paint));
     assert_eq!(doc.node(a).unwrap().styles.fill.as_deref(), id.as_str());
     assert_eq!(doc.node(b).unwrap().styles.stroke.as_deref(), id.as_str());
     assert_eq!(doc.node(b).unwrap().styles.fill, None);
@@ -459,7 +459,7 @@ fn a_style_created_from_a_row_links_its_fills_and_strokes_in_one_undo_step() {
 
 #[test]
 fn a_created_style_keeps_the_rows_gradient_opacity_and_blend_mode() {
-    use figcraft_color::{BlendMode, Color, Gradient, GradientKind};
+    use figiran_color::{BlendMode, Color, Gradient, GradientKind};
     let mut s = Session::new();
     let a = rectangle(&mut s, "#ff0000");
     let b = rectangle(&mut s, "#0000ff");
@@ -473,7 +473,7 @@ fn a_created_style_keeps_the_rows_gradient_opacity_and_blend_mode() {
     assert_eq!(row.targets.len(), 2);
     let id = run(&mut s, "selection.createColorStyle", json!({"targets":row.targets,"name":"Shade"}))["id"].clone();
     let doc = s.doc().unwrap();
-    assert!(matches!(&doc.style("Shade").unwrap().kind, figcraft_doc::StyleKind::Paint { paints } if paints == &vec![paint.clone()]));
+    assert!(matches!(&doc.style("Shade").unwrap().kind, figiran_doc::StyleKind::Paint { paints } if paints == &vec![paint.clone()]));
     for n in [a, b] {
         assert_eq!(doc.node(n).unwrap().fills, vec![paint.clone()]);
         assert_eq!(doc.node(n).unwrap().styles.fill.as_deref(), id.as_str());
@@ -550,7 +550,7 @@ fn a_style_created_from_a_variable_bound_row_keeps_following_the_variable() {
 
 #[test]
 fn a_style_created_from_a_gradient_keeps_its_stop_variables() {
-    use figcraft_color::{Color, Gradient, GradientKind, PaintKind};
+    use figiran_color::{Color, Gradient, GradientKind, PaintKind};
     let mut s = Session::new();
     let a = rectangle(&mut s, "#ff0000");
     let paint = Paint::gradient(Gradient::default_for(GradientKind::Linear, Color::BLACK));
@@ -614,10 +614,10 @@ impl Drop for Fixture {
 /// with the color style "_Draft" left unpublished; the fixture, the file and the library's id.
 #[allow(clippy::disallowed_methods)]
 fn color_library(tag: &str) -> (Fixture, std::path::PathBuf, Value) {
-    let fixture = Fixture(std::env::temp_dir().join(format!("figcraft-selection-colors-{tag}-{}", std::process::id())));
+    let fixture = Fixture(std::env::temp_dir().join(format!("figiran-selection-colors-{tag}-{}", std::process::id())));
     let _ = std::fs::remove_dir_all(&fixture.0);
     std::fs::create_dir(&fixture.0).unwrap();
-    let path = fixture.0.join("library.figcraft");
+    let path = fixture.0.join("library.figiran");
     let mut publisher = Session::new();
     run(&mut publisher, "style.create", json!({"type":"paint","name":"Brand","value":"#0000ff"}));
     run(&mut publisher, "style.create", json!({"type":"paint","name":"_Draft","value":"#00ff00"}));
@@ -642,7 +642,7 @@ fn a_row_applies_a_published_library_style_as_a_linked_copy_in_one_undo_step() {
     run(&mut s, "selection.applyColorStyle", json!({"targets":red.targets,"style":"Brand","library":library}));
     let doc = s.doc().unwrap();
     let copy = doc.node(a).unwrap().styles.fill.clone().unwrap();
-    assert!(figcraft_engine::library::is_remote_style(doc, &copy));
+    assert!(figiran_engine::library::is_remote_style(doc, &copy));
     assert_eq!(doc.node(b).unwrap().styles.stroke.as_deref(), Some(copy.as_str()));
     assert_eq!(fill(&s, a), "0000FF");
     assert_eq!(fill(&s, b), "00FF00");

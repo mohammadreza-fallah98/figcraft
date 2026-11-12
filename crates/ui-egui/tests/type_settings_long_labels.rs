@@ -5,8 +5,8 @@
 #![allow(clippy::unwrap_used)]
 
 use egui::{Id, Popup, Pos2, RawInput, Rect, vec2};
-use figcraft_engine::Session;
-use figcraft_ui_egui::{FigApp, NoServices};
+use figiran_engine::Session;
+use figiran_ui_egui::{FigApp, NoServices};
 use serde_json::json;
 
 /// The Type settings popover's width over the frames it is open, the UI in `language`.
@@ -40,7 +40,7 @@ fn widths(language: &str) -> Vec<f32> {
 fn type_settings_keeps_its_width_with_labels_longer_than_their_column() {
     for language in ["ka", "fr"] {
         let w = widths(language);
-        assert_ne!(figcraft_ui_egui::i18n::tr("Paragraph indent"), "Paragraph indent", "{language} is shown");
+        assert_ne!(figiran_ui_egui::i18n::tr("Paragraph indent"), "Paragraph indent", "{language} is shown");
         // The width it asks for (`Popup::width`), every frame.
         assert!(w.iter().all(|x| (x - 264.0).abs() < 0.01), "{language}: Type settings widens: {} → {}", w[0], w[w.len() - 1]);
     }

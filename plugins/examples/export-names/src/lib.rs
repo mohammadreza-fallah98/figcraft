@@ -1,7 +1,7 @@
 //! Export names: saves the names of the selected layers (optionally the layers inside them too) as
 //! the text file `layer-names.txt`, through the host's own Save dialog (`save_file`).
 
-use figcraft_plugin_sdk::{Input, Result, Value, call, entry, json, notify, save_file};
+use figiran_plugin_sdk::{Input, Result, Value, call, entry, json, notify, save_file};
 
 /// Layers looked at in one run, at most.
 const MAX_LAYERS: usize = 10_000;

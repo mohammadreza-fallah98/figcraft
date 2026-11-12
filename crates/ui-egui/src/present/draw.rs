@@ -22,9 +22,9 @@ pub(super) fn draw(p: &mut Presenter, painter: &egui::Painter, ctx: &egui::Conte
                 #[cfg(not(target_arch = "wasm32"))]
                 let t0 = std::time::Instant::now();
                 let tmp = smart_interpolate(&a.from_doc, a.from_frame, &l.disp, p.current, e);
-                let bounds = figcraft_render::export_bounds(&tmp, p.current);
+                let bounds = figiran_render::export_bounds(&tmp, p.current);
                 if let Some(b) = bounds
-                    && let Some(pix) = figcraft_render::render_node(&tmp, p.current, texture_scale(ctx, b, px))
+                    && let Some(pix) = figiran_render::render_node(&tmp, p.current, texture_scale(ctx, b, px))
                 {
                     let img = crate::render_worker::screen_image(&pix, tmp.color_profile);
                     let tex = match &mut p.anim_tex {

@@ -13,7 +13,7 @@ use crate::paint_tests::fill;
 use crate::plugins_tests::rect;
 use crate::variables_behaviour_tests::vid;
 use crate::widgets_tests::err;
-use figcraft_color::Color;
+use figiran_color::Color;
 
 /// A "C" collection (modes M) with `ink` #FF0000 and `edge` #00FF00 (the error-case set's seeds).
 fn seeds() -> Session {
@@ -219,7 +219,7 @@ fn deleting_a_source_flattens_its_calculations() {
     ex(&mut s, "variable.delete", json!({"variable": "ink"}));
     assert_eq!(fill(&s, b).to_rgba8(), [255, 0, 0, 128], "the bound layer keeps the colour it showed");
     let fade: Vec<_> = s.doc().unwrap().variables.get("fade").unwrap().values.values().cloned().collect();
-    assert_eq!(fade, [figcraft_doc::VariableValue::Color(Color::new(1.0, 0.0, 0.0, 0.5))], "the calculation became the colour it showed");
+    assert_eq!(fade, [figiran_doc::VariableValue::Color(Color::new(1.0, 0.0, 0.0, 0.5))], "the calculation became the colour it showed");
     ex(&mut s, "edit.undo", json!({}));
     assert_eq!(json!(s.doc().unwrap().variables), before, "undo restores every variable exactly");
 }
@@ -239,7 +239,7 @@ fn deleting_sources_together_flattens_every_reader() {
     ex(&mut s, "variable.create", json!({"collection": "App", "name": "tint", "type": "color", "value": tint}));
     let stored = |s: &Session, name: &str| s.doc().unwrap().variables.get(name).unwrap().values.values().next().cloned().unwrap();
     let plain = |s: &Session, name: &str| match stored(s, name) {
-        figcraft_doc::VariableValue::Color(c) => c.to_rgba8(),
+        figiran_doc::VariableValue::Color(c) => c.to_rgba8(),
         other => panic!("{name} is not a plain colour: {other:?}"),
     };
     let before = json!(s.doc().unwrap().variables);
@@ -252,7 +252,7 @@ fn deleting_sources_together_flattens_every_reader() {
 
     ex(&mut s, "variable.delete", json!({"variable": "fade"}));
     assert_eq!(plain(&s, "wash"), [255, 128, 128, 191], "a calculation of the deleted calculation keeps its colour");
-    assert!(matches!(stored(&s, "echo"), figcraft_doc::VariableValue::Alias(_)), "an alias of a surviving variable stays an alias");
+    assert!(matches!(stored(&s, "echo"), figiran_doc::VariableValue::Alias(_)), "an alias of a surviving variable stays an alias");
     ex(&mut s, "edit.undo", json!({}));
     assert_eq!(json!(s.doc().unwrap().variables), before);
 }
@@ -332,9 +332,9 @@ fn calculations_survive_save_and_load() {
         "variable.create",
         json!({"collection": "C", "name": "mixv", "type": "color", "value": {"mix": {"from": {"variable": "ink"}, "to": {"variable": "edge"}, "t": 0.4}}}),
     );
-    let dir = std::env::temp_dir().join(format!("figcraft-colour-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("figiran-colour-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
-    let path = dir.join("d.figcraft");
+    let path = dir.join("d.figiran");
     ex(&mut s, "file.save", json!({"path": path.to_string_lossy()}));
     let mut t = Session::new();
     ex(&mut t, "file.open", json!({"path": path.to_string_lossy()}));
@@ -415,8 +415,8 @@ fn css_never_names_a_calculation_it_leaves_out() {
     let doc = s.doc_mut().unwrap();
     let ink = doc.variables.get("ink").unwrap().id.clone();
     let modes: Vec<String> = doc.variables.collection("T").unwrap().modes.iter().map(|m| m.id.clone()).collect();
-    let gone = figcraft_doc::VariableValue::ColorAlpha { variable: "gone".into(), opacity: 0.5 };
-    let half = figcraft_doc::VariableValue::ColorAlpha { variable: ink, opacity: 0.5 };
+    let gone = figiran_doc::VariableValue::ColorAlpha { variable: "gone".into(), opacity: 0.5 };
+    let half = figiran_doc::VariableValue::ColorAlpha { variable: ink, opacity: 0.5 };
     for v in &mut doc.variables.variables {
         match v.name.as_str() {
             "lost" => v.values = modes.iter().map(|m| (m.clone(), gone.clone())).collect(),

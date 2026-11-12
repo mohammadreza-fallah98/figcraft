@@ -1,7 +1,7 @@
 use super::*;
 use crate::tests::inflated;
-use figcraft_color::{Color, Paint};
-use figcraft_doc::NodeKind;
+use figiran_color::{Color, Paint};
+use figiran_doc::NodeKind;
 
 fn nested(depth: usize) -> (Document, NodeId, NodeId) {
     let mut doc = Document::new("export depth");
@@ -29,7 +29,7 @@ fn export_depth_boundary_keeps_the_leaf() {
 fn export_depth_overflow_is_refused_by_every_public_entry_point() {
     let (doc, root, leaf) = nested(257);
     let opts = PdfOptions::default();
-    let error = || PdfError::Depth(figcraft_render::ExportDepthError { root, node: leaf });
+    let error = || PdfError::Depth(figiran_render::ExportDepthError { root, node: leaf });
     assert_eq!(export_pdf(&doc, &[root], &opts), Err(error()));
     assert_eq!(export_nodes_pdf(&doc, &[root]), Err(error()));
     assert_eq!(export_groups(&doc, &[vec![root]], &opts), Err(error()));
@@ -43,10 +43,7 @@ fn export_depth_checks_every_page_and_explicit_area() {
     let shallow = doc.create(doc.first_page().unwrap(), NodeKind::Rectangle, "shallow", 0.0, 0.0, 8.0, 8.0).unwrap();
     let opts = PdfOptions { area: Some(Rect::new(0.0, 0.0, 32.0, 32.0)), ..Default::default() };
     assert!(export_pdf(&doc, &[shallow], &opts).is_ok());
-    assert_eq!(
-        export_groups(&doc, &[vec![shallow], vec![root]], &opts),
-        Err(PdfError::Depth(figcraft_render::ExportDepthError { root, node: leaf }))
-    );
+    assert_eq!(export_groups(&doc, &[vec![shallow], vec![root]], &opts), Err(PdfError::Depth(figiran_render::ExportDepthError { root, node: leaf })));
 }
 
 #[test]
@@ -60,6 +57,6 @@ fn export_depth_ignores_hidden_subtrees_and_checks_masks_and_raster_fallbacks() 
     assert!(matches!(export_pdf(&doc, &[root], &PdfOptions::default()), Err(PdfError::Depth(_))));
     doc.get_mut(inner).unwrap().is_mask = false;
     doc.get_mut(root).unwrap().effects =
-        vec![figcraft_doc::Effect { kind: figcraft_doc::EffectKind::LayerBlur(figcraft_doc::Blur::uniform(1.0)), visible: true }];
+        vec![figiran_doc::Effect { kind: figiran_doc::EffectKind::LayerBlur(figiran_doc::Blur::uniform(1.0)), visible: true }];
     assert!(matches!(export_pdf(&doc, &[root], &PdfOptions::default()), Err(PdfError::Depth(_))));
 }

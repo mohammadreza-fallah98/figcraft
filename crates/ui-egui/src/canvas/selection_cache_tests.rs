@@ -6,14 +6,14 @@
 use std::sync::Arc;
 
 use egui::{Color32, Context, LayerId, Painter, Rect, pos2, vec2};
-use figcraft_doc::NodeId;
-use figcraft_engine::Session;
+use figiran_doc::NodeId;
+use figiran_engine::Session;
 use serde_json::{Value, json};
 
 use super::overlays::{SelectionGeometry, overlays, selection_geometry};
 use crate::theme::{Tokens, set_canvas_page};
 use crate::{FigApp, NoServices};
-use figcraft_engine::tools::{PointerEvent, PointerKind};
+use figiran_engine::tools::{PointerEvent, PointerKind};
 
 fn id(v: Value) -> NodeId {
     NodeId(v["id"].as_u64().unwrap())

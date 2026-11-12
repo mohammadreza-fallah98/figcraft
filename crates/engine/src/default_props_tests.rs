@@ -2,8 +2,8 @@
 //! the tools take the properties of the layer it was set from, and new text takes a text layer's;
 //! it no longer only copied them for Paste properties.
 
-use figcraft_color::Color;
-use figcraft_doc::{Node, NodeId, NodeKind};
+use figiran_color::Color;
+use figiran_doc::{Node, NodeId, NodeKind};
 use serde_json::{Value, json};
 
 use crate::Session;

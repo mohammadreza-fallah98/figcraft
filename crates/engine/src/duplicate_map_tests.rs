@@ -5,7 +5,7 @@ use serde_json::{Value, json};
 
 use crate::Session;
 use crate::params::id_of;
-use figcraft_doc::{Document, NodeId};
+use figiran_doc::{Document, NodeId};
 
 fn ex(s: &mut Session, cmd: &str, p: Value) -> Value {
     s.execute(cmd, &p).unwrap_or_else(|e| panic!("{cmd}: {e}"))
@@ -121,7 +121,7 @@ fn a_batch_edits_inside_the_copy_through_the_map() {
     );
     let doc = s.doc().unwrap();
     let text = |id: NodeId| match &doc.node(id).unwrap().kind {
-        figcraft_doc::NodeKind::Text(t) => t.characters.clone(),
+        figiran_doc::NodeKind::Text(t) => t.characters.clone(),
         _ => String::new(),
     };
     assert_eq!(text(body), "Body", "the original is untouched");

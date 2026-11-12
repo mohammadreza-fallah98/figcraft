@@ -51,7 +51,7 @@ impl<'d> Exporter<'d> {
             // The format's variable width is the same on both sides of the path: a stroke wider on
             // one side is written as the area it paints, with the stroke itself kept as plugin data
             // (which the import puts back).
-            self.warn("strokes wider on one side of their path were written as filled outlines (the stroke itself is kept for FigCraft)");
+            self.warn("strokes wider on one side of their path were written as filled outlines (the stroke itself is kept for FigIran)");
             let children = self.layer(&outline, parent, f, nested);
             f.push(("pluginData", arr(vec![o(vec![("pluginID", s(STASH.0)), ("value", s(&original)), ("key", s(STASH.1))])])));
             return children;
@@ -139,7 +139,7 @@ impl<'d> Exporter<'d> {
                         f.push(("variantPropSpecs", arr(specs)));
                     }
                 } else {
-                    let defs: Vec<Kv> = figcraft_doc::ordered_props(props, prop_order)
+                    let defs: Vec<Kv> = figiran_doc::ordered_props(props, prop_order)
                         .into_iter()
                         .enumerate()
                         .filter_map(|(i, (name, d))| self.prop_def(n.id, name, d, i))
@@ -171,7 +171,7 @@ impl<'d> Exporter<'d> {
         }
         let boxy = n.kind.is_frame_like() || matches!(n.kind, NodeKind::Rectangle | NodeKind::Section { .. });
         if (boxy || matches!(n.kind, NodeKind::Ellipse { .. } | NodeKind::Polygon { .. } | NodeKind::Star { .. }))
-            && let Some(p) = figcraft_doc::geometry::shape_path(n)
+            && let Some(p) = figiran_doc::geometry::shape_path(n)
         {
             self.geometry("fillGeometry", &p, WindingRule::NonZero, f);
         }
@@ -256,10 +256,10 @@ impl<'d> Exporter<'d> {
         }
         self.child_layout(n, parent, f);
         if !n.exports.is_empty() {
-            if n.exports.iter().any(|x| x.format == figcraft_doc::ExportFormat::Webp) {
+            if n.exports.iter().any(|x| x.format == figiran_doc::ExportFormat::Webp) {
                 self.warn("WebP export settings were written as PNG");
             }
-            if n.exports.iter().any(|x| x.format == figcraft_doc::ExportFormat::VectorDrawable) {
+            if n.exports.iter().any(|x| x.format == figiran_doc::ExportFormat::VectorDrawable) {
                 self.warn("Android Vector Drawable (XML) export settings were written as SVG");
             }
             f.push(("exportSettings", arr(n.exports.iter().map(export_setting).collect())));

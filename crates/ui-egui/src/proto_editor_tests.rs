@@ -2,10 +2,10 @@
 //! through egui (the harness is `present_tests`').
 
 use egui::{Event, Key, Modifiers, Pos2, Rect, pos2};
-use figcraft_doc::proto::{Action, Expr, ExprOp};
-use figcraft_doc::{NodeId, VariableValue};
-use figcraft_engine::Session;
-use figcraft_engine::keymap::Platform;
+use figiran_doc::proto::{Action, Expr, ExprOp};
+use figiran_doc::{NodeId, VariableValue};
+use figiran_engine::Session;
+use figiran_engine::keymap::Platform;
 use serde_json::{Value, json};
 
 use crate::present_tests::{Ui, id};
@@ -167,7 +167,7 @@ fn the_interaction_editor_shows_conditionals_and_picks_their_variables() {
     let doc = u.app.session.doc().unwrap();
     let list = &doc.node(btn).unwrap().interactions[0].actions;
     assert_eq!(
-        figcraft_engine::cmd::proto_actions::action_at(list, &[1, 0, 1]),
+        figiran_engine::cmd::proto_actions::action_at(list, &[1, 0, 1]),
         Some(&Action::SetVariable { variable: var("label"), value: json!("Hi"), expr: None })
     );
     // Undo steps back through the picks.
@@ -249,7 +249,7 @@ fn typed_conditions_are_checked_and_errors_show_until_fixed() {
     assert_eq!(u.ctx.data(|d| d.get_temp::<(String, String, String)>(field.with("draft"))), None, "the error is gone");
     // Enter ended the field's editing without reaching the shortcuts (no vector editing of the
     // selected rectangle).
-    assert!(matches!(u.app.session.doc().unwrap().node(btn).unwrap().kind, figcraft_doc::NodeKind::Rectangle));
+    assert!(matches!(u.app.session.doc().unwrap().node(btn).unwrap().kind, figiran_doc::NodeKind::Rectangle));
 }
 
 #[test]

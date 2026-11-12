@@ -2,8 +2,8 @@
 //! command and a drag of the selected connector's end), curved connectors, and elbows that go
 //! around the objects they join.
 
-use figcraft_doc::{BoardItem, END_GAP, End, NodeKind, Routing, Side};
-use figcraft_geom::{Point, Rect};
+use figiran_doc::{BoardItem, END_GAP, End, NodeKind, Routing, Side};
+use figiran_geom::{Point, Rect};
 use serde_json::json;
 
 use crate::Session;
@@ -13,7 +13,7 @@ use crate::tools::{PointerEvent, PointerKind, handle_at};
 
 /// A board with three 100 × 100 shapes in a row 300 apart, and an elbow connector from the
 /// first to the second: (a, b, c, connector).
-fn three() -> (Session, [figcraft_doc::NodeId; 4]) {
+fn three() -> (Session, [figiran_doc::NodeId; 4]) {
     let mut s = board();
     let mut shape = |x: f64| id(&s.execute("board.shape", &json!({"x": x, "y": 0, "width": 100, "height": 100})).unwrap(), "id");
     let (a, b, c) = (shape(0.0), shape(300.0), shape(600.0));
@@ -79,7 +79,7 @@ fn dragging_a_selected_connectors_end_reattaches_it() {
     assert_eq!(s.selection(), vec![k], "still selected");
     // The start into empty canvas: free where it was let go.
     let start = drawn(&s, k)[0];
-    s.pointer(&ev(PointerKind::Down, start + figcraft_geom::Vec2::new(3.0, 0.0))).unwrap();
+    s.pointer(&ev(PointerKind::Down, start + figiran_geom::Vec2::new(3.0, 0.0))).unwrap();
     s.pointer(&ev(PointerKind::Move, Point::new(100.0, 400.0))).unwrap();
     s.pointer(&ev(PointerKind::Up, Point::new(100.0, 400.0))).unwrap();
     assert_eq!(connector(&s, k).from, End::Point { x: 100.0, y: 400.0 });
@@ -179,7 +179,7 @@ fn reattach_survives_junk() {
 }
 
 /// The connector on the page, if any (the one being drawn shows in the document).
-fn the_connector(s: &Session) -> Option<figcraft_doc::Node> {
+fn the_connector(s: &Session) -> Option<figiran_doc::Node> {
     s.doc().unwrap().nodes().find(|n| matches!(n.board, Some(BoardItem::Connector(_)))).cloned()
 }
 

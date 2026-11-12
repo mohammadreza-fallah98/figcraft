@@ -4,7 +4,7 @@
 use std::sync::{Arc, Mutex};
 
 use egui::{Event, Key, Modifiers};
-use figcraft_engine::Prefs;
+use figiran_engine::Prefs;
 
 use crate::Services;
 use crate::live_tests::{Harness, has_text, text_center};

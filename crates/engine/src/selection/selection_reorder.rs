@@ -1,8 +1,8 @@
 //! Geometry for reordering a smart selection. Only regular, non-overlapping rows, columns
 //! and complete top-left-aligned grids have unambiguous insertion slots.
 //! Marking several items and irregular grids are out of scope.
-use figcraft_doc::{Document, NodeId};
-use figcraft_geom::{Point, Rect};
+use figiran_doc::{Document, NodeId};
+use figiran_geom::{Point, Rect};
 
 use crate::selection_spacing::selection_spacing;
 

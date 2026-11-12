@@ -1,7 +1,7 @@
 //! Arrange: align, distribute, tidy, z-order, flips, rotations and numeric transforms.
 
-use figcraft_doc::{Document, EffectKind, LetterSpacing, LineHeight, Node, NodeId, NodeKind, Sizing, TextAutoResize, TextStyle};
-use figcraft_geom::{Affine, Point, Rect};
+use figiran_doc::{Document, EffectKind, LetterSpacing, LineHeight, Node, NodeId, NodeKind, Sizing, TextAutoResize, TextStyle};
+use figiran_geom::{Affine, Point, Rect};
 use serde_json::{Value, json};
 
 use super::edit::{roots, z_sorted};
@@ -154,7 +154,7 @@ pub fn move_world(doc: &mut Document, id: NodeId, dx: f64, dy: f64) -> Result<()
 
 pub fn rotate_world(doc: &mut Document, id: NodeId, pivot: Point, deg: f64) -> Result<()> {
     let world = doc.world_transform(id);
-    let nw = figcraft_geom::rotate_about(world, pivot, deg);
+    let nw = figiran_geom::rotate_about(world, pivot, deg);
     doc.set_world_transform(id, nw)?;
     Ok(())
 }
@@ -380,7 +380,7 @@ fn flip(s: &mut Session, p: &Value, horizontal: bool) -> Result<Value> {
 }
 
 fn rotate_by(s: &mut Session, p: &Value, deg: f64) -> Result<Value> {
-    if let Some(r) = crate::vectoredit::transform::transform_in_edit_mode(s, p, |b| figcraft_geom::rotate_about(Affine::IDENTITY, b.center(), deg)) {
+    if let Some(r) = crate::vectoredit::transform::transform_in_edit_mode(s, p, |b| figiran_geom::rotate_about(Affine::IDENTITY, b.center(), deg)) {
         return r;
     }
     let ids = req_targets("rotate", s, p)?;
@@ -410,10 +410,10 @@ pub fn scale_node(doc: &mut Document, id: NodeId, k: f64) -> Result<()> {
     // changed with an ancestor's size for what constraints give, so the next rebuild of the
     // instance would put them back at their main's size (#922).
     let in_instance: Vec<bool> = sub.iter().enumerate().map(|(depth, i)| depth > 0 && crate::components::inside_instance(doc, *i)).collect();
-    let tiles = |paints: &mut Vec<figcraft_color::Paint>| {
+    let tiles = |paints: &mut Vec<figiran_color::Paint>| {
         for p in paints {
-            if let figcraft_color::PaintKind::Image(img) = &mut p.kind
-                && img.scale_mode == figcraft_color::ImageScaleMode::Tile
+            if let figiran_color::PaintKind::Image(img) = &mut p.kind
+                && img.scale_mode == figiran_color::ImageScaleMode::Tile
             {
                 img.scale *= k;
             }
@@ -466,7 +466,7 @@ pub fn scale_node(doc: &mut Document, id: NodeId, k: f64) -> Result<()> {
                 EffectKind::Glass(g) => {
                     g.depth *= k;
                     // From the frost it draws with (an older file's past 100 draws at 100).
-                    g.frost = (g.sanitized().frost * k).min(figcraft_doc::Glass::MAX_FROST);
+                    g.frost = (g.sanitized().frost * k).min(figiran_doc::Glass::MAX_FROST);
                 }
             }
         }

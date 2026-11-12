@@ -38,7 +38,7 @@ pub(super) fn commit_spacing(
 ) {
     let props = json!({field.field: value});
     match edit {
-        SpacingEdit::Scrub(_, done) if figcraft_engine::textedit::selected_range(&app.session).is_none() => {
+        SpacingEdit::Scrub(_, done) if figiran_engine::textedit::selected_range(&app.session).is_none() => {
             live(app, field.tip, "node.set", json!({"ids": ids, "props": props}), *done);
         }
         _ => commit_text(app, ids, range, props),

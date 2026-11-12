@@ -3,7 +3,7 @@
 
 use std::collections::BTreeSet;
 
-use figcraft_doc::{Document, Node, NodeId, NodeKind};
+use figiran_doc::{Document, Node, NodeId, NodeKind};
 
 use crate::change::{Change, Json, Prop, Target};
 use crate::frac::{self, FIRST_KEY};
@@ -367,9 +367,9 @@ enum Relist {
     All,
 }
 
-fn doc_err(e: figcraft_doc::DocError) -> Error {
+fn doc_err(e: figiran_doc::DocError) -> Error {
     match e {
-        figcraft_doc::DocError::NoNode(id) => Error::Unknown(id),
+        figiran_doc::DocError::NoNode(id) => Error::Unknown(id),
         other => Error::Invalid(other.to_string()),
     }
 }

@@ -87,7 +87,7 @@ fn text_that_looks_like_a_reference_is_left_alone() {
         .execute("command.batch", &json!({"commands": [{"command": "node.create", "params": {"type": "text", "text": "$step 0 {\"$step\": 0}"}}]}))
         .unwrap();
     let n = s.doc().unwrap().node(id(&results[0])).unwrap().clone();
-    assert!(matches!(n.kind, figcraft_doc::NodeKind::Text(t) if t.characters == "$step 0 {\"$step\": 0}"));
+    assert!(matches!(n.kind, figiran_doc::NodeKind::Text(t) if t.characters == "$step 0 {\"$step\": 0}"));
 }
 
 #[test]
@@ -223,7 +223,7 @@ fn text_that_looks_like_a_named_reference_is_left_alone() {
     let text = "{\"$ref\": \"card\"} $ref";
     let results = s.execute("command.batch", &json!({"commands": [{"command": "node.create", "params": {"type": "text", "text": text}}]})).unwrap();
     let n = s.doc().unwrap().node(id(&results[0])).unwrap().clone();
-    assert!(matches!(n.kind, figcraft_doc::NodeKind::Text(t) if t.characters == text));
+    assert!(matches!(n.kind, figiran_doc::NodeKind::Text(t) if t.characters == text));
 }
 
 /// A nested batch has its own names: it can't see the outer batch's, may reuse them, and the
@@ -276,7 +276,7 @@ fn a_failing_command_names_its_step_and_rolls_back() {
     );
     // Still the command's own kind of error, its message saying which step.
     assert!(msg.starts_with("step 1: ") && msg.contains("is not text"), "{msg}");
-    assert!(matches!(&s.doc().unwrap().node(text).unwrap().kind, figcraft_doc::NodeKind::Text(t) if t.characters == "orig"));
+    assert!(matches!(&s.doc().unwrap().node(text).unwrap().kind, figiran_doc::NodeKind::Text(t) if t.characters == "orig"));
     assert_eq!(s.doc().unwrap().node(s.page().unwrap()).unwrap().name, name);
     assert_eq!(s.ds().unwrap().history.undo.len(), undo);
 }
@@ -339,7 +339,7 @@ fn a_continue_batch_repeats_the_last_successful_command_after_a_failed_step() {
     assert_eq!(results[0]["ok"], false);
     assert_eq!(results[1]["ok"], true);
     let repeated = s.doc().unwrap().node(id(&results[1]["result"])).unwrap();
-    assert!(matches!(repeated.kind, figcraft_doc::NodeKind::Rectangle), "{repeated:?}");
+    assert!(matches!(repeated.kind, figiran_doc::NodeKind::Rectangle), "{repeated:?}");
     assert_eq!(s.last_command, last);
     assert_eq!(s.doc().unwrap().node(s.page().unwrap()).unwrap().children.len(), 2);
 }
@@ -375,18 +375,18 @@ fn a_continue_batch_keeps_successful_steps_as_one_undo_entry() {
 }
 
 /// The successful steps of the batch above undo and redo as one step.
-fn undo_and_redo_the_continued_batch(s: &mut Session, frame: figcraft_doc::NodeId, text: figcraft_doc::NodeId, name: &str, undo: usize) {
-    assert!(matches!(&s.doc().unwrap().node(text).unwrap().kind, figcraft_doc::NodeKind::Text(t) if t.characters == "novo"));
+fn undo_and_redo_the_continued_batch(s: &mut Session, frame: figiran_doc::NodeId, text: figiran_doc::NodeId, name: &str, undo: usize) {
+    assert!(matches!(&s.doc().unwrap().node(text).unwrap().kind, figiran_doc::NodeKind::Text(t) if t.characters == "novo"));
     assert_eq!(s.doc().unwrap().node(s.page().unwrap()).unwrap().name, "Depois do erro");
     assert_eq!(s.undo_depth(), (undo + 1, 0));
     assert_eq!(s.undo_labels(1), ["Continue"]);
     assert!(s.undo().unwrap());
-    assert!(matches!(&s.doc().unwrap().node(text).unwrap().kind, figcraft_doc::NodeKind::Text(t) if t.characters == "orig"));
+    assert!(matches!(&s.doc().unwrap().node(text).unwrap().kind, figiran_doc::NodeKind::Text(t) if t.characters == "orig"));
     assert_eq!(s.doc().unwrap().node(s.page().unwrap()).unwrap().name, name);
     assert!(s.doc().unwrap().contains(frame), "undo leaves earlier edits alone");
     assert_eq!(s.undo_depth(), (undo, 1));
     assert!(s.redo().unwrap());
-    assert!(matches!(&s.doc().unwrap().node(text).unwrap().kind, figcraft_doc::NodeKind::Text(t) if t.characters == "novo"));
+    assert!(matches!(&s.doc().unwrap().node(text).unwrap().kind, figiran_doc::NodeKind::Text(t) if t.characters == "novo"));
     assert_eq!(s.doc().unwrap().node(s.page().unwrap()).unwrap().name, "Depois do erro");
     assert_eq!(s.undo_depth(), (undo + 1, 0));
 }
@@ -418,7 +418,7 @@ fn a_continue_batch_rolls_back_partial_steps_and_keeps_reference_positions() {
     assert!(results[2]["error"].as_str().unwrap().contains("step 2: references step 0, which failed"));
     assert!(results[3]["error"].as_str().unwrap().contains("step 3: references step 0 (\"bad\"), which failed"));
     assert!(
-        matches!(&s.doc().unwrap().node(text).unwrap().kind, figcraft_doc::NodeKind::Text(t) if t.characters == "orig"),
+        matches!(&s.doc().unwrap().node(text).unwrap().kind, figiran_doc::NodeKind::Text(t) if t.characters == "orig"),
         "the failed step's partial edit was rolled back"
     );
     let card = id(&results[1]["result"]);

@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use figcraft_engine::Session;
+use figiran_engine::Session;
 
 use crate::{ContentsFuture, DialogFuture, FigApp, Services};
 
@@ -14,12 +14,12 @@ impl Services for OpenFile {
 
 #[test]
 fn open_dialog_finishes_after_the_async_picker_returns() {
-    let dir = std::env::temp_dir().join(format!("figcraft-async-open-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("figiran-async-open-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
-    let path = dir.join("opened.figcraft");
-    let doc = figcraft_doc::Document::new("Opened");
-    std::fs::write(&path, figcraft_format::save_bytes(&doc, None).unwrap()).unwrap();
+    let path = dir.join("opened.figiran");
+    let doc = figiran_doc::Document::new("Opened");
+    std::fs::write(&path, figiran_format::save_bytes(&doc, None).unwrap()).unwrap();
 
     let mut app = FigApp::new(Session::empty(), Box::new(OpenFile(path.clone())));
     app.ui.home = true;
@@ -47,10 +47,10 @@ impl Services for Picks {
 
 /// Two files, A (the first) in front, and where the picker saves.
 fn two_files(tag: &str) -> (FigApp, PathBuf, PathBuf) {
-    let dir = std::env::temp_dir().join(format!("figcraft-async-{tag}-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("figiran-async-{tag}-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
-    let path = dir.join("a.figcraft");
+    let path = dir.join("a.figiran");
     let mut app = FigApp::new(Session::empty(), Box::new(Picks(path.clone())));
     for _ in 0..2 {
         app.session.execute("file.new", &serde_json::json!({})).unwrap();
@@ -123,8 +123,8 @@ fn the_browser_reads_files_up_to_512_mib() {
 
 #[test]
 fn open_dialog_opens_picked_contents_as_a_new_unsaved_document() {
-    let bytes = figcraft_format::save_bytes(&figcraft_doc::Document::new("Picked"), None).unwrap();
-    let mut app = FigApp::new(Session::empty(), Box::new(Contents("Picked.figcraft", bytes)));
+    let bytes = figiran_format::save_bytes(&figiran_doc::Document::new("Picked"), None).unwrap();
+    let mut app = FigApp::new(Session::empty(), Box::new(Contents("Picked.figiran", bytes)));
     app.ui.home = true;
     app.open_dialog();
     assert!(app.session.docs.is_empty(), "opening waits for the picker result");
@@ -139,7 +139,7 @@ fn open_dialog_opens_picked_contents_as_a_new_unsaved_document() {
 fn import_dialog_imports_picked_contents_into_the_file_in_front() {
     let svg = br#"<svg xmlns="http://www.w3.org/2000/svg" width="40" height="20"><rect width="40" height="20" fill="red"/></svg>"#.to_vec();
     let mut app = FigApp::new(Session::new(), Box::new(Contents("Logo.svg", svg)));
-    let rectangles = |app: &FigApp| app.session.doc().unwrap().nodes().filter(|n| matches!(n.kind, figcraft_doc::NodeKind::Rectangle)).count();
+    let rectangles = |app: &FigApp| app.session.doc().unwrap().nodes().filter(|n| matches!(n.kind, figiran_doc::NodeKind::Rectangle)).count();
     assert_eq!(rectangles(&app), 0);
     app.import_dialog(false);
     app.poll_dialog(&egui::Context::default());

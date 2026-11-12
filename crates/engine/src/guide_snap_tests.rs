@@ -2,8 +2,8 @@
 //! axis only, within five screen pixels at any zoom (page guides see the page's top-level layers;
 //! frame guides see the frame's box, layout grids and every layer in it).
 
-use figcraft_doc::NodeId;
-use figcraft_geom::Affine;
+use figiran_doc::NodeId;
+use figiran_geom::Affine;
 use serde_json::json;
 
 use crate::Session;

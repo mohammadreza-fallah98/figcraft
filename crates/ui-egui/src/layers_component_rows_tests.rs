@@ -3,8 +3,8 @@
 //! component take a tone of its row, not the plain selection's green.
 
 use egui::{Color32, Pos2, Shape};
-use figcraft_doc::NodeId;
-use figcraft_engine::Session;
+use figiran_doc::NodeId;
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::layers_drag_tests::Ui;
@@ -14,8 +14,8 @@ fn id(v: serde_json::Value) -> NodeId {
     NodeId(v["id"].as_u64().unwrap())
 }
 
-fn color(x: Color32) -> figcraft_color::Color {
-    figcraft_color::Color::new(f32::from(x.r()) / 255.0, f32::from(x.g()) / 255.0, f32::from(x.b()) / 255.0, 1.0)
+fn color(x: Color32) -> figiran_color::Color {
+    figiran_color::Color::new(f32::from(x.r()) / 255.0, f32::from(x.g()) / 255.0, f32::from(x.b()) / 255.0, 1.0)
 }
 
 /// The Layers panel with the component "Button" (holding the rectangle "Label") selected and

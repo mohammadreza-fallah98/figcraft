@@ -4,8 +4,8 @@
 //! grey a design could have chosen); and the import says so, once per image. Built in code and
 //! read as `edit.pasteDesignLayers` reads a clipboard's design data.
 
-use figcraft_doc::Document;
-use figcraft_doc::color::PaintKind;
+use figiran_doc::Document;
+use figiran_doc::color::PaintKind;
 
 use super::kiwi::Kv;
 use super::tests::{arr, canvas, e, node, o, schema, xy};
@@ -55,6 +55,6 @@ fn the_placeholder_reads_as_missing_not_as_grey() {
     let (ground, stripe) = (count(0xE6), count(0xB4));
     assert!(ground > all / 2 && stripe > all / 8 && ground + stripe > all * 3 / 4, "{ground} ground, {stripe} stripe of {all}");
     // A real image of one colour is never taken for the placeholder.
-    let flat = figcraft_doc::ImageData { bytes: std::sync::Arc::new(vec![1, 2, 3]), width: 64, height: 64 };
+    let flat = figiran_doc::ImageData { bytes: std::sync::Arc::new(vec![1, 2, 3]), width: 64, height: 64 };
     assert!(!is_missing_image(&flat));
 }

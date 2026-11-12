@@ -22,9 +22,9 @@
 use std::collections::BTreeSet;
 use std::sync::Arc;
 
-use figcraft_doc::{Corners, Document, Node, NodeId, NodeKind, StrokeProps, VectorNetwork, WindingRule};
-use figcraft_geom::kurbo::PathEl;
-use figcraft_geom::{Affine, BezPath, Point, Rect, Shape};
+use figiran_doc::{Corners, Document, Node, NodeId, NodeKind, StrokeProps, VectorNetwork, WindingRule};
+use figiran_geom::kurbo::PathEl;
+use figiran_geom::{Affine, BezPath, Point, Rect, Shape};
 use serde_json::{Value, json};
 
 use crate::cmd::CommandSpec;
@@ -118,7 +118,7 @@ pub fn eligible(doc: &Document, ids: &[NodeId]) -> Vec<NodeId> {
     }
     let mut out = z_sorted(doc, &out);
     out.dedup();
-    out.truncate(figcraft_pathops::MAX_ARRANGEMENT_INPUTS);
+    out.truncate(figiran_pathops::MAX_ARRANGEMENT_INPUTS);
     out
 }
 
@@ -127,31 +127,31 @@ pub fn eligible(doc: &Document, ids: &[NodeId]) -> Vec<NodeId> {
 fn world_area(doc: &Document, part: Part) -> Option<(BezPath, bool)> {
     let n = doc.node(part.id)?;
     let (mut p, rule) = if part.stroke {
-        figcraft_render::stroke_fill(doc, n).map(|(p, rule)| ((*p).clone(), rule))?
+        figiran_render::stroke_fill(doc, n).map(|(p, rule)| ((*p).clone(), rule))?
     } else {
-        if !(figcraft_doc::geometry::is_closed(n) || matches!(n.kind, NodeKind::BooleanOp { .. } | NodeKind::Text(_))) {
+        if !(figiran_doc::geometry::is_closed(n) || matches!(n.kind, NodeKind::BooleanOp { .. } | NodeKind::Text(_))) {
             return None;
         }
         match (&n.kind, part.region) {
             (NodeKind::Vector { network }, Some(i)) => {
-                let drawn = figcraft_doc::geometry::drawn_network(network, n.corners.smoothing);
+                let drawn = figiran_doc::geometry::drawn_network(network, n.corners.smoothing);
                 let net = drawn.as_ref();
                 let region = net.regions.get(i)?;
                 let path = net.region_path(i)?;
-                (path, if region.winding == WindingRule::EvenOdd { figcraft_render::FillRule::EvenOdd } else { figcraft_render::FillRule::Winding })
+                (path, if region.winding == WindingRule::EvenOdd { figiran_render::FillRule::EvenOdd } else { figiran_render::FillRule::Winding })
             }
-            _ => figcraft_render::node_outline(doc, n)?,
+            _ => figiran_render::node_outline(doc, n)?,
         }
     };
     p.apply_affine(doc.world_transform(part.id));
-    (!p.elements().is_empty() && figcraft_pathops::finite(&p)).then_some((p, rule == figcraft_render::FillRule::EvenOdd))
+    (!p.elements().is_empty() && figiran_pathops::finite(&p)).then_some((p, rule == figiran_render::FillRule::EvenOdd))
 }
 
 /// Flatten a region outline to polygons for drawing (tolerance relative to its size).
 fn polygons(path: &BezPath, bounds: Rect) -> Vec<Vec<Point>> {
     let tol = (bounds.width().max(bounds.height()) * 2e-4).clamp(0.01, 0.5);
     let mut polys: Vec<Vec<Point>> = Vec::new();
-    figcraft_geom::kurbo::flatten(path.iter(), tol, |el| match el {
+    figiran_geom::kurbo::flatten(path.iter(), tol, |el| match el {
         PathEl::MoveTo(p) => polys.push(vec![p]),
         PathEl::LineTo(p) => {
             if let Some(last) = polys.last_mut() {
@@ -178,7 +178,7 @@ fn compute(doc: Arc<Document>, uid: u64, ids: &[NodeId]) -> Result<Arrangement> 
         };
         for part in fill_parts.into_iter().chain([Part { id, stroke: true, region: None }]) {
             if let Some(o) = world_area(&doc, part) {
-                if inputs.len() >= figcraft_pathops::MAX_ARRANGEMENT_INPUTS {
+                if inputs.len() >= figiran_pathops::MAX_ARRANGEMENT_INPUTS {
                     return Err(EngineError::Other("shape builder: too many fill regions and strokes to process safely".into()));
                 }
                 parts.push(part);
@@ -189,7 +189,7 @@ fn compute(doc: Arc<Document>, uid: u64, ids: &[NodeId]) -> Result<Arrangement> 
             sources.push(id);
         }
     }
-    let faces = figcraft_pathops::faces(&inputs).map_err(|e| EngineError::Other(format!("shape builder: {e}")))?;
+    let faces = figiran_pathops::faces(&inputs).map_err(|e| EngineError::Other(format!("shape builder: {e}")))?;
     let mut regions: Vec<Region> = faces
         .into_iter()
         .filter(|f| f.path.area().abs() > 1e-4)
@@ -206,7 +206,7 @@ fn compute(doc: Arc<Document>, uid: u64, ids: &[NodeId]) -> Result<Arrangement> 
                 sources: by,
                 parts: covering,
                 polys: polygons(&f.path, bounds),
-                point: figcraft_doc::vector_faces::interior_point(&f.path),
+                point: figiran_doc::vector_faces::interior_point(&f.path),
                 bounds,
                 path: f.path,
             }
@@ -265,7 +265,7 @@ fn picked(p: &Value, a: &Arrangement) -> Vec<usize> {
 fn network_from(path: &BezPath, to_local: Affine) -> Option<VectorNetwork> {
     let mut local = path.clone();
     local.apply_affine(to_local);
-    if !figcraft_pathops::finite(&local) {
+    if !figiran_pathops::finite(&local) {
         return None;
     }
     let mut net = VectorNetwork::from_path(&local);
@@ -293,7 +293,7 @@ fn append_network(into: &mut VectorNetwork, mut part: VectorNetwork) {
     into.regions.extend(part.regions);
 }
 
-fn paint_frame(region: Option<&figcraft_doc::Region>, node: &Node) -> (f64, f64, Affine) {
+fn paint_frame(region: Option<&figiran_doc::Region>, node: &Node) -> (f64, f64, Affine) {
     region.map_or((node.width, node.height, Affine::IDENTITY), |r| r.paint_frame(node.width, node.height))
 }
 
@@ -317,7 +317,7 @@ fn reshape_vector_regions(doc: &mut Document, id: NodeId, areas: &[(usize, BezPa
         let (width, height, frame) = paint_frame(Some(source), &old);
         for region in &mut part.regions {
             region.fills = source.fills.clone();
-            region.paint_space = Some(figcraft_doc::RegionPaintSpace { width, height, transform: frame });
+            region.paint_space = Some(figiran_doc::RegionPaintSpace { width, height, transform: frame });
         }
         append_network(&mut rebuilt, part);
     }
@@ -385,7 +385,7 @@ fn create_merged(doc: &mut Document, style: Part, area: &BezPath) -> Result<Node
     let paint_transform = to_world.inverse() * doc.world_transform(style) * source_paint_frame;
     for region in &mut net.regions {
         region.fills = region_fills.clone();
-        region.paint_space = Some(figcraft_doc::RegionPaintSpace { width: paint_width, height: paint_height, transform: paint_transform });
+        region.paint_space = Some(figiran_doc::RegionPaintSpace { width: paint_width, height: paint_height, transform: paint_transform });
     }
     let id = doc.alloc_id();
     let mut v = Node::new(id, NodeKind::Vector { network: net }, src.name.clone(), bb.width(), bb.height());
@@ -395,7 +395,7 @@ fn create_merged(doc: &mut Document, style: Part, area: &BezPath) -> Result<Node
     v.stroke = src.stroke;
     v.effects = src.effects;
     v.opacity = src.opacity;
-    v.blend = if matches!(src.blend, figcraft_color::BlendMode::PassThrough) { figcraft_color::BlendMode::Normal } else { src.blend };
+    v.blend = if matches!(src.blend, figiran_color::BlendMode::PassThrough) { figiran_color::BlendMode::Normal } else { src.blend };
     // In an auto layout frame the new shape stays over its region instead of joining the flow.
     v.child_layout.absolute = doc.get(parent)?.layout.is_some();
     let index = doc.index_in_parent(style).map(|i| i + 1);
@@ -424,7 +424,7 @@ fn apply(s: &mut Session, cmd: &str, p: &Value, merge: bool) -> Result<Value> {
     }
     let doc = s.doc_mut()?;
     let created = if merge {
-        let area = figcraft_pathops::union_faces(regions.iter().map(|r| &r.path)).map_err(|e| EngineError::Other(e.to_string()))?;
+        let area = figiran_pathops::union_faces(regions.iter().map(|r| &r.path)).map_err(|e| EngineError::Other(e.to_string()))?;
         let style = regions.first().and_then(|r| r.parts.first().copied()).ok_or_else(|| bad(cmd, "the region has no shape"))?;
         Some(create_merged(doc, style, &area)?)
     } else {
@@ -438,7 +438,7 @@ fn apply(s: &mut Session, cmd: &str, p: &Value, merge: bool) -> Result<Value> {
         if keep.is_empty() {
             return Ok(None);
         }
-        let area = figcraft_pathops::union_faces(keep).map_err(|e| EngineError::Other(e.to_string()))?;
+        let area = figiran_pathops::union_faces(keep).map_err(|e| EngineError::Other(e.to_string()))?;
         Ok((!area.elements().is_empty()).then_some(area))
     };
     let mut removed = Vec::new();
@@ -657,7 +657,7 @@ impl Session {
         let Ok(ds) = self.ds() else { return };
         let (doc, page, mut sel) = (ds.doc.clone(), ds.page, ds.selection.clone());
         let Some(leaf) = self.hit(&doc, page, ev.p(), 2.0 / ev.zoom.max(1e-6)) else { return };
-        let t = figcraft_doc::geometry::select_target(&doc, leaf, &sel, ev.cmd);
+        let t = figiran_doc::geometry::select_target(&doc, leaf, &sel, ev.cmd);
         if ev.shift {
             if let Some(i) = sel.iter().position(|x| *x == t) {
                 sel.remove(i);

@@ -4,7 +4,7 @@
 //! widget. Its menu's "Set count…" opens a panel (API 5) whose Set button redraws the widget. An SVG
 //! icon and a line (API 6) set off its label.
 
-use figcraft_plugin_sdk::{Event, Input, Result, Value, Widget, close_ui, entry, json, render_widget, show_ui};
+use figiran_plugin_sdk::{Event, Input, Result, Value, Widget, close_ui, entry, json, render_widget, show_ui};
 
 /// The count stays within ± this.
 const LIMIT: i64 = 999_999;

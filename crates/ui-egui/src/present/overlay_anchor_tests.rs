@@ -1,7 +1,7 @@
 use egui::{Event, Modifiers, PointerButton, Pos2, Rect, pos2, vec2};
-use figcraft_doc::NodeId;
-use figcraft_doc::proto::{OverlayAnchor, OverlayPosition};
-use figcraft_engine::Session;
+use figiran_doc::NodeId;
+use figiran_doc::proto::{OverlayAnchor, OverlayPosition};
+use figiran_engine::Session;
 use serde_json::{Value, json};
 
 use super::anchored_overlay_rect;

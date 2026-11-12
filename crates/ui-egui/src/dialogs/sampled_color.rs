@@ -4,7 +4,7 @@
 //! collection, then runs `style.create` or `variable.create`.
 
 use egui::{Context, RichText};
-use figcraft_color::{Color, Paint};
+use figiran_color::{Color, Paint};
 use serde_json::{Value, json};
 
 use super::window;
@@ -32,7 +32,7 @@ pub struct SampledColor {
 pub fn request(app: &mut FigApp, data: &Value) {
     let Some(color) = data.get("color").and_then(Value::as_str).and_then(Color::from_hex) else { return };
     let Ok(ds) = app.session.ds() else { return };
-    let collection = figcraft_engine::library::local_collections(&ds.doc).next().map(|c| c.id.clone());
+    let collection = figiran_engine::library::local_collections(&ds.doc).next().map(|c| c.id.clone());
     app.ui.sampled_color = Some(SampledColor {
         uid: ds.uid,
         color: color.to_css_hex(),
@@ -90,7 +90,7 @@ pub fn show(app: &mut FigApp, ctx: &Context) {
     let collections: Vec<(String, String)> = app
         .session
         .doc()
-        .map(|d| figcraft_engine::library::local_collections(d).map(|c| (c.id.clone(), c.name.clone())).collect())
+        .map(|d| figiran_engine::library::local_collections(d).map(|c| (c.id.clone(), c.name.clone())).collect())
         .unwrap_or_default();
     let (mut open, mut cancel, mut create) = (true, false, false);
     window(tr("Create from color"), ctx).id(egui::Id::unique("Create from color")).open(&mut open).show(ctx, |ui| {

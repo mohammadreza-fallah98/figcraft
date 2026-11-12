@@ -7,7 +7,7 @@ use std::time::Duration;
 use crate::bridge::{Bridge, MAX_BODY, origin_of};
 
 const ORIGIN: &str = "http://192.168.10.5:4000";
-const LINK: &str = "figcraft://join?host=127.0.0.1:47900&file=f&token=AbCdEfGhIjKlMnOpQrStUv";
+const LINK: &str = "figiran://join?host=127.0.0.1:47900&file=f&token=AbCdEfGhIjKlMnOpQrStUv";
 
 fn start(port: u16) -> (Bridge, Receiver<String>) {
     let (tx, rx) = channel();
@@ -88,7 +88,7 @@ fn ping_answers_the_app_and_version() {
     let p = b.port();
     for host in [format!("127.0.0.1:{p}"), format!("localhost:{p}")] {
         let r = send(p, &format!("GET /ping HTTP/1.1\r\nHost: {host}\r\nOrigin: {ORIGIN}\r\n\r\n"));
-        assert!(r.starts_with("HTTP/1.1 200 OK") && r.ends_with("{\"app\":\"figcraft\",\"v\":1}"), "{r}");
+        assert!(r.starts_with("HTTP/1.1 200 OK") && r.ends_with("{\"app\":\"figiran\",\"v\":1}"), "{r}");
         assert!(r.contains(&format!("Access-Control-Allow-Origin: {ORIGIN}")));
     }
 }
@@ -124,13 +124,13 @@ fn open_rejects_what_is_not_exactly_right() {
     assert!(post(p, Some(ORIGIN), &format!("127.0.0.1:{}", p + 1), "application/json", &body).starts_with("HTTP/1.1 403"));
     assert!(post(p, Some(ORIGIN), &host, "text/plain", &body).starts_with("HTTP/1.1 400"));
     assert!(post(p, Some(ORIGIN), &host, "application/json", "not json").starts_with("HTTP/1.1 400"));
-    assert!(good(p, "{\"url\":\"figcraft://auth?code=abc\"}").starts_with("HTTP/1.1 400"));
+    assert!(good(p, "{\"url\":\"figiran://auth?code=abc\"}").starts_with("HTTP/1.1 400"));
     assert!(good(p, "{\"url\":\"http://evil.example\"}").starts_with("HTTP/1.1 400"));
-    assert!(good(p, "{\"url\":\"figcraft://join?\"}").starts_with("HTTP/1.1 400"));
-    assert!(good(p, "{\"url\":\"figcraft://join?a=b c\"}").starts_with("HTTP/1.1 400"));
+    assert!(good(p, "{\"url\":\"figiran://join?\"}").starts_with("HTTP/1.1 400"));
+    assert!(good(p, "{\"url\":\"figiran://join?a=b c\"}").starts_with("HTTP/1.1 400"));
     assert!(good(p, &format!("{{\"url\":\"{LINK}\",\"extra\":1}}")).starts_with("HTTP/1.1 400"));
     assert!(good(p, "{}").starts_with("HTTP/1.1 400"));
-    let big = format!("{{\"url\":\"figcraft://join?a={}\"}}", "x".repeat(MAX_BODY));
+    let big = format!("{{\"url\":\"figiran://join?a={}\"}}", "x".repeat(MAX_BODY));
     assert!(good(p, &big).starts_with("HTTP/1.1 400"));
     let no_length = send(p, &format!("POST /open HTTP/1.1\r\nHost: {host}\r\nOrigin: {ORIGIN}\r\nContent-Type: application/json\r\n\r\n"));
     assert!(no_length.starts_with("HTTP/1.1 400"), "{no_length}");

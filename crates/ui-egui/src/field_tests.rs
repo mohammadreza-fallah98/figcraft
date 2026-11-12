@@ -6,8 +6,8 @@
 
 use egui::accesskit::Role;
 use egui::{Event, Id, Key, Modifiers, Pos2, pos2};
-use figcraft_doc::NodeId;
-use figcraft_engine::Session;
+use figiran_doc::NodeId;
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::a11y::focused_name;
@@ -391,7 +391,7 @@ fn scrubbing_the_label_moves_the_value_and_is_one_undo_step() {
     scrub(&mut u, "Opacity", -30.0, Modifiers::NONE);
     assert_eq!(u.app.session.doc().unwrap().node(a).unwrap().opacity, 0.7);
     scrub(&mut u, "Rotation", 15.0, Modifiers::NONE);
-    let rot = figcraft_geom::rotation_degrees(u.app.session.doc().unwrap().node(a).unwrap().transform);
+    let rot = figiran_geom::rotation_degrees(u.app.session.doc().unwrap().node(a).unwrap().transform);
     assert!((rot.abs() - 15.0).abs() < 1e-6, "rotation {rot}");
     // A press on the label that doesn't move changes nothing.
     let before = (geom(&u, a), undo_steps(&u));
@@ -437,7 +437,7 @@ fn the_arrow_keys_step_by_the_nudge_amounts_and_fractional_fields_by_their_own()
     key(&mut u, Key::ArrowUp, Modifiers::NONE);
     key(&mut u, Key::ArrowUp, shift);
     key(&mut u, Key::Escape, Modifiers::NONE);
-    let rot = figcraft_geom::rotation_degrees(u.app.session.doc().unwrap().node(a).unwrap().transform);
+    let rot = figiran_geom::rotation_degrees(u.app.session.doc().unwrap().node(a).unwrap().transform);
     assert!((rot.abs() - 11.0).abs() < 1e-6, "rotation {rot}: the steps stay after Escape");
 }
 
@@ -521,9 +521,9 @@ fn the_save_shortcut_saves_from_a_field_with_what_was_typed() {
     // Shift+Cmd/Ctrl+S does the same through Save as.
     let cmd = if cfg!(target_os = "macos") { Modifiers::COMMAND } else { Modifiers::COMMAND.plus(Modifiers::CTRL) };
     let (mut u, a, _) = setup();
-    let dir = std::env::temp_dir().join(format!("figcraft-save-from-field-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("figiran-save-from-field-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
-    let (path, copy) = (dir.join("doc.figcraft"), dir.join("copy.figcraft"));
+    let (path, copy) = (dir.join("doc.figiran"), dir.join("copy.figiran"));
     u.app.session.execute("file.saveAs", &json!({"path": path.to_string_lossy()})).unwrap();
     let asked = std::rc::Rc::new(std::cell::Cell::new(0));
     u.app.services = Box::new(SaveAsPicker { path: Some(copy.clone()), asked: asked.clone() });
@@ -639,7 +639,7 @@ fn lch_and_oklch_picker_fields_edit_lightness_keeping_hue() {
         let from = lead(&u, Id::unique(("cp_f", l)));
         drag(&mut u, from, -20.0, Modifiers::NONE);
         let after = color(&u);
-        let hue = |c| figcraft_color::Oklch::from_color(c).h;
+        let hue = |c| figiran_color::Oklch::from_color(c).h;
         assert!(after.luminance() < before.luminance(), "{name}: darker");
         assert!((hue(after) - hue(before)).abs() < 3.0, "{name}: hue kept {} → {}", hue(before), hue(after));
         assert_eq!(undo_steps(&u), steps + 1, "{name}: one undo step");
@@ -680,7 +680,7 @@ fn oklch_keeps_a_hue_typed_on_a_grey() {
     u.frame(vec![]);
     assert_eq!(kept_polar(&u)[2].round(), 250.0, "the hue stays on a grey");
     type_into_picker(&mut u, "oklch_c", "0.1");
-    let ok = figcraft_color::Oklch::from_color(color(&u));
+    let ok = figiran_color::Oklch::from_color(color(&u));
     assert!(ok.c > 0.05 && (ok.h - 250.0).abs() < 3.0, "chroma raised along the typed hue: {ok:?}");
 }
 
@@ -696,7 +696,7 @@ fn lch_keeps_the_typed_chroma_while_the_colour_is_out_of_srgb() {
     assert_eq!(kept_polar(&u)[2], hue, "hue kept near white");
     // Back down: the chroma and hue asked for come back instead of a grey or a red.
     type_into_picker(&mut u, "lch_l", "60");
-    let lch = figcraft_color::Lch::from_color(color(&u));
+    let lch = figiran_color::Lch::from_color(color(&u));
     assert!(lch.c > 50.0 && (lch.h - hue as f32).abs() < 2.0, "blue again: {lch:?} (hue {hue})");
 }
 
@@ -718,7 +718,7 @@ fn scrubbing_a_prototype_delay_sets_it_once_when_let_go() {
     let from = lead(&u, Id::unique(("proto_delay", f1, 0usize)));
     drag(&mut u, from, 30.0, Modifiers::NONE);
     let ms = match u.app.session.doc().unwrap().node(f1).unwrap().interactions[0].trigger {
-        figcraft_doc::proto::Trigger::AfterDelay { ms } => ms,
+        figiran_doc::proto::Trigger::AfterDelay { ms } => ms,
         _ => panic!("still after a delay"),
     };
     assert_eq!((ms, undo_steps(&u)), (800, steps + 1));
@@ -921,9 +921,9 @@ fn a_deferred_field_save_keeps_its_document_when_the_next_input_switches_tabs() 
         [(false, false, false), (true, false, false), (false, true, false), (true, true, false), (false, true, true), (true, true, true)]
     {
         let (mut u, a, _) = setup();
-        let dir = std::env::temp_dir().join(format!("figcraft-deferred-field-tab-{}-{save_as}-{same_batch}-{discard}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("figiran-deferred-field-tab-{}-{save_as}-{same_batch}-{discard}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
-        let (path, copy, other) = (dir.join("a.figcraft"), dir.join("copy.figcraft"), dir.join("b.figcraft"));
+        let (path, copy, other) = (dir.join("a.figiran"), dir.join("copy.figiran"), dir.join("b.figiran"));
         u.app.session.execute("file.saveAs", &json!({"path": path.to_string_lossy()})).unwrap();
         let owner = u.app.session.ds().unwrap().uid;
         u.app.session.execute("file.new", &json!({"name": "Deferred B"})).unwrap();
@@ -1014,9 +1014,9 @@ fn a_deferred_field_save_does_not_retarget_a_closed_moved_or_foreign_owner() {
         for save_as in [false, true] {
             let (mut u, a, _) = setup();
             u.ctx.set_embed_viewports(false);
-            let dir = std::env::temp_dir().join(format!("figcraft-deferred-field-invalid-{}-{change}-{save_as}", std::process::id()));
+            let dir = std::env::temp_dir().join(format!("figiran-deferred-field-invalid-{}-{change}-{save_as}", std::process::id()));
             std::fs::create_dir_all(&dir).unwrap();
-            let (path, other, copy) = (dir.join("a.figcraft"), dir.join("b.figcraft"), dir.join("copy.figcraft"));
+            let (path, other, copy) = (dir.join("a.figiran"), dir.join("b.figiran"), dir.join("copy.figiran"));
             u.app.session.execute("file.saveAs", &json!({"path": path.to_string_lossy()})).unwrap();
             let owner = u.app.session.ds().unwrap().uid;
             u.app.session.execute("file.new", &json!({"name": "Deferred B"})).unwrap();
@@ -1130,9 +1130,9 @@ fn save_events(route: &str, save_as: bool, tab_at: egui::Pos2) -> (Vec<Event>, M
 /// even though both panels use the same widget ID.
 fn prepared_save_cannot_enter_a_replacement(route: &str, save_as: bool, discard: bool) {
     let (mut u, a, _) = setup();
-    let dir = std::env::temp_dir().join(format!("figcraft-field-save-owner-{}-{route}-{save_as}-{discard}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("figiran-field-save-owner-{}-{route}-{save_as}-{discard}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
-    let (path, other, copy) = (dir.join("a.figcraft"), dir.join("b.figcraft"), dir.join("copy.figcraft"));
+    let (path, other, copy) = (dir.join("a.figiran"), dir.join("b.figiran"), dir.join("copy.figiran"));
     u.app.session.execute("file.saveAs", &json!({"path": path.to_string_lossy()})).unwrap();
     let owner = u.app.session.ds().unwrap().uid;
     let owner_bytes = std::fs::read(&path).unwrap();
@@ -1303,7 +1303,7 @@ fn the_page_background_opacity_field_sets_the_page_colour_alpha() {
     let page_bg = |u: &Ui| {
         let page = u.app.session.page().unwrap();
         match &u.app.session.doc().unwrap().node(page).unwrap().kind {
-            figcraft_doc::NodeKind::Page { background, .. } => *background,
+            figiran_doc::NodeKind::Page { background, .. } => *background,
             _ => panic!("the page"),
         }
     };

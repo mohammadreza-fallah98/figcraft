@@ -242,10 +242,10 @@ fn draw_row(ui: &mut Ui, t: &Tokens, row: &ActionRow, highlighted: bool) -> egui
 }
 
 /// The text a search reads besides the label in the UI's language: the English label, the id, and
-/// a name the feature had before it was renamed ([`figcraft_engine::catalog::SEARCH_ALIASES`]).
+/// a name the feature had before it was renamed ([`figiran_engine::catalog::SEARCH_ALIASES`]).
 fn search_text(english: &str, id: &str) -> String {
     let mut text = format!("{english} {id}");
-    for (alias_id, alias) in figcraft_engine::catalog::SEARCH_ALIASES {
+    for (alias_id, alias) in figiran_engine::catalog::SEARCH_ALIASES {
         if *alias_id == id {
             text.push(' ');
             text.push_str(alias);
@@ -282,7 +282,7 @@ pub(crate) fn command_sections(q: &str) -> Vec<(String, Vec<ActionRow>)> {
     let menu_items = MENU.iter().filter(|m| m.label != SEP).map(|m| (m.id, m.label));
     // A row runs its command without parameters (as its menu item does, dialogs included): one
     // that needs them is offered only through a menu item.
-    let engine = figcraft_engine::all_commands().iter().filter(|c| !figcraft_engine::cmd::needs_params(c.id)).map(|c| (c.id, c.label));
+    let engine = figiran_engine::all_commands().iter().filter(|c| !figiran_engine::cmd::needs_params(c.id)).map(|c| (c.id, c.label));
     let candidates: Box<dyn Iterator<Item = (&str, &str)>> = if ql.is_empty() { Box::new(menu_items) } else { Box::new(menu_items.chain(engine)) };
     let mut seen = std::collections::HashSet::new();
     // The labels menu items show: a command no menu lists that reads the same is left out.
@@ -383,13 +383,13 @@ fn widget_rows(app: &FigApp, q: &str) -> Vec<ActionRow> {
 fn asset_sections(app: &FigApp, q: &str) -> Vec<(String, Vec<ActionRow>)> {
     let ql = q.to_lowercase();
     let Ok(doc) = app.session.doc() else { return Vec::new() };
-    let components: Vec<ActionRow> = figcraft_engine::library::local_components(doc)
+    let components: Vec<ActionRow> = figiran_engine::library::local_components(doc)
         .iter()
         .filter_map(|id| doc.node(*id))
         .filter(|n| matches(&ql, &n.name, ""))
         .map(|n| ActionRow { key: format!("component:{}", n.id.0), label: n.name.clone(), hint: tr("Component").to_string(), tile: None })
         .collect();
-    let styles: Vec<ActionRow> = figcraft_engine::library::local_styles(doc)
+    let styles: Vec<ActionRow> = figiran_engine::library::local_styles(doc)
         .filter(|s| matches(&ql, &s.name, ""))
         .map(|s| ActionRow { key: format!("style:{}", s.id), label: s.name.clone(), hint: tr("Style").to_string(), tile: None })
         .collect();
@@ -407,8 +407,8 @@ fn asset_sections(app: &FigApp, q: &str) -> Vec<(String, Vec<ActionRow>)> {
 pub(crate) fn recent_row(app: &FigApp, key: &str, q: &str) -> Option<ActionRow> {
     let ql = q.to_lowercase();
     if let Some(id) = key.strip_prefix("command:") {
-        let spec = figcraft_engine::find_command(id);
-        let menu_label = figcraft_engine::catalog::MENU.iter().find(|m| m.id == id);
+        let spec = figiran_engine::find_command(id);
+        let menu_label = figiran_engine::catalog::MENU.iter().find(|m| m.id == id);
         let english = menu_label.map(|m| m.label).or_else(|| spec.map(|s| s.label)).unwrap_or(id);
         let label = i18n::command(id, english);
         if !available(id) || !matches(&ql, &label, &format!("{english} {id}")) {

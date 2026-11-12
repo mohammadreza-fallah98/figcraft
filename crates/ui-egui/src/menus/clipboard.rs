@@ -22,7 +22,7 @@ pub fn paste(app: &mut FigApp, event_text: Option<&str>, at: Option<(f64, f64)>)
         return;
     }
     // Only HTML that holds readable design data takes this path; other HTML pastes as before.
-    if let Some(html) = app.services.clipboard_get_html().filter(|h| figcraft_engine::cmd::edit::design_clipboard_buffer(h).is_some()) {
+    if let Some(html) = app.services.clipboard_get_html().filter(|h| figiran_engine::cmd::edit::design_clipboard_buffer(h).is_some()) {
         if dev_mode_refuses(app, "edit.paste") {
             return;
         }
@@ -72,7 +72,7 @@ pub fn paste(app: &mut FigApp, event_text: Option<&str>, at: Option<(f64, f64)>)
             // One selected layer that can have fills takes the image as its top fill.
             if let [target] = app.session.selection()[..]
                 && at.is_none()
-                && app.session.doc().ok().and_then(|d| d.node(target)).is_some_and(|n| figcraft_engine::cmd::create::accepts_image_fill(&n.kind))
+                && app.session.doc().ok().and_then(|d| d.node(target)).is_some_and(|n| figiran_engine::cmd::create::accepts_image_fill(&n.kind))
             {
                 app.run("image.place", json!({"data": b64, "target": target}));
                 return;
@@ -94,34 +94,34 @@ pub fn paste(app: &mut FigApp, event_text: Option<&str>, at: Option<(f64, f64)>)
     }
 }
 
-/// The marker FigCraft puts on the system clipboard for copied layers with no text/SVG mirror.
+/// The marker FigIran puts on the system clipboard for copied layers with no text/SVG mirror.
 fn is_clipboard_marker(text: &str) -> bool {
-    text.starts_with("figcraft://clipboard/")
+    text.starts_with("figiran://clipboard/")
 }
 
 /// Paste text from another app at `(cx, cy)` (`center`: centred there): a comment's link opens its
 /// thread, SVG imports, spreadsheet cells on a board make a table, anything else becomes a text
 /// layer.
 fn paste_text(app: &mut FigApp, text: &str, (cx, cy): (f64, f64), center: bool) {
-    let board = app.session.doc().is_ok_and(figcraft_engine::board::is_board);
-    if text.trim().starts_with("figcraft://comment/") {
+    let board = app.session.doc().is_ok_and(figiran_engine::board::is_board);
+    if text.trim().starts_with("figiran://comment/") {
         app.run("comment.open", json!({"link": text.trim()}));
     } else if dev_mode_refuses(app, "edit.paste") {
         // Dev Mode: the note says why nothing was pasted.
-    } else if let Some((cells, more)) = board.then(|| figcraft_engine::board_table::spreadsheet_cells(text)).flatten() {
+    } else if let Some((cells, more)) = board.then(|| figiran_engine::board_table::spreadsheet_cells(text)).flatten() {
         // Centred in the view, or (Paste here) its top-left at the point.
         let mut params = json!({"cells": cells});
         if !center {
             (params["x"], params["y"]) = (json!(cx), json!(cy));
         }
         if app.run("board.table", params).is_some() && more {
-            let (rows, columns) = (figcraft_engine::board_table::MAX_ROWS, figcraft_engine::board_table::MAX_COLUMNS);
+            let (rows, columns) = (figiran_engine::board_table::MAX_ROWS, figiran_engine::board_table::MAX_COLUMNS);
             app.toast(trf(
                 "A table takes at most {rows} rows and {columns} columns: the rest wasn't pasted",
                 &[("rows", &rows.to_string()), ("columns", &columns.to_string())],
             ));
         }
-    } else if figcraft_engine::looks_like_svg(text) {
+    } else if figiran_engine::looks_like_svg(text) {
         use base64::Engine as _;
         let b64 = base64::engine::general_purpose::STANDARD.encode(text.as_bytes());
         app.run_user("file.import", json!({"data": b64, "name": "Pasted SVG.svg", "x": cx, "y": cy, "center": center}));
@@ -137,8 +137,8 @@ fn clipboard_png(app: &mut FigApp) -> Option<(Vec<u8>, f64, f64)> {
         Some(readable) => readable,
         None => with_pixel_size(encoded_clipboard_image(app)?)?,
     };
-    let density = figcraft_format::pixel_density(&png);
-    let (w, h) = figcraft_format::placed_size(w, h, density, figcraft_engine::cmd::create::PLACED_IMAGE_MAX_SIDE);
+    let density = figiran_format::pixel_density(&png);
+    let (w, h) = figiran_format::placed_size(w, h, density, figiran_engine::cmd::create::PLACED_IMAGE_MAX_SIDE);
     Some((png, w, h))
 }
 
@@ -165,13 +165,13 @@ fn encoded_clipboard_image(app: &mut FigApp) -> Option<Vec<u8>> {
 
 /// The text of a selection made only of text layers, one layer per line (None for any other
 /// selection, or when there is no text).
-pub(super) fn text_layers_text(doc: &figcraft_doc::Document, ids: &[figcraft_doc::NodeId]) -> Option<String> {
+pub(super) fn text_layers_text(doc: &figiran_doc::Document, ids: &[figiran_doc::NodeId]) -> Option<String> {
     let texts: Option<Vec<&str>> = ids.iter().map(|i| doc.node(*i).and_then(|n| n.kind.text()).map(|t| t.characters.as_str())).collect();
     texts.map(|t| t.join("\n")).filter(|t| !t.is_empty())
 }
 
 /// The layers as SVG text for other apps (None when the export fails).
-pub(super) fn figcraft_svg_export(doc: &figcraft_doc::Document, ids: &[figcraft_doc::NodeId]) -> Option<String> {
-    let bytes = figcraft_engine::cmd::file::export_bytes(doc, ids, figcraft_doc::ExportFormat::Svg, 1.0).ok()?;
+pub(super) fn figiran_svg_export(doc: &figiran_doc::Document, ids: &[figiran_doc::NodeId]) -> Option<String> {
+    let bytes = figiran_engine::cmd::file::export_bytes(doc, ids, figiran_doc::ExportFormat::Svg, 1.0).ok()?;
     String::from_utf8(bytes).ok()
 }

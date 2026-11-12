@@ -6,7 +6,7 @@
 
 use std::collections::VecDeque;
 
-use figcraft_doc::Document;
+use figiran_doc::Document;
 
 use crate::change::{Change, Target};
 use crate::history::Touches;

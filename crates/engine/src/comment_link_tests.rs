@@ -3,8 +3,8 @@
 //! editing tools and gestures are refused as with a view link, and a change made outside a command
 //! is put back unless it only touches comment threads.
 
-use figcraft_collab::message::ClientMsg;
-use figcraft_doc::{Document, NodeKind};
+use figiran_collab::message::ClientMsg;
+use figiran_doc::{Document, NodeKind};
 use serde_json::json;
 
 use crate::live::{Access, COMMENT_ONLY, Event, Role, tool_left};
@@ -23,7 +23,7 @@ fn refused(s: &mut Session, cmd: &str, params: serde_json::Value) {
 fn a_comment_link_lets_you_comment_and_nothing_else() {
     let (mut s, script) = session();
     s.execute("tool.set", &json!({"tool": "rectangle"})).unwrap();
-    s.execute("collab.join", &json!({"link": "figcraft://join?host=a:1&file=f&token=t"})).unwrap();
+    s.execute("collab.join", &json!({"link": "figiran://join?host=a:1&file=f&token=t"})).unwrap();
     let mut doc = Document::new("Shared");
     let page = doc.first_page().unwrap();
     let card = doc.create(page, NodeKind::Rectangle, "Card", 0.0, 0.0, 10.0, 10.0).unwrap();

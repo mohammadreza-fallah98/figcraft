@@ -1,7 +1,7 @@
 //! Canvas rendering off the UI thread (desktop) or inline (web). The latest request wins (queued
 //! older ones are skipped); the UI shows each finished image, re-projected to the current view,
 //! until the next one arrives.
-//! The renderer keeps its last image ([`figcraft_render::Retained`]): a pan renders only the
+//! The renderer keeps its last image ([`figiran_render::Retained`]): a pan renders only the
 //! uncovered strips and an edit only the areas of the layers that changed.
 //! A new zoom can't reuse that image, and the old one, re-projected, covers little of the view
 //! after a zoom out (an eighth of the width from 800% to 100%). When full renders are slow, the
@@ -16,15 +16,15 @@
 //! is refined only once no newer request has come for [`SETTLE_MS`] (the zoom has paused), or for
 //! as long as the last full render took when that is shorter (a wait never costs more than the
 //! render it may save), and the full render is then drawn a band at a time
-//! ([`figcraft_render::Steps`]), at least a band a frame and more while they fit in [`STEP_MS`],
+//! ([`figiran_render::Steps`]), at least a band a frame and more while they fit in [`STEP_MS`],
 //! so input is handled while it draws (on a page whose render takes seconds, a band is a
 //! fraction of that: eight at most).
 
 use std::sync::Arc;
 
-use figcraft_color::ColorProfile;
-use figcraft_doc::{Document, NodeId};
-use figcraft_render::{Begun, Pixmap, Retained, Steps, View, Work};
+use figiran_color::ColorProfile;
+use figiran_doc::{Document, NodeId};
+use figiran_render::{Begun, Pixmap, Retained, Steps, View, Work};
 // A monotonic clock in the browser too: preview decisions rest on how long renders take there.
 use web_time::Instant;
 
@@ -36,7 +36,7 @@ pub const PREVIEW_AFTER_MS: f64 = 12.0;
 /// long as the last full render took, when shorter): a full render there blocks the page, and one
 /// between every two wheel steps of a zoom held it up for seconds.
 pub const SETTLE_MS: u64 = 120;
-/// The browser draws a full render a band at a time ([`figcraft_render::Steps`]): at least one
+/// The browser draws a full render a band at a time ([`figiran_render::Steps`]): at least one
 /// band a frame, and more while they fit in this long, so input is handled while it draws. A
 /// band of a render that takes seconds takes a fraction of that (see [`MAX_BANDS`]).
 pub const STEP_MS: f64 = 24.0;
@@ -55,7 +55,7 @@ pub struct Job {
     pub view: View,
     pub outline: bool,
     /// Outline mode's options (hidden layers, object bounds).
-    pub outline_extras: figcraft_render::Outline,
+    pub outline_extras: figiran_render::Outline,
     /// Layers drawn as outlines (outlines for the selection).
     pub outlined: Vec<NodeId>,
     pub skip: Vec<NodeId>,
@@ -64,8 +64,8 @@ pub struct Job {
     /// Soft-proof sRGB: stripe the colours sRGB can't show.
     pub proof: bool,
     /// A board's dot grid under the layers.
-    pub dots: Option<figcraft_render::Dots>,
-    /// The document's [`figcraft_engine::DocState::uid`]: images of other files are never shown.
+    pub dots: Option<figiran_render::Dots>,
+    /// The document's [`figiran_engine::DocState::uid`]: images of other files are never shown.
     pub uid: u64,
     /// A coarse preview may come first when the zoom changes (not in pixel preview, whose pixels
     /// are the point).
@@ -115,8 +115,8 @@ fn mark_outside_srgb(image: &mut egui::ColorImage, pix: &Pixmap, profile: ColorP
 }
 
 /// The canvas is a preview: what's too small to see in detail at this zoom is approximated.
-fn options(job: &Job) -> figcraft_render::Options {
-    figcraft_render::Options {
+fn options(job: &Job) -> figiran_render::Options {
+    figiran_render::Options {
         outline_mode: job.outline,
         outline: job.outline_extras,
         outlined: job.outlined.clone(),
@@ -200,7 +200,7 @@ fn same_request(a: &Job, fonts: u64, b: &Job) -> bool {
         && Arc::ptr_eq(&a.doc, &b.doc)
         && a.view.origin.0.to_bits() == b.view.origin.0.to_bits()
         && a.view.origin.1.to_bits() == b.view.origin.1.to_bits()
-        && figcraft_text::layout_generation() == fonts
+        && figiran_text::layout_generation() == fonts
 }
 
 /// What [`Renders::refine_for`] got to.
@@ -343,7 +343,7 @@ impl Renders {
             Ok(Ok(steps)) => {
                 // A pan or an edit at this zoom builds on this render: no preview for it.
                 self.last = Some((job.uid, job.page, job.view.scale));
-                self.steps = Some(Stepping { job: job.clone(), fonts: figcraft_text::layout_generation(), steps, spent: 0.0 });
+                self.steps = Some(Stepping { job: job.clone(), fonts: figiran_text::layout_generation(), steps, spent: 0.0 });
                 drawn.map(Refined::Shown)
             }
             Ok(Err(d)) => Some(Refined::Done(self.finished(job, *d))),
@@ -432,42 +432,41 @@ impl Worker {
         let previewing = Arc::new(std::sync::atomic::AtomicBool::new(false));
         let busy = previewing.clone();
         let (preview_tx, preview_ctx) = (done_tx.clone(), ctx.clone());
-        let watchdog =
-            std::thread::Builder::new().name("figcraft-render-preview".into()).stack_size(figcraft_render::RENDER_STACK).spawn(move || {
-                let mut retained = Retained::default();
-                let after = std::time::Duration::from_secs_f64(PREVIEW_AFTER_MS / 1000.0);
-                while let Ok((mut seq, mut job, mut started)) = watched.recv() {
-                    // Wait out the threshold; a newer arming means that render is over.
-                    loop {
-                        match watched.recv_timeout(after.saturating_sub(started.elapsed())) {
-                            Ok(newer) => (seq, job, started) = newer,
-                            Err(std::sync::mpsc::RecvTimeoutError::Timeout) => break,
-                            Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => return,
-                        }
-                    }
-                    // Busy from before it looks at the render until its preview is handed over and the
-                    // UI woken, so `in_flight` holds until then: once the full render is done (stored
-                    // before the render thread's `finished`), this sees it and hands over nothing.
-                    busy.store(true, std::sync::atomic::Ordering::SeqCst);
-                    let still_rendering = || refined_seen.load(std::sync::atomic::Ordering::SeqCst) < seq;
-                    let mut sent = true;
-                    if still_rendering()
-                        && let Some(d) = preview_with(&job, &mut retained)
-                        && still_rendering()
-                    {
-                        sent = preview_tx.send(answering(d, seq)).is_ok();
-                        preview_ctx.request_repaint_of(viewport);
-                    }
-                    busy.store(false, std::sync::atomic::Ordering::SeqCst);
-                    if !sent {
-                        break;
+        let watchdog = std::thread::Builder::new().name("figiran-render-preview".into()).stack_size(figiran_render::RENDER_STACK).spawn(move || {
+            let mut retained = Retained::default();
+            let after = std::time::Duration::from_secs_f64(PREVIEW_AFTER_MS / 1000.0);
+            while let Ok((mut seq, mut job, mut started)) = watched.recv() {
+                // Wait out the threshold; a newer arming means that render is over.
+                loop {
+                    match watched.recv_timeout(after.saturating_sub(started.elapsed())) {
+                        Ok(newer) => (seq, job, started) = newer,
+                        Err(std::sync::mpsc::RecvTimeoutError::Timeout) => break,
+                        Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => return,
                     }
                 }
-            });
+                // Busy from before it looks at the render until its preview is handed over and the
+                // UI woken, so `in_flight` holds until then: once the full render is done (stored
+                // before the render thread's `finished`), this sees it and hands over nothing.
+                busy.store(true, std::sync::atomic::Ordering::SeqCst);
+                let still_rendering = || refined_seen.load(std::sync::atomic::Ordering::SeqCst) < seq;
+                let mut sent = true;
+                if still_rendering()
+                    && let Some(d) = preview_with(&job, &mut retained)
+                    && still_rendering()
+                {
+                    sent = preview_tx.send(answering(d, seq)).is_ok();
+                    preview_ctx.request_repaint_of(viewport);
+                }
+                busy.store(false, std::sync::atomic::Ordering::SeqCst);
+                if !sent {
+                    break;
+                }
+            }
+        });
         if let Err(e) = watchdog {
             log::error!("render preview thread: {e}");
         }
-        let spawned = std::thread::Builder::new().name("figcraft-render".into()).stack_size(figcraft_render::RENDER_STACK).spawn(move || {
+        let spawned = std::thread::Builder::new().name("figiran-render".into()).stack_size(figiran_render::RENDER_STACK).spawn(move || {
             let mut renders = Renders::default();
             let mut next = None;
             loop {

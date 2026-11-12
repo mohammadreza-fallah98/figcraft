@@ -6,9 +6,9 @@
 //! from the guide to the layers in the frame it crosses.
 
 use egui::{Color32, CornerRadius, Id, Pos2, Rect, Stroke, pos2, vec2};
-use figcraft_doc::{Document, NodeId};
-use figcraft_engine::guides;
-use figcraft_geom::Point;
+use figiran_doc::{Document, NodeId};
+use figiran_engine::guides;
+use figiran_geom::Point;
 use serde_json::json;
 
 use crate::FigApp;
@@ -104,7 +104,7 @@ fn place(doc: &Document, owner: NodeId, index: usize, vertical: bool, offset: f6
 fn through(app: &FigApp, owner: NodeId, index: usize, vertical: bool, p: Point, pixel: bool, object_zoom: Option<f64>) -> Option<Placed> {
     let ds = app.session.ds().ok()?;
     let v = guides::offset_at(&ds.doc, owner, vertical, p)?;
-    let offset = match object_zoom.and_then(|zoom| figcraft_engine::snap::snap_guide(&ds.doc, ds.page, owner, vertical, v, zoom)) {
+    let offset = match object_zoom.and_then(|zoom| figiran_engine::snap::snap_guide(&ds.doc, ds.page, owner, vertical, v, zoom)) {
         Some(snapped) => snapped,
         None if pixel => v.round(),
         None => (v * 100.0).round() / 100.0,
@@ -214,7 +214,7 @@ pub fn input(app: &mut FigApp, ctx: &egui::Context, pos: Pos2) -> bool {
         // Alt: distances from the guide to the layers in the frame it crosses.
         let frame = drag.frame().or_else(|| at.map(|g| g.owner).filter(|o| app.session.ds().is_ok_and(|d| d.page != *o)));
         app.session.tool.overlay.guides = match (alt && !released, frame, at.and_then(|g| page_line(app, &g))) {
-            (true, Some(f), Some((v, off))) => app.session.doc().map(|d| figcraft_engine::distance::from_guide(d, f, v, off)).unwrap_or_default(),
+            (true, Some(f), Some((v, off))) => app.session.doc().map(|d| figiran_engine::distance::from_guide(d, f, v, off)).unwrap_or_default(),
             _ => Vec::new(),
         };
         ctx.data_mut(|d| match at {
@@ -273,7 +273,7 @@ pub fn input(app: &mut FigApp, ctx: &egui::Context, pos: Pos2) -> bool {
     }
     // Existing guides move with the Move tool (not while editing text or a vector).
     let idle =
-        app.session.tool.tool == figcraft_engine::ToolId::Move && app.session.ds().is_ok_and(|d| d.text_edit.is_none() && d.vector_edit.is_none());
+        app.session.tool.tool == figiran_engine::ToolId::Move && app.session.ds().is_ok_and(|d| d.text_edit.is_none() && d.vector_edit.is_none());
     if idle && let Some(g) = guide_at(app, pos) {
         ctx.set_cursor_icon(cursor_across(app, &g, r));
         let page = app.session.ds().map(|d| d.page).ok();

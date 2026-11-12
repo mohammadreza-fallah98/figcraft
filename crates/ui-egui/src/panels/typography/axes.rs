@@ -8,15 +8,15 @@ use super::{
 /// axis (values the style name implies show until changed; "Mixed" when the shown styles differ).
 /// The canvas previews a hovered instance and a dragged slider or field live; letting go commits
 /// one undo step, Escape cancels.
-pub(super) fn variable_axes(app: &mut FigApp, ui: &mut Ui, ids: &[NodeId], styles: &[TextStyle], face: &figcraft_text::Face) {
+pub(super) fn variable_axes(app: &mut FigApp, ui: &mut Ui, ids: &[NodeId], styles: &[TextStyle], face: &figiran_text::Face) {
     let t = Tokens::get(ui.ctx());
-    let range = figcraft_engine::textedit::selected_range(&app.session);
+    let range = figiran_engine::textedit::selected_range(&app.session);
     widgets::label(ui, &face.family, t.text_secondary);
     named_instances(app, ui, ids, range, styles, face);
     // Each style's axis values; a style drawn by another face (e.g. a separate italic file) is mixed.
     let per_style: Vec<Option<Vec<f64>>> = styles
         .iter()
-        .map(|s| figcraft_text::find_face(&s.font_family, &s.font_style).filter(|f| f.id == face.id).map(|_| face.axis_values(s)))
+        .map(|s| figiran_text::find_face(&s.font_family, &s.font_style).filter(|f| f.id == face.id).map(|_| face.axis_values(s)))
         .collect();
     let w = ui.available_width();
     let field_w = 52.0;
@@ -110,7 +110,7 @@ fn named_instances(
     ids: &[NodeId],
     range: Option<(NodeId, usize, usize)>,
     styles: &[TextStyle],
-    face: &figcraft_text::Face,
+    face: &figiran_text::Face,
 ) {
     if face.instances.is_empty() {
         return;
@@ -149,6 +149,6 @@ fn named_instances(
 }
 
 /// Axis values snap to whole numbers on wide axes (weight, width…) and tenths on narrow ones.
-pub(super) fn round_axis(axis: &figcraft_text::Axis, v: f64) -> f64 {
+pub(super) fn round_axis(axis: &figiran_text::Axis, v: f64) -> f64 {
     if axis.max - axis.min > 20.0 { v.round() } else { (v * 10.0).round() / 10.0 }
 }

@@ -1,8 +1,8 @@
 //! A pattern fill's source exports one level below the layer it fills, so one depth cap bounds
 //! the whole export (#1082).
 
-use figcraft_color::{Color, Paint, PaintKind, PatternPaint};
-use figcraft_doc::{Document, NodeId, NodeKind};
+use figiran_color::{Color, Paint, PaintKind, PatternPaint};
+use figiran_doc::{Document, NodeId, NodeKind};
 
 use crate::tests::inflated;
 use crate::{PdfOptions, export_pdf};

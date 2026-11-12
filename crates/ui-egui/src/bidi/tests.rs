@@ -56,7 +56,7 @@ fn bitmap(image: &egui::ColorImage, glyph: &egui::epaint::text::Glyph) -> (usize
 /// craft-fonts build must carry both; an optional no-font build skips instead of borrowing a
 /// system face or treating tofu as evidence.
 fn fonts() -> Option<egui::Context> {
-    let has = |family: &str| figcraft_text::CRAFT_FONTS.iter().any(|f| f.family == family && f.style == "Regular");
+    let has = |family: &str| figiran_text::CRAFT_FONTS.iter().any(|f| f.family == family && f.style == "Regular");
     if !has("Noto Sans Hebrew") || !has("Noto Sans Arabic") {
         assert!(
             option_env!("CRAFT_FONTS_REQUIRED").is_none(),
@@ -318,8 +318,8 @@ fn clicks_place_the_logical_caret_by_what_is_shown() {
 /// taken twice.
 #[test]
 fn other_scripts_take_an_installed_system_face() {
-    figcraft_text::scan_system_fonts();
-    let installed = |c: char| figcraft_text::face_with_char(c, &crate::bidi::SCRIPT_FAMILIES).is_some();
+    figiran_text::scan_system_fonts();
+    let installed = |c: char| figiran_text::face_with_char(c, &crate::bidi::SCRIPT_FAMILIES).is_some();
     let mut taken = Vec::new();
     let added = crate::bidi::script_fallbacks(&|_| false, &mut taken);
     let scripts = [('\u{1200}', "Ethiopic"), ('\u{0915}', "Devanagari"), ('\u{0B95}', "Tamil"), ('\u{1000}', "Myanmar"), ('\u{0531}', "Armenian")];

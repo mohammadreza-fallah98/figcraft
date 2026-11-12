@@ -3,9 +3,9 @@
 //! what is typed names the slot on Enter, and Escape makes nothing.
 
 use egui::Event;
-use figcraft_doc::NodeId;
-use figcraft_engine::Session;
-use figcraft_engine::components::slot_name;
+use figiran_doc::NodeId;
+use figiran_engine::Session;
+use figiran_engine::components::slot_name;
 use serde_json::json;
 
 use crate::component_swap_default_tests::{centre, click, tree};

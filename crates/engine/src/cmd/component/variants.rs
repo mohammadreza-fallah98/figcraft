@@ -12,11 +12,11 @@ pub(super) fn wrap_in_set(cmd: &str, doc: &mut Document, ids: &[NodeId]) -> Resu
     }
     let bounds = doc.bounds_of(ids).unwrap_or_default();
     let pw = doc.world_transform(parent);
-    let local = figcraft_geom::transform_rect_bbox(pw.inverse(), bounds.inflate(20.0, 20.0));
+    let local = figiran_geom::transform_rect_bbox(pw.inverse(), bounds.inflate(20.0, 20.0));
     let base = ids.first().and_then(|i| doc.node(*i)).and_then(|n| set_name_from(&n.name)).unwrap_or_else(|| doc.next_name("Component"));
     let set = doc.alloc_id();
     let mut n = Node::new(set, NodeKind::ComponentSet { description: String::new() }, base, local.width(), local.height());
-    n.transform = figcraft_geom::Affine::translate((local.x0, local.y0));
+    n.transform = figiran_geom::Affine::translate((local.x0, local.y0));
     n.fills.clear();
     doc.insert(n, parent, doc.index_in_parent(top).map(|i| i + 1))?;
     for i in ids {
@@ -100,7 +100,7 @@ pub(super) fn fit_set(doc: &mut Document, set: NodeId) {
     let (mut w, mut h) = (0.0f64, 0.0f64);
     for c in kids {
         if let Some(n) = doc.node(c) {
-            let b = figcraft_geom::transform_rect_bbox(n.transform, n.local_rect());
+            let b = figiran_geom::transform_rect_bbox(n.transform, n.local_rect());
             w = w.max(b.x1 + 20.0);
             h = h.max(b.y1 + 20.0);
         }
@@ -165,13 +165,13 @@ pub(super) fn add_variant(s: &mut Session, p: &Value) -> Result<Value> {
         .children
         .iter()
         .filter_map(|c| doc.node(*c))
-        .map(|n| figcraft_geom::transform_rect_bbox(n.transform, n.local_rect()).y1)
+        .map(|n| figiran_geom::transform_rect_bbox(n.transform, n.local_rect()).y1)
         .fold(0.0f64, f64::max);
     let dup = doc.duplicate_into(base, set, None)?;
     let n = doc.get_mut(dup)?;
     n.name = name;
     let c = n.transform.as_coeffs();
-    n.transform = figcraft_geom::Affine::new([c[0], c[1], c[2], c[3], c[4], bottom + 20.0]);
+    n.transform = figiran_geom::Affine::new([c[0], c[1], c[2], c[3], c[4], bottom + 20.0]);
     fit_set(doc, set);
     s.set_selection(vec![dup]);
     Ok(json!({"id": dup}))

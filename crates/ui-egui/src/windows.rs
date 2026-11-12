@@ -11,7 +11,7 @@
 use std::cell::RefCell;
 
 use egui::{Context, Pos2, Vec2, ViewportBuilder, ViewportCommand, ViewportId};
-use figcraft_engine::{DocState, Session};
+use figiran_engine::{DocState, Session};
 use serde_json::{Value, json};
 
 use crate::canvas::CanvasState;
@@ -105,7 +105,7 @@ impl Windows {
 
 /// Window `id`'s egui viewport.
 pub fn viewport(id: u64) -> ViewportId {
-    if id == 0 { ViewportId::ROOT } else { ViewportId::from_hash_of(("figcraft_window", id)) }
+    if id == 0 { ViewportId::ROOT } else { ViewportId::from_hash_of(("figiran_window", id)) }
 }
 
 thread_local! {
@@ -125,11 +125,11 @@ pub fn with_app<R>(f: impl FnOnce(&mut FigApp) -> R) -> Option<R> {
 
 /// Last-resort guard around a frame: a panic becomes a message and recovery copies of unsaved
 /// files, not a lost document. (In the browser a panic can't be caught: the page's panic hook
-/// keeps the copies instead, `apps/figcraft-web/src/recovery.rs`.)
+/// keeps the copies instead, `apps/figiran-web/src/recovery.rs`.)
 pub fn guard(app: &mut FigApp, ctx: &Context, f: impl FnOnce(&mut FigApp)) {
     // Started with automation roots, everything the window and the control channel do is confined.
     let roots = app.automation_roots.clone();
-    let res = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| figcraft_engine::file_access::confined(roots.as_ref(), || f(&mut *app))));
+    let res = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| figiran_engine::file_access::confined(roots.as_ref(), || f(&mut *app))));
     if let Err(e) = res {
         let msg = e.downcast_ref::<&str>().map(ToString::to_string).or_else(|| e.downcast_ref::<String>().cloned()).unwrap_or_else(|| "panic".into());
         log::error!("UI panic: {msg}");
@@ -191,8 +191,8 @@ pub(crate) fn fail_input_acks(app: &mut FigApp, viewport: ViewportId) {
 
 fn title_of(ds: Option<&DocState>) -> String {
     match ds {
-        Some(ds) => format!("{}{} – FigCraft", ds.doc.name, if ds.is_dirty() { " •" } else { "" }),
-        None => "FigCraft".into(),
+        Some(ds) => format!("{}{} – FigIran", ds.doc.name, if ds.is_dirty() { " •" } else { "" }),
+        None => "FigIran".into(),
     }
 }
 

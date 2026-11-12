@@ -3,13 +3,13 @@
 use std::sync::Arc;
 
 use egui::{Align2, Color32, CornerRadius, Id, Pos2, Rect, Sense, Stroke, Ui, pos2, vec2};
-use figcraft_color::{BlendMode, Paint, PaintKind};
-use figcraft_doc::{
+use figiran_color::{BlendMode, Paint, PaintKind};
+use figiran_doc::{
     Blur, BlurType, BoolOp, Brush, Document, Effect, EffectKind, ExportFormat, ExportSetting, Glass, GridAlign, GridKind, LayoutGrid,
     MAX_BLUR_RADIUS, MaskType, Node, NodeId, NodeKind, Noise, NoiseMode, Shadow, StrokeAlign, StrokeCap, StrokeJoin, StrokeProps, Texture,
     VariableType, WidthPoint, WidthPreset, WidthProfile,
 };
-use figcraft_engine::cmd::lists::{moved_index, removed_index};
+use figiran_engine::cmd::lists::{moved_index, removed_index};
 use serde_json::{Value, json};
 
 use crate::a11y::{self, Tip};
@@ -238,14 +238,14 @@ pub fn right_panel(app: &mut FigApp, ui: &mut Ui) {
     ui.painter().line_segment([tabs.left_bottom(), tabs.right_bottom()], Stroke::new(1.0, t.border));
     egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
         ui.spacing_mut().item_spacing = vec2(8.0, 0.0);
-        if app.session.tool.tool == figcraft_engine::ToolId::Comment {
+        if app.session.tool.tool == figiran_engine::ToolId::Comment {
             crate::comments::panel(app, ui);
             ui.add_space(80.0);
             return;
         }
         match app.ui.right_tab {
             // The Frame tool shows the frame presets.
-            RightTab::Design if app.session.tool.tool == figcraft_engine::ToolId::Frame => crate::frame_presets::panel(app, ui),
+            RightTab::Design if app.session.tool.tool == figiran_engine::ToolId::Frame => crate::frame_presets::panel(app, ui),
             RightTab::Design => design(app, ui),
             RightTab::Prototype => crate::proto_panel::prototype(app, ui),
             RightTab::Inspect => inspect(app, ui),
@@ -279,7 +279,7 @@ fn design(app: &mut FigApp, ui: &mut Ui) {
         Some(ve) => crate::vector_panel::points(app, ui, &shown, &ve),
         None => {
             crate::section_panel::section(app, ui, &shown, &sel);
-            if app.session.tool.tool == figcraft_engine::ToolId::Scale {
+            if app.session.tool.tool == figiran_engine::ToolId::Scale {
                 crate::scale_panel::section(app, ui, &shown, &sel);
                 widgets::separator(ui);
             }
@@ -323,11 +323,11 @@ fn page_section(app: &mut FigApp, ui: &mut Ui, doc: &Document) {
     let Ok(page) = app.session.page() else { return };
     let bg = match doc.node(page).map(|n| &n.kind) {
         Some(NodeKind::Page { background, .. }) => *background,
-        _ => figcraft_color::Color::DEFAULT_PAGE,
+        _ => figiran_color::Color::DEFAULT_PAGE,
     };
     widgets::section_header(ui, tr("Page"), &[], false);
     // The new colour and, from a scrub, whether the scrub is over (live edits stay one undo step).
-    let mut new_color: Option<(figcraft_color::Color, Option<bool>)> = None;
+    let mut new_color: Option<(figiran_color::Color, Option<bool>)> = None;
     row(ui, 32.0, |ui| {
         let p = Paint::solid(bg);
         let sw = widgets::swatch(ui, &p, 16.0);
@@ -335,7 +335,7 @@ fn page_section(app: &mut FigApp, ui: &mut Ui, doc: &Document) {
         // A typed colour keeps the page's opacity unless it carries one: 4 or 8 hex digits
         // (`FF000080`; `FF0000FF` asks for opaque).
         if let Some(h) = widgets::text_field(ui, Id::unique("pagebg"), &bg.to_hex(), 96.0, "")
-            && let Some(c) = figcraft_color::Color::from_hex_or_name(&h)
+            && let Some(c) = figiran_color::Color::from_hex_or_name(&h)
         {
             let digits = h.trim().trim_start_matches('#');
             let carries_alpha = matches!(digits.len(), 4 | 8) && digits.chars().all(|ch| ch.is_ascii_hexdigit());
@@ -370,7 +370,7 @@ fn page_section(app: &mut FigApp, ui: &mut Ui, doc: &Document) {
     row(ui, 32.0, |ui| {
         let resp = widgets::dropdown(ui, doc.color_profile.label(), 140.0, None);
         menu_popup(&resp).show(|ui| {
-            for p in figcraft_color::ColorProfile::ALL {
+            for p in figiran_color::ColorProfile::ALL {
                 if menu_item(ui, p.label(), "") {
                     if p != doc.color_profile {
                         app.ui.color_profile = Some(p);
@@ -382,7 +382,7 @@ fn page_section(app: &mut FigApp, ui: &mut Ui, doc: &Document) {
     });
     widgets::separator(ui);
     // Local variables & styles.
-    let vars = doc.variables.variables.iter().filter(|v| !figcraft_engine::library::is_remote_variable(doc, &v.id)).count();
+    let vars = doc.variables.variables.iter().filter(|v| !figiran_engine::library::is_remote_variable(doc, &v.id)).count();
     widgets::section_header(ui, tr("Local variables"), &[], vars == 0);
     row(ui, 32.0, |ui| {
         let r = widgets::dropdown(ui, &trf("Open variables ({count})", &[("count", &vars)]), 200.0, Some(Icon::Styles));
@@ -393,7 +393,7 @@ fn page_section(app: &mut FigApp, ui: &mut Ui, doc: &Document) {
         }
     });
     widgets::separator(ui);
-    widgets::section_header(ui, tr("Local styles"), &[], figcraft_engine::library::local_styles(doc).next().is_none());
+    widgets::section_header(ui, tr("Local styles"), &[], figiran_engine::library::local_styles(doc).next().is_none());
     crate::style_picker::local_styles(app, ui, doc);
     widgets::separator(ui);
     crate::export_panel::page_section(app, ui, doc, page);
@@ -463,7 +463,7 @@ fn header(app: &mut FigApp, ui: &mut Ui, doc: &Document, sel: &[NodeId]) {
         if widgets::icon_button_at(ui, ui.scope_id().with("frame_fit_contents"), fit_r, Icon::FitContents, fit_tip) {
             app.run("object.resizeToFit", json!({"ids": sel}));
         }
-        if figcraft_engine::devinspect::has_status(doc, sel[0]) {
+        if figiran_engine::devinspect::has_status(doc, sel[0]) {
             crate::section_panel::status_icon(app, ui, doc, sel, fit_r.translate(vec2(26.0, 0.0)));
         }
         let ids: Vec<NodeId> = sel.to_vec();
@@ -472,7 +472,7 @@ fn header(app: &mut FigApp, ui: &mut Ui, doc: &Document, sel: &[NodeId]) {
                 kind_items(app, ui, true);
                 ui.separator();
                 let mut cat = "";
-                for (c, name, pw, ph) in figcraft_engine::cmd::create::FRAME_PRESETS {
+                for (c, name, pw, ph) in figiran_engine::cmd::create::FRAME_PRESETS {
                     if *c != cat {
                         cat = c;
                         ui.label(egui::RichText::new(tr(c)).font(semibold(11.0)).color(t.text_secondary));
@@ -493,7 +493,7 @@ fn header(app: &mut FigApp, ui: &mut Ui, doc: &Document, sel: &[NodeId]) {
         (Icon::Union, tr("Boolean groups"), "bool.union"),
     ];
     // Layers in boolean groups, or one boolean group: the operation they use (checked in the menu).
-    let current = figcraft_engine::booleans::shown_op(doc, sel);
+    let current = figiran_engine::booleans::shown_op(doc, sel);
     for (icon, label, cmd) in actions.into_iter().rev() {
         let br = Rect::from_min_size(pos2(x - 24.0, r.center().y - 12.0), vec2(24.0, 24.0));
         let tip = if cmd == "bool.union" { label } else { crate::shortcuts::tip(label, cmd) };
@@ -549,7 +549,7 @@ pub(crate) struct InInstance {
 }
 
 pub(crate) fn in_instance(ctx: &egui::Context, doc: &Arc<Document>, sel: &[NodeId]) -> InInstance {
-    use figcraft_engine::components::{inside_instance, owning_instance};
+    use figiran_engine::components::{inside_instance, owning_instance};
     crate::selection_cache::cached(ctx, "in instance", doc, sel, &[], || InInstance {
         any: sel.iter().any(|i| owning_instance(doc, *i).is_some()),
         nested: sel.iter().any(|i| inside_instance(doc, *i)),
@@ -580,7 +580,7 @@ pub(crate) struct PositionValues {
     pub absolute: Option<bool>,
     /// Every selected layer is in a frame that places it by constraints, and those constraints.
     pub in_frame: bool,
-    pub constraints: Option<figcraft_doc::Constraints>,
+    pub constraints: Option<figiran_doc::Constraints>,
 }
 
 /// What the X field shows of a layer (in its frame's space: groups have none of their own); a
@@ -594,13 +594,13 @@ fn y_of(doc: &Document, n: &Node) -> f64 {
 }
 
 fn rot_of(n: &Node) -> f64 {
-    (figcraft_geom::rotation_degrees(n.transform) * 100.0).round() / 100.0
+    (figiran_geom::rotation_degrees(n.transform) * 100.0).round() / 100.0
 }
 
 pub(crate) fn position_values(ctx: &egui::Context, doc: &Arc<Document>, sel: &[NodeId]) -> PositionValues {
     let parent = |n: &Node| n.parent.and_then(|p| doc.node(p));
     crate::selection_cache::cached(ctx, "position", doc, sel, &[], || PositionValues {
-        can_align: figcraft_engine::cmd::arrange::can_align(doc, sel),
+        can_align: figiran_engine::cmd::arrange::can_align(doc, sel),
         x: common(doc, sel, |n| x_of(doc, n)),
         y: common(doc, sel, |n| y_of(doc, n)),
         rot: common(doc, sel, rot_of),
@@ -716,7 +716,7 @@ fn rotation_row(app: &mut FigApp, ui: &mut Ui, sel: &[NodeId], rot: Option<f64>,
 }
 
 /// The horizontal and vertical constraints of children of frames without auto layout.
-fn constraints_row(app: &mut FigApp, ui: &mut Ui, sel: &[NodeId], c: Option<figcraft_doc::Constraints>, col: f32) {
+fn constraints_row(app: &mut FigApp, ui: &mut Ui, sel: &[NodeId], c: Option<figiran_doc::Constraints>, col: f32) {
     let ids = sel.to_vec();
     widgets::sublabels(ui, tr("Constraints"), None);
     row(ui, 32.0, |ui| {

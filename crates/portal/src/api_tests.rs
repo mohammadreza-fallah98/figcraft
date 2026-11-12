@@ -70,17 +70,17 @@ fn reads_the_project_list() {
 #[test]
 fn reads_an_opened_project() {
     let body =
-        r#"{"isSuccess":true,"data":{"joinUrl":"figcraft://join?server=wss://s.example&file=f&token=t","access":"View","projectName":"Brand"}}"#;
+        r#"{"isSuccess":true,"data":{"joinUrl":"figiran://join?server=wss://s.example&file=f&token=t","access":"View","projectName":"Brand"}}"#;
     let o = parse_opened(5, 200, body).unwrap();
     assert_eq!((o.project_id, o.project_name.as_str(), o.access.clone()), (5, "Brand", Access::View));
-    assert_eq!(o.join_url, "figcraft://join?server=wss://s.example&file=f&token=t");
+    assert_eq!(o.join_url, "figiran://join?server=wss://s.example&file=f&token=t");
 }
 
 #[test]
 fn only_join_links_are_accepted_from_a_project() {
-    assert!(is_join_url("figcraft://join?host=1.2.3.4:5&file=f&token=t"));
-    assert!(is_join_url("FIGCRAFT://JOIN?x=1"));
-    for bad in ["", "https://evil.example", "figcraft://auth?code=x", "figcraft://join", "figcraft://join?a b", "file:///etc/passwd"] {
+    assert!(is_join_url("figiran://join?host=1.2.3.4:5&file=f&token=t"));
+    assert!(is_join_url("FIGIRAN://JOIN?x=1"));
+    for bad in ["", "https://evil.example", "figiran://auth?code=x", "figiran://join", "figiran://join?a b", "file:///etc/passwd"] {
         assert!(!is_join_url(bad), "{bad}");
     }
     assert!(!is_join_url("\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}\u{e9}"));

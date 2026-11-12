@@ -1,8 +1,8 @@
 //! Brushes: stretch shapes bend along the path, scatter copies are spaced, capped and repeatable,
 //! and a width profile (pen pressure) scales them.
 
-use figcraft_doc::{Brush, StrokeAlign, StrokeProps, WidthProfile};
-use figcraft_geom::kurbo::{BezPath, Point, Shape};
+use figiran_doc::{Brush, StrokeAlign, StrokeProps, WidthProfile};
+use figiran_geom::kurbo::{BezPath, Point, Shape};
 
 use crate::brush::{MAX_COPIES, PRESETS, outline};
 
@@ -66,7 +66,7 @@ fn scatter_is_spaced_capped_and_repeatable() {
     let c = Brush { seed: 8, ..b.clone() };
     assert_ne!(a, outline(&line(200.0), 10.0, &props(10.0, &c), &c).unwrap());
     // 200 long, a copy every 20: ten circles (each a move-to).
-    let moves = |p: &BezPath| p.elements().iter().filter(|e| matches!(e, figcraft_geom::kurbo::PathEl::MoveTo(_))).count();
+    let moves = |p: &BezPath| p.elements().iter().filter(|e| matches!(e, figiran_geom::kurbo::PathEl::MoveTo(_))).count();
     assert_eq!(moves(&a), 10);
     // A tiny spacing on a long path stops at the cap.
     let dense = Brush { spacing: 0.0, ..brush("dots") };
@@ -79,7 +79,7 @@ fn a_width_profile_scales_the_brush() {
     let mut pr = props(10.0, &b);
     pr.width_profile = Some(WidthProfile::new([(0.0, 0.2), (1.0, 2.0)]));
     let out = outline(&line(300.0), 10.0, &pr, &b).unwrap();
-    let parts = figcraft_geom::split_subpaths(&out);
+    let parts = figiran_geom::split_subpaths(&out);
     let (first, last) = (parts.first().unwrap().bounding_box(), parts.last().unwrap().bounding_box());
     assert!(last.width() > first.width() * 3.0, "{first:?} {last:?}");
 }
@@ -87,7 +87,7 @@ fn a_width_profile_scales_the_brush() {
 #[test]
 fn an_unsanitized_profile_is_bounded_before_sampling() {
     // 100k points, all past the 64-point cap and out of range: the brush reads the clamped profile.
-    let raw = WidthProfile { points: (0..100_000).map(|i| figcraft_doc::WidthPoint::new(f64::from(i), 1e300)).collect() };
+    let raw = WidthProfile { points: (0..100_000).map(|i| figiran_doc::WidthPoint::new(f64::from(i), 1e300)).collect() };
     let b = brush("taper");
     let mut p = props(1.0, &b);
     p.width_profile = Some(raw);

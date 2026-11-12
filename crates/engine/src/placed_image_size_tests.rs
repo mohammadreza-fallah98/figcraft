@@ -1,5 +1,5 @@
 use base64::Engine as _;
-use figcraft_doc::NodeId;
+use figiran_doc::NodeId;
 use serde_json::json;
 
 use crate::Session;
@@ -9,7 +9,7 @@ const PIXELS_PER_METER_AT_72_DPI: u32 = 2835;
 const PIXELS_PER_METER_AT_300_DPI: u32 = 11811;
 
 fn png(width: u32, height: u32) -> Vec<u8> {
-    figcraft_render::encode_png(&figcraft_render::Pixmap::new(width, height).unwrap()).unwrap()
+    figiran_render::encode_png(&figiran_render::Pixmap::new(width, height).unwrap()).unwrap()
 }
 
 fn crc32(bytes: &[u8]) -> u32 {
@@ -56,7 +56,7 @@ fn an_image_is_placed_at_its_pixel_size() {
 fn a_retina_screenshot_is_placed_at_its_point_size() {
     let mut s = Session::new();
     let retina = with_pixels_per_meter(&png(800, 600), PIXELS_PER_METER_AT_144_DPI);
-    assert_eq!(figcraft_format::pixel_density(&retina), 2.0);
+    assert_eq!(figiran_format::pixel_density(&retina), 2.0);
     assert_eq!(place(&mut s, &retina, json!({})), (400.0, 300.0));
 }
 
@@ -64,7 +64,7 @@ fn a_retina_screenshot_is_placed_at_its_point_size() {
 fn a_print_resolution_is_not_read_as_a_screen_density() {
     let mut s = Session::new();
     let scan = with_pixels_per_meter(&png(600, 400), PIXELS_PER_METER_AT_300_DPI);
-    assert_eq!(figcraft_format::pixel_density(&scan), 1.0);
+    assert_eq!(figiran_format::pixel_density(&scan), 1.0);
     assert_eq!(place(&mut s, &scan, json!({})), (600.0, 400.0));
 }
 
@@ -72,11 +72,11 @@ fn a_print_resolution_is_not_read_as_a_screen_density() {
 fn a_density_near_a_screen_density_is_not_read_as_one() {
     for (dpi, pixels_per_meter) in [(141, 5551), (143, 5630), (145, 5709)] {
         let near = with_pixels_per_meter(&png(4, 4), pixels_per_meter);
-        assert_eq!(figcraft_format::pixel_density(&near), 1.0, "{dpi} dpi");
+        assert_eq!(figiran_format::pixel_density(&near), 1.0, "{dpi} dpi");
     }
     for (density, pixels_per_meter) in [(2.0, 5670), (3.0, 8504), (4.0, 11339)] {
         let screen = with_pixels_per_meter(&png(4, 4), pixels_per_meter);
-        assert_eq!(figcraft_format::pixel_density(&screen), density, "{pixels_per_meter} pixels per metre");
+        assert_eq!(figiran_format::pixel_density(&screen), density, "{pixels_per_meter} pixels per metre");
     }
 }
 
@@ -97,8 +97,8 @@ fn an_explicit_size_still_wins() {
 
 #[test]
 fn bytes_that_are_not_png_have_no_density() {
-    assert_eq!(figcraft_format::pixel_density(b"GIF89a"), 1.0);
-    assert_eq!(figcraft_format::pixel_density(&[]), 1.0);
+    assert_eq!(figiran_format::pixel_density(b"GIF89a"), 1.0);
+    assert_eq!(figiran_format::pixel_density(&[]), 1.0);
     let truncated = &with_pixels_per_meter(&png(4, 4), PIXELS_PER_METER_AT_144_DPI)[..40];
-    assert_eq!(figcraft_format::pixel_density(truncated), 1.0);
+    assert_eq!(figiran_format::pixel_density(truncated), 1.0);
 }

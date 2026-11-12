@@ -1,6 +1,6 @@
 //! Upload the open document to the portal as a new project (an Admin or a CompanyAdmin).
 //!
-//! The app hands over the document exactly as its own Save as writes it (the native `.figcraft`
+//! The app hands over the document exactly as its own Save as writes it (the native `.figiran`
 //! archive, as base64); a background thread decodes it into a temporary file, sends it as a
 //! `multipart/form-data` body (`file`, `name`, and `companyId` for an Admin) to
 //! `POST api/v1/projects/upload` with the person's access token, and deletes the temporary file
@@ -21,7 +21,7 @@ use serde::Deserialize;
 use crate::api::{self, PortalError};
 use crate::session::{Portal, lock};
 
-/// The largest document the portal takes (its `FigcraftServer:MaxUploadMb`, 200).
+/// The largest document the portal takes (its `FigiranServer:MaxUploadMb`, 200).
 pub const MAX_UPLOAD_BYTES: u64 = 200 << 20;
 
 /// Where the portal takes uploads, and lists the companies, relative to its address.
@@ -29,7 +29,7 @@ pub const UPLOAD_PATH: &str = "api/v1/projects/upload";
 pub const COMPANIES_PATH: &str = "api/v1/companies?Page=1&PageSize=100";
 
 /// The file name sent with the upload (the portal keeps only its extension).
-const UPLOAD_FILE_NAME: &str = "project.figcraft";
+const UPLOAD_FILE_NAME: &str = "project.figiran";
 
 /// The portal's limit on a project name.
 pub const MAX_NAME_CHARS: usize = 150;
@@ -279,7 +279,7 @@ impl TempFile {
     /// Write `bytes` to a new, uniquely named file in `dir` (never over an existing file).
     pub fn create(dir: &Path, bytes: &[u8]) -> Result<Self, UploadError> {
         let unique = crate::pkce::new_verifier().map_err(UploadError::Local)?;
-        let path = dir.join(format!("figcraft-upload-{}.figcraft", unique.chars().take(16).collect::<String>()));
+        let path = dir.join(format!("figiran-upload-{}.figiran", unique.chars().take(16).collect::<String>()));
         let local = |e: io::Error| UploadError::Local(format!("The temporary file couldn't be written ({e})."));
         let mut file = OpenOptions::new().write(true).create_new(true).open(&path).map_err(local)?;
         let temp = Self { path };

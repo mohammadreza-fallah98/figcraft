@@ -4,11 +4,11 @@
 //! a line under itself and the column lines are thin rectangles over the table that stretch with
 //! it (they are rebuilt after every edit, like the first row's header tint).
 
-use figcraft_color::{Color, Paint};
-use figcraft_doc::{
+use figiran_color::{Color, Paint};
+use figiran_doc::{
     AutoLayout, BoardItem, Constraints, Document, HConstraint, LayoutMode, Node, NodeId, NodeKind, Sizing, StrokeAlign, TextAlignH, VConstraint,
 };
-use figcraft_geom::Affine;
+use figiran_geom::Affine;
 use serde_json::{Value, json};
 
 use crate::board::{INK, add_text, require};

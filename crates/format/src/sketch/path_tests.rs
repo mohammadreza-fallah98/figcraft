@@ -1,7 +1,7 @@
 //! Sketch paths → editable vector networks; shape groups → shapes and boolean operations; stars
 //! and polygons.
 
-use figcraft_doc::{BoolOp, Document, NodeKind};
+use figiran_doc::{BoolOp, Document, NodeKind};
 use serde_json::{Value, json};
 
 use super::fixture::*;
@@ -13,7 +13,7 @@ fn open(layers: Vec<Value>) -> Document {
     import(&z, "f").unwrap().0
 }
 
-fn node<'d>(doc: &'d Document, name: &str) -> &'d figcraft_doc::Node {
+fn node<'d>(doc: &'d Document, name: &str) -> &'d figiran_doc::Node {
     doc.nodes().find(|n| n.name == name).unwrap_or_else(|| panic!("no layer named {name}"))
 }
 
@@ -83,7 +83,7 @@ fn mixed_boolean_ops_chain_left() {
     let doc = open(vec![shape_group("Combined", 0.0, 0.0, 80.0, 50.0, vec![a, b, c])]);
     let outer = node(&doc, "Combined");
     assert!(matches!(outer.kind, NodeKind::BooleanOp { op: BoolOp::Union }));
-    let kids: Vec<&figcraft_doc::Node> = outer.children.iter().map(|c| doc.node(*c).unwrap()).collect();
+    let kids: Vec<&figiran_doc::Node> = outer.children.iter().map(|c| doc.node(*c).unwrap()).collect();
     assert_eq!(kids.len(), 2);
     assert!(matches!(kids[0].kind, NodeKind::BooleanOp { op: BoolOp::Subtract }));
     assert_eq!(kids[1].name, "C");
@@ -112,12 +112,12 @@ fn standalone_shapes_52_plus() {
 
 #[test]
 fn star_and_polygon() {
-    let unit = |pts: Vec<figcraft_doc::geom::Point>, w: f64, h: f64| -> Vec<(f64, f64)> { pts.iter().map(|p| (p.x / w, p.y / h)).collect() };
-    let mut star = shape_path("Star", 0.0, 0.0, 100.0, 80.0, &unit(figcraft_doc::geom::star_points(100.0, 80.0, 5, 0.5), 100.0, 80.0), true);
+    let unit = |pts: Vec<figiran_doc::geom::Point>, w: f64, h: f64| -> Vec<(f64, f64)> { pts.iter().map(|p| (p.x / w, p.y / h)).collect() };
+    let mut star = shape_path("Star", 0.0, 0.0, 100.0, 80.0, &unit(figiran_doc::geom::star_points(100.0, 80.0, 5, 0.5), 100.0, 80.0), true);
     star["_class"] = json!("star");
     star["numberOfPoints"] = json!(5);
     star["radius"] = json!(0.5);
-    let mut poly = shape_path("Hexagon", 0.0, 100.0, 60.0, 60.0, &unit(figcraft_doc::geom::polygon_points(60.0, 60.0, 6), 60.0, 60.0), true);
+    let mut poly = shape_path("Hexagon", 0.0, 100.0, 60.0, 60.0, &unit(figiran_doc::geom::polygon_points(60.0, 60.0, 6), 60.0, 60.0), true);
     poly["_class"] = json!("polygon");
     poly["numberOfPoints"] = json!(6);
     let mut edited = star.clone();
@@ -150,7 +150,7 @@ fn even_odd_winding() {
     p["style"]["windingRule"] = json!(1);
     let doc = open(vec![p]);
     let NodeKind::Vector { network } = &node(&doc, "Holes").kind else { panic!("not a vector") };
-    assert_eq!(network.regions[0].winding, figcraft_doc::WindingRule::EvenOdd);
+    assert_eq!(network.regions[0].winding, figiran_doc::WindingRule::EvenOdd);
 }
 
 #[test]
@@ -179,7 +179,7 @@ fn compound_shape_group_has_holes() {
     let NodeKind::Vector { network } = &n.kind else { panic!("not one vector: {:?}", n.kind) };
     assert_eq!(network.regions.len(), 1);
     assert_eq!(network.regions[0].loops.len(), 2);
-    assert_eq!(network.regions[0].winding, figcraft_doc::WindingRule::EvenOdd);
+    assert_eq!(network.regions[0].winding, figiran_doc::WindingRule::EvenOdd);
     let b = doc.world_bounds(n.id).unwrap();
     assert_eq!((b.x0, b.y0, b.width(), b.height()), (10.0, 10.0, 100.0, 100.0));
 }
@@ -203,7 +203,7 @@ fn layer_winding_rule_counts() {
     p["windingRule"] = json!(1);
     let doc = open(vec![p]);
     let NodeKind::Vector { network } = &node(&doc, "Wound").kind else { panic!("not a vector") };
-    assert_eq!(network.regions[0].winding, figcraft_doc::WindingRule::EvenOdd);
+    assert_eq!(network.regions[0].winding, figiran_doc::WindingRule::EvenOdd);
 }
 
 /// Sketch fills an open path as if it were closed.
@@ -235,7 +235,7 @@ fn open_operands_of_booleans_are_closed() {
 }
 
 /// Sketch draws a shape group in the group's style only: its operands' own borders go, so a
-/// FigCraft operand gives its area to the operation, not a stroke's band.
+/// FigIran operand gives its area to the operation, not a stroke's band.
 #[test]
 fn shape_group_operands_lose_their_borders() {
     let border = json!([{"_class": "border", "isEnabled": true, "fillType": 0, "color": color(0.0, 0.0, 0.0, 1.0), "position": 0, "thickness": 8}]);

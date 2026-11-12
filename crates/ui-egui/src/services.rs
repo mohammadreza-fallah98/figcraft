@@ -72,13 +72,13 @@ pub trait Services {
     fn emergency_save(&mut self, _session: &Session) {}
     /// Keep the preferences now (the installed plugins or their settings changed), as the app
     /// does when it quits.
-    fn save_prefs(&mut self, _prefs: &figcraft_engine::Prefs) {}
+    fn save_prefs(&mut self, _prefs: &figiran_engine::Prefs) {}
     /// The OS or browser language as a tag ("es-ES"), for the "system" language preference.
     fn system_language(&self) -> Option<String> {
         None
     }
     /// The controller buttons held now on any controller: bit i is standard gamepad layout index i
-    /// (0 the bottom face button … 16 home; `figcraft_doc::proto::GAMEPAD_BUTTONS`). The prototype
+    /// (0 the bottom face button … 16 home; `figiran_doc::proto::GAMEPAD_BUTTONS`). The prototype
     /// player asks every frame while its prototype has gamepad triggers.
     fn gamepad_held(&mut self) -> u32 {
         0
@@ -146,12 +146,12 @@ pub fn browser_stopped(unsaved: usize, kept: usize) -> String {
     } else {
         i18n::tr("Reload the page to get back the unsaved files the browser had room for.")
     };
-    format!("{} {next}", i18n::tr("FigCraft stopped because of an internal error."))
+    format!("{} {next}", i18n::tr("FigIran stopped because of an internal error."))
 }
 
 /// The largest file read in the browser: wasm has at most 4 GiB of memory, and a file's contents
 /// are held about three times on their way to `file.open` (the bytes, base64, decoded again).
-/// As large as one member of a `.figcraft` file may be.
+/// As large as one member of a `.figiran` file may be.
 const MAX_BROWSER_FILE: f64 = (512u64 << 20) as f64;
 
 /// Checks a file of `size` bytes before the browser reads it (`Err`: what to tell the user).

@@ -4,10 +4,10 @@
 
 use std::collections::BTreeMap;
 
-use figcraft_color::{ImageScaleMode, PaintKind};
-use figcraft_doc::geometry::select_target;
-use figcraft_doc::{Document, LayoutMode, Node, NodeId, NodeKind, Sizing, StrokeAlign, StrokeCap, TextAutoResize, TextData, TextPath, VectorNetwork};
-use figcraft_geom::{Affine, Point, Rect, Vec2};
+use figiran_color::{ImageScaleMode, PaintKind};
+use figiran_doc::geometry::select_target;
+use figiran_doc::{Document, LayoutMode, Node, NodeId, NodeKind, Sizing, StrokeAlign, StrokeCap, TextAutoResize, TextData, TextPath, VectorNetwork};
+use figiran_geom::{Affine, Point, Rect, Vec2};
 use serde::Serialize;
 use serde_json::json;
 
@@ -330,7 +330,7 @@ pub struct Overlay {
     pub pen: Vec<[f64; 2]>,
     /// Pencil: the colour of the stroke in progress, for its preview (white over a dark page or
     /// frame); None outside a Pencil stroke.
-    pub pen_color: Option<figcraft_color::Color>,
+    pub pen_color: Option<figiran_color::Color>,
     pub rubber: Option<[f64; 4]>,
     /// Pen tool: the handles shaping the segments at the pen (anchor x, y, handle x, y): the last
     /// anchor's in and out handles and the one before's out handle.
@@ -494,7 +494,7 @@ pub(crate) enum Gesture {
     Origin,
     /// The connector tool: dragging from `from` (pressed at `start`).
     Connect {
-        from: figcraft_doc::End,
+        from: figiran_doc::End,
         start: Point,
     },
     /// Dragging the selected connector `id`'s end (`from`: its start, pressed at `start`) to
@@ -585,14 +585,14 @@ pub struct ToolState {
     /// hover on one as on its frame.
     pub labels: Vec<(NodeId, [Point; 4])>,
     /// The brush the Pencil draws with (`tool.pencilBrush`; `None`: a plain stroke).
-    pub pencil_brush: Option<figcraft_doc::Brush>,
+    pub pencil_brush: Option<figiran_doc::Brush>,
     /// The board tools' colours and choices.
     pub board: crate::board::BoardTool,
     /// The eyedropper samples for a colour picker (`edit.pickColor` with `apply: false`): the
     /// colour goes to `picked`, for the picker to write to the paint it edits, not to the fill.
     pub pick_only: bool,
     /// The colour the eyedropper sampled for a colour picker, until the picker takes it.
-    pub picked: Option<figcraft_color::Color>,
+    pub picked: Option<figiran_color::Color>,
     /// The widget layers whose hover styles show while the pointer is over them (a live preview).
     pub(crate) widget_hover: Vec<NodeId>,
     /// The placement crosshair: where Enter puts the next shape or frame once the arrows have

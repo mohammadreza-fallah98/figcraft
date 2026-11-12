@@ -1,8 +1,8 @@
 use super::layer::{cap_name, own_text, svg_path, valid_size};
 use super::paint::{paint, stroke};
 use super::{Affine, Kv, Mapper, NO_STYLE, Obj, Point, Value, View, generated_record, guid, json, matrix, network, num, rows};
-use figcraft_doc::geom::kurbo::{BezPath, PathEl, Rect, Shape};
-use figcraft_doc::{ConnectorPath, MAX_RUNS, RouteEnd, Routing, Side, attach_points, attached_sides, route_along};
+use figiran_doc::geom::kurbo::{BezPath, PathEl, Rect, Shape};
+use figiran_doc::{ConnectorPath, MAX_RUNS, RouteEnd, Routing, Side, attach_points, attached_sides, route_along};
 
 /// How a connector imports: from its saved snapshot (`terminal`: as one vector, no room for its
 /// label), or drawn from its ends, as a frame with its line and `label` when it has one.
@@ -107,7 +107,7 @@ impl<'a> Mapper<'a> {
             return None;
         };
         if routing != Routing::Straight && path.is_none() {
-            self.warn("elbowed and curved connectors without a saved path follow FigCraft's own routing");
+            self.warn("elbowed and curved connectors without a saved path follow FigIran's own routing");
         }
         // A curved route is one curve: its ends and the two control points between them.
         let (path, vertices) = match (routing, pts.as_slice()) {
@@ -503,7 +503,7 @@ const LABEL_WIDTH: f64 = 200.0;
 /// The point halfway along `path` by length.
 fn middle(path: &BezPath) -> Option<Point> {
     let mut pts: Vec<Point> = Vec::new();
-    figcraft_doc::geom::kurbo::flatten(path.iter(), 0.25, |el| {
+    figiran_doc::geom::kurbo::flatten(path.iter(), 0.25, |el| {
         if let PathEl::MoveTo(p) | PathEl::LineTo(p) = el {
             pts.push(p);
         }

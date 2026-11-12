@@ -1,6 +1,6 @@
 //! An in-process MCP client: feeds JSON-RPC lines to `Server::handle_line`.
 
-use figcraft_mcp::Server;
+use figiran_mcp::Server;
 use serde_json::{Value, json};
 
 pub struct Client {
@@ -83,5 +83,5 @@ pub fn approx(v: &Value, want: f64) -> bool {
 pub fn png_dims(b64: &str) -> (u32, u32) {
     use base64::Engine as _;
     let bytes = base64::engine::general_purpose::STANDARD.decode(b64).unwrap();
-    figcraft_mcp::png_size(&bytes).unwrap()
+    figiran_mcp::png_size(&bytes).unwrap()
 }

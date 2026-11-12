@@ -3,12 +3,12 @@
 
 use crate::Session;
 use crate::components::tests::{ex, idv};
-use figcraft_doc::{NodeId, NodeKind};
+use figiran_doc::{NodeId, NodeKind};
 use serde_json::json;
 
 /// A fixed-width (auto-height) headline of `width` px at 64px. Returns its id.
 fn headline(s: &mut Session, text: &str, width: f64) -> NodeId {
-    figcraft_text::scan_system_fonts();
+    figiran_text::scan_system_fonts();
     let t = idv(&ex(s, "text.create", json!({"text": text, "x": 0, "y": 0, "props": {"name": "Headline", "fontSize": 64}})));
     ex(s, "node.set", json!({"id": t, "props": {"width": width, "textAutoResize": "height"}}));
     t
@@ -58,7 +58,7 @@ fn a_one_word_last_line_is_avoided() {
     assert_eq!(r["fitted"][0]["orphan"], false, "{r}");
     let doc = s.doc().unwrap();
     let NodeKind::Text(tx) = &doc.node(t).unwrap().kind else { panic!() };
-    let l = figcraft_text::layout(tx, Some(520.0), None);
+    let l = figiran_text::layout(tx, Some(520.0), None);
     let last = l.lines.last().unwrap();
     let words = tx.characters.chars().skip(last.char_start).take(last.char_end - last.char_start).collect::<String>();
     assert!(l.lines.len() == 1 || words.split_whitespace().count() > 1 || words.contains('\u{a0}'), "{words:?}");
@@ -68,7 +68,7 @@ fn a_one_word_last_line_is_avoided() {
 /// source text layer untouched.
 #[test]
 fn data_fill_sizes_each_copys_text() {
-    figcraft_text::scan_system_fonts();
+    figiran_text::scan_system_fonts();
     let mut s = Session::new();
     let f = idv(&ex(&mut s, "frame.create", json!({"x": 0, "y": 0, "width": 1080, "height": 1350, "name": "Post"})));
     let t = idv(&ex(&mut s, "text.create", json!({"text": "Curto", "x": 80, "y": 80, "parent": f, "props": {"name": "Headline", "fontSize": 96}})));
@@ -101,7 +101,7 @@ fn review_fits_is_reported_from_the_final_text() {
         let f = &r["fitted"][0];
         let doc = s.doc().unwrap();
         let NodeKind::Text(tx) = &doc.node(t).unwrap().kind else { panic!() };
-        let real = figcraft_text::layout(tx, Some(width), None).lines.len();
+        let real = figiran_text::layout(tx, Some(width), None).lines.len();
         assert_eq!(f["lines"].as_u64().unwrap() as usize, real, "{r}");
         assert_eq!(f["fits"].as_bool().unwrap(), real as f64 <= lines, "{r}");
     }

@@ -2,8 +2,8 @@
 //! around one, following the layers, removed, undoable, copied with what they measure, refused on
 //! bad input, synced, saved (old files without them still open) and allowed in Dev Mode.
 
-use figcraft_collab::{Change, Prop, Replica};
-use figcraft_doc::NodeId;
+use figiran_collab::{Change, Prop, Replica};
+use figiran_doc::NodeId;
 use serde_json::{Value, json};
 
 use crate::Session;
@@ -136,7 +136,7 @@ fn copies_measure_what_was_copied_with_them() {
     ok(&mut s, "edit.duplicate", json!({"ids": [a]}));
     let lone = s.selection()[0];
     let m = &s.doc().unwrap().node(lone).unwrap().measurements;
-    assert_eq!((m.len(), m[0].to, m[0].side), (1, None, Some(figcraft_doc::Side::Bottom)));
+    assert_eq!((m.len(), m[0].to, m[0].side), (1, None, Some(figiran_doc::Side::Bottom)));
 }
 
 #[test]
@@ -146,14 +146,14 @@ fn measurements_sync_save_and_old_files_open() {
     ok(&mut s, "devMode.addMeasurement", json!({"from": a, "to": b}));
     ok(&mut s, "devMode.addMeasurement", json!({"from": b, "side": "right"}));
     // A change collaborators receive.
-    let d = figcraft_collab::diff(&Replica::new(before), s.doc().unwrap()).unwrap();
+    let d = figiran_collab::diff(&Replica::new(before), s.doc().unwrap()).unwrap();
     assert!(d.changes.iter().any(|c| matches!(c, Change::Set { id, prop: Prop::Measurements, .. } if *id == a)), "{:?}", d.changes);
     // What agents inspect.
     assert_eq!(crate::inspect::node_json(s.doc().unwrap(), b, 0)["measurements"], json!([{"side": "right"}]));
     // Saved and opened again.
     let doc = s.doc().unwrap();
-    let bytes = figcraft_format::save_bytes(doc, None).unwrap();
-    let (back, _) = figcraft_format::load_bytes(&bytes).unwrap();
+    let bytes = figiran_format::save_bytes(doc, None).unwrap();
+    let (back, _) = figiran_format::load_bytes(&bytes).unwrap();
     assert_eq!(back.node(a).unwrap().measurements, doc.node(a).unwrap().measurements);
     assert_eq!(back.node(b).unwrap().measurements, doc.node(b).unwrap().measurements);
     // A file from before measurements (no such field) opens with none.
@@ -167,10 +167,10 @@ fn measurements_sync_save_and_old_files_open() {
             _ => {}
         }
     }
-    let mut old = figcraft_format::to_json(doc).unwrap();
+    let mut old = figiran_format::to_json(doc).unwrap();
     assert!(old.to_string().contains("\"measurements\""));
     strip(&mut old);
-    let (back, _) = figcraft_format::from_json(&old.to_string()).unwrap();
+    let (back, _) = figiran_format::from_json(&old.to_string()).unwrap();
     assert!(back.node(a).unwrap().measurements.is_empty() && back.node(b).unwrap().name == doc.node(b).unwrap().name);
 }
 

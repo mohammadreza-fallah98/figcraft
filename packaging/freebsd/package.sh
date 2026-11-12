@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# Build and package FigCraft for FreeBSD:
+# Build and package FigIran for FreeBSD:
 #
-#   $DIST/figcraft-<version>-freebsd-<arch>.tar.gz   (arch: x86_64 or aarch64) a /usr/local-style tree:
-#       figcraft-<version>-freebsd-<arch>/{bin, share/applications, share/icons, share/mime,
-#       share/metainfo, share/doc/figcraft}
-#   bin/ holds figcraft, plus figcraft-cli once apps/figcraft-cli exists.
+#   $DIST/figiran-<version>-freebsd-<arch>.tar.gz   (arch: x86_64 or aarch64) a /usr/local-style tree:
+#       figiran-<version>-freebsd-<arch>/{bin, share/applications, share/icons, share/mime,
+#       share/metainfo, share/doc/figiran}
+#   bin/ holds figiran, plus figiran-cli once apps/figiran-cli exists.
 #
 # Install by copying the tree's contents into /usr/local:
-#   tar -xzf figcraft-<version>-freebsd-<arch>.tar.gz --strip-components 1 -C /usr/local
+#   tar -xzf figiran-<version>-freebsd-<arch>.tar.gz --strip-components 1 -C /usr/local
 #
 # Usage: packaging/freebsd/package.sh [--skip-build] [--dry-run]
 #   --dry-run   stage the tree from stub binaries and list it, without building (works on any OS)
@@ -17,7 +17,7 @@ set -euo pipefail
 # shellcheck source=../env.sh
 . "$(dirname "${BASH_SOURCE[0]}")/../env.sh"
 LINUX="$ROOT/packaging/linux"
-APP_ID=ai.storyteller.figcraft
+APP_ID=ai.figiran.app
 
 SKIP_BUILD=0
 DRY_RUN=0
@@ -61,9 +61,9 @@ if [[ "$DRY_RUN" = 0 ]] && [[ "$(uname -s)" != FreeBSD ]]; then
   echo "error: build on FreeBSD (or pass --dry-run to check the tree layout)" >&2
   exit 2
 fi
-BASENAME="figcraft-$VERSION-freebsd-$ARCH"
+BASENAME="figiran-$VERSION-freebsd-$ARCH"
 
-echo "==> FigCraft $VERSION for FreeBSD $ARCH"
+echo "==> FigIran $VERSION for FreeBSD $ARCH"
 
 # The release VM has 12 GB; full parallelism on the biggest crates runs it out of memory.
 export CARGO_BUILD_JOBS="${CARGO_BUILD_JOBS:-4}"
@@ -92,7 +92,7 @@ fi
 # ---- stage a /usr/local-style tree --------------------------------------------------------------
 # FreeBSD's install(1) has no -D: create the directories first.
 mkdir -p "$STAGE/bin" "$STAGE/share/applications" "$STAGE/share/mime/packages" \
-  "$STAGE/share/metainfo" "$STAGE/share/icons" "$STAGE/share/doc/figcraft"
+  "$STAGE/share/metainfo" "$STAGE/share/icons" "$STAGE/share/doc/figiran"
 for b in "${BINS[@]}"; do
   install -m 755 "$BIN/$b" "$STAGE/bin/"
   strip "$STAGE/bin/$b" 2>/dev/null || true
@@ -100,18 +100,17 @@ done
 # The desktop entry, MIME type, metainfo and icons are the freedesktop files Linux ships. The
 # window's X11 class is the binary's name here (egui-winit names the window after the app id on
 # Linux only), so the entry matches that.
-sed -e "s/^StartupWMClass=.*/StartupWMClass=figcraft/" "$LINUX/$APP_ID.desktop" >"$STAGE/share/applications/$APP_ID.desktop"
+sed -e "s/^StartupWMClass=.*/StartupWMClass=figiran/" "$LINUX/$APP_ID.desktop" >"$STAGE/share/applications/$APP_ID.desktop"
 chmod 644 "$STAGE/share/applications/$APP_ID.desktop"
 install -m 644 "$LINUX/$APP_ID.mime.xml" "$STAGE/share/mime/packages/$APP_ID.xml"
-sed -e "s/@VERSION@/$VERSION/g" -e "s/@DATE@/$FIGCRAFT_BUILD_DATE/g" \
+sed -e "s/@VERSION@/$VERSION/g" -e "s/@DATE@/$FIGIRAN_BUILD_DATE/g" \
   "$LINUX/$APP_ID.metainfo.xml.in" >"$STAGE/share/metainfo/$APP_ID.metainfo.xml"
 cp -R "$ROOT/assets/app-icon/hicolor" "$STAGE/share/icons/"
-copy_docs "$STAGE/share/doc/figcraft"
-if [[ -f "$ROOT/ATTRIBUTION.md" ]]; then install -m 644 "$ROOT/ATTRIBUTION.md" "$STAGE/share/doc/figcraft/"; fi
+copy_docs "$STAGE/share/doc/figiran"
+if [[ -f "$ROOT/ATTRIBUTION.md" ]]; then install -m 644 "$ROOT/ATTRIBUTION.md" "$STAGE/share/doc/figiran/"; fi
 
 for f in "${BINS[@]/#/bin/}" "share/applications/$APP_ID.desktop" \
-  "share/icons/hicolor/256x256/apps/$APP_ID.png" \
-  share/doc/figcraft/LICENSE-MIT share/doc/figcraft/LICENSE-APACHE; do
+  "share/icons/hicolor/256x256/apps/$APP_ID.png"; do
   if [[ ! -e "$STAGE/$f" ]]; then echo "error: $f is missing from the package" >&2; exit 1; fi
 done
 

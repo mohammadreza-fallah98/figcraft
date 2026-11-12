@@ -6,9 +6,9 @@
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use figcraft_collab::message::{self, Access, Admin, AdminReply, ClientMsg, FileInfo, HostInfo, LinkInfo, NewLink, Presence, ServerMsg};
-use figcraft_doc::{Document, NodeId};
-use figcraft_engine::live::{Event, NetReply, NetRequest, Shared, Status};
+use figiran_collab::message::{self, Access, Admin, AdminReply, ClientMsg, FileInfo, HostInfo, LinkInfo, NewLink, Presence, ServerMsg};
+use figiran_doc::{Document, NodeId};
+use figiran_engine::live::{Event, NetReply, NetRequest, Shared, Status};
 
 use crate::driver::{Driver, Socket};
 use crate::exchange::{self, Next};
@@ -112,10 +112,10 @@ fn failure(events: &[Event]) -> Option<&str> {
 fn welcome() -> ServerMsg {
     let mut doc = Document::new("Poster");
     doc.repair();
-    let mut server = figcraft_collab::Server::new(doc, TOKEN, figcraft_collab::Limits::default());
-    let ClientMsg::Hello(h) = figcraft_collab::Client::hello(FILE, TOKEN, "Ada", "") else { panic!("no hello") };
+    let mut server = figiran_collab::Server::new(doc, TOKEN, figiran_collab::Limits::default());
+    let ClientMsg::Hello(h) = figiran_collab::Client::hello(FILE, TOKEN, "Ada", "") else { panic!("no hello") };
     let (_, outs) = server.join(h).unwrap();
-    outs.into_iter().find_map(|o| if let figcraft_collab::Outgoing::To(_, w @ ServerMsg::Welcome { .. }) = o { Some(w) } else { None }).unwrap()
+    outs.into_iter().find_map(|o| if let figiran_collab::Outgoing::To(_, w @ ServerMsg::Welcome { .. }) = o { Some(w) } else { None }).unwrap()
 }
 
 /// The server makes the links and codes for others, each step checked.
@@ -329,7 +329,7 @@ fn background_requests_ask_about_hosting_and_sharing() {
     let create = Admin::CreateLink { file: FILE.into(), access: Access::View, label: String::new() };
     let (reply, _) = background(req(Some(create)), &[hosting(), admin(AdminReply::Link(new_link("v2", Access::View, TOKEN)))]);
     assert!(
-        matches!(reply, NetReply::Hosting(Ok((_, Some(AdminReply::Link(l))))) if l.token.starts_with("figcraft://join?") && l.token.contains(TOKEN))
+        matches!(reply, NetReply::Hosting(Ok((_, Some(AdminReply::Link(l))))) if l.token.starts_with("figiran://join?") && l.token.contains(TOKEN))
     );
     // Stopping a share revokes its links, with the key when the address carries it.
     let stop =
@@ -344,6 +344,6 @@ fn background_requests_ask_about_hosting_and_sharing() {
         let Some(Next::Done(events, None)) = exchange::background(1, bad) else { panic!("not answered at once") };
         assert!(matches!(events.as_slice(), [Event::Net { reply, .. }] if matches!(**reply, NetReply::Hosting(Err(_)) | NetReply::Share(Err(_)))));
     }
-    let plugins = NetRequest::Plugins { server: SERVER.into(), req: figcraft_collab::message::PluginReq::List { query: String::new() } };
+    let plugins = NetRequest::Plugins { server: SERVER.into(), req: figiran_collab::message::PluginReq::List { query: String::new() } };
     assert!(exchange::background(1, plugins).is_none());
 }

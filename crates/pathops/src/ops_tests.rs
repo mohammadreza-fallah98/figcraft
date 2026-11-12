@@ -1,9 +1,9 @@
 //! Boolean groups whose operands carry their own operations: the fold bottom to top, its
 //! agreement with a uniform operation, and single steps.
 
-use figcraft_doc::BoolOp;
-use figcraft_geom::kurbo::{BezPath, Shape};
-use figcraft_geom::{Point, Rect};
+use figiran_doc::BoolOp;
+use figiran_geom::kurbo::{BezPath, Shape};
+use figiran_geom::{Point, Rect};
 
 use crate::{boolean, boolean_ops, boolean_step, simplify_with_rule};
 
@@ -42,7 +42,7 @@ fn area_eo(p: &BezPath) -> f64 {
 }
 
 fn split(p: &BezPath) -> Vec<BezPath> {
-    use figcraft_geom::kurbo::PathEl;
+    use figiran_geom::kurbo::PathEl;
     let mut out: Vec<BezPath> = Vec::new();
     for el in p.elements() {
         if matches!(el, PathEl::MoveTo(_)) {

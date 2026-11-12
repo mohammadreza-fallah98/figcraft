@@ -3,7 +3,7 @@
 //! window buttons; the window's edges resize it.
 
 use egui::{Align2, Color32, CornerRadius, Rect, Sense, Stroke, Ui, Vec2, pos2, vec2};
-use figcraft_doc::NodeId;
+use figiran_doc::NodeId;
 use serde_json::json;
 
 use crate::a11y::Tip;
@@ -463,7 +463,7 @@ fn tab_label(name: &str, live: Option<bool>) -> String {
 /// What to draw for one document tab.
 struct TabPaint<'a> {
     name: &'a str,
-    kind: figcraft_doc::FileKind,
+    kind: figiran_doc::FileKind,
     /// The tab, and its close target.
     rects: [Rect; 2],
     width: f32,

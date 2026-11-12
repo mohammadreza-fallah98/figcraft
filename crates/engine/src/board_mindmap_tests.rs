@@ -1,9 +1,9 @@
 //! Mind maps (#2226): `board.mindMap` and `board.mindMapAdd` make nodes and branches, and the
 //! normalize pass lays a touched map out again from its first node after every edit.
 
-use figcraft_color::{Color, Paint};
-use figcraft_doc::{BoardItem, Connector, Document, END_GAP, End, LetterSpacing, LineHeight, NodeId, NodeKind, Routing, Side, StrokeCap};
-use figcraft_geom::{Point, Rect};
+use figiran_color::{Color, Paint};
+use figiran_doc::{BoardItem, Connector, Document, END_GAP, End, LetterSpacing, LineHeight, NodeId, NodeKind, Routing, Side, StrokeCap};
+use figiran_geom::{Point, Rect};
 use serde_json::{Value, json};
 
 use crate::Session;
@@ -27,7 +27,7 @@ fn map(s: &mut Session) -> (NodeId, [NodeId; 3], [NodeId; 3]) {
     (id(&out, "id"), [c[0], c[1], c[2]], [k[0], k[1], k[2]])
 }
 
-fn text_data(s: &Session, n: NodeId) -> figcraft_doc::TextData {
+fn text_data(s: &Session, n: NodeId) -> figiran_doc::TextData {
     let t = text_of(s.doc().unwrap(), n).unwrap();
     match node(s, t).kind {
         NodeKind::Text(td) => td,
@@ -297,7 +297,7 @@ fn refusals_saved_files_and_a_second_pass_changes_nothing() {
     assert!(s.execute("board.mindMap", &json!({"children": twenty_one})).is_err());
     assert!(s.execute("board.mindMap", &json!({"children": "x"})).is_err());
     let doc = s.doc().unwrap();
-    let (back, _) = figcraft_format::from_json(&figcraft_format::to_json(doc).unwrap().to_string()).unwrap();
+    let (back, _) = figiran_format::from_json(&figiran_format::to_json(doc).unwrap().to_string()).unwrap();
     assert_eq!(back.nodes().filter(|n| n.board == Some(BoardItem::MindNode)).count(), 4);
     assert_eq!(back.nodes().filter(|n| matches!(&n.board, Some(BoardItem::Connector(c)) if c.branch)).count(), 3);
     // An ordinary connector writes no `branch`; a file without it reads `false`.
@@ -305,7 +305,7 @@ fn refusals_saved_files_and_a_second_pass_changes_nothing() {
     let a = id(&plain.execute("board.sticky", &json!({"x": 0, "y": 0})).unwrap(), "id");
     let b = id(&plain.execute("board.sticky", &json!({"x": 400, "y": 0})).unwrap(), "id");
     plain.execute("board.connector", &json!({"from": a, "to": b})).unwrap();
-    assert!(!figcraft_format::to_json(plain.doc().unwrap()).unwrap().to_string().contains("\"branch\""));
+    assert!(!figiran_format::to_json(plain.doc().unwrap()).unwrap().to_string().contains("\"branch\""));
     let item: BoardItem = serde_json::from_value(json!({"type": "connector", "from": {"x": 0, "y": 0}, "to": {"x": 1, "y": 1}})).unwrap();
     assert!(matches!(item, BoardItem::Connector(c) if !c.branch));
     // Every layer touched again: a laid out map is not an edit.

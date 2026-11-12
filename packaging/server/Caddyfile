@@ -1,29 +1,29 @@
-# Caddy in front of figcraft-server; setup in docs/server.md ("Deploy on a Linux server").
+# Caddy in front of figiran-server; setup in docs/server.md ("Deploy on a Linux server").
 # Replace the host name with yours (its DNS must point at this machine). Caddy obtains and renews
 # the certificate and passes WebSocket upgrades through by itself. Put this in /etc/caddy/Caddyfile
 # and run `sudo systemctl reload caddy` (install.sh does all this for you).
 # Caddy tells the server who each client is (X-Forwarded-For): set trusted_proxy = "127.0.0.1" in
 # server.toml so per-address limits and blocks count clients, not Caddy.
 
-figcraft.example.com {
+figiran.example.com {
 	reverse_proxy 127.0.0.1:47900
 }
 
-# Under a path of an existing site instead (then public_url = "wss://example.com/figcraft/"):
+# Under a path of an existing site instead (then public_url = "wss://example.com/figiran/"):
 #
 # example.com {
-# 	handle /figcraft/* {
+# 	handle /figiran/* {
 # 		reverse_proxy 127.0.0.1:47900
 # 	}
 # }
 
 # Browser editor and server on the same hostname instead. Use this block IN PLACE OF the
-# active block above. Copy the complete browser release into /srv/figcraft-web, with index.html
+# active block above. Copy the complete browser release into /srv/figiran-web, with index.html
 # directly inside it and subdirectories such as snippets/ kept. See packaging/web/README.md for
-# the browser's figcraft-server meta tag; never put a publishing key in public HTML.
+# the browser's figiran-server meta tag; never put a publishing key in public HTML.
 # Open the editor at /app/. The hostname root remains the WSS endpoint, not an editor homepage.
 #
-# figcraft.example.com {
+# figiran.example.com {
 # 	encode gzip
 #
 # 	redir /app /app/?{query} 308
@@ -31,7 +31,7 @@ figcraft.example.com {
 # 	@entry path /app/ /app/index.html
 # 	header @entry Cache-Control "no-cache"
 #
-# 	@release_assets path /app/figcraft-web-*.js /app/figcraft-web-*_bg.wasm
+# 	@release_assets path /app/figiran-web-*.js /app/figiran-web-*_bg.wasm
 # 	# Defer so a missing asset does not receive the one-year cache header.
 # 	header @release_assets Cache-Control "public, max-age=31536000, immutable" {
 # 		defer
@@ -43,7 +43,7 @@ figcraft.example.com {
 # 	}
 #
 # 	handle_path /app/* {
-# 		root * /srv/figcraft-web
+# 		root * /srv/figiran-web
 # 		file_server
 # 	}
 #

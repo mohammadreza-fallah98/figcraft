@@ -2,7 +2,7 @@
 //! line inside its paragraph: no paragraph spacing or new list marker after it, and no glyph (#852).
 
 use super::*;
-use figcraft_doc::{LineHeight, ListStyle, TextAutoResize, TextData};
+use figiran_doc::{LineHeight, ListStyle, TextAutoResize, TextData};
 
 const EPS: f64 = 1e-6;
 

@@ -3,8 +3,8 @@
 
 use egui::accesskit::Role;
 use egui::{Event, Pos2, pos2};
-use figcraft_doc::NodeId;
-use figcraft_engine::{Session, ToolId};
+use figiran_doc::NodeId;
+use figiran_engine::{Session, ToolId};
 use serde_json::json;
 
 use crate::colorpicker::PickerTarget;
@@ -58,7 +58,7 @@ fn the_pickers_eyedropper_applies_the_colour_to_the_paint_it_edits() {
         click(&mut u, on_red);
         let doc = u.app.session.doc().unwrap();
         let n = doc.node(b).unwrap();
-        let hex = |p: Option<figcraft_color::Color>| p.map(|c| c.to_hex()).unwrap_or_default();
+        let hex = |p: Option<figiran_color::Color>| p.map(|c| c.to_hex()).unwrap_or_default();
         let picked = if effect { hex(n.effects[0].color(false)) } else { hex(n.strokes[0].solid_color()) };
         assert_eq!(picked, "FF0000", "the picker's paint takes the colour (effect: {effect})");
         assert_eq!(hex(n.fills[0].solid_color()), "00FF00", "the fill is left alone (effect: {effect})");
@@ -82,7 +82,7 @@ fn closing_the_picker_drops_its_eyedropper() {
     click(&mut u, at);
     assert_eq!(u.app.session.tool.tool, ToolId::Eyedropper);
     u.app.ui.picker = None;
-    u.app.session.tool.picked = figcraft_color::Color::from_hex("#FF0000");
+    u.app.session.tool.picked = figiran_color::Color::from_hex("#FF0000");
     u.frame(vec![]);
     u.frame(vec![]);
     assert_eq!(u.app.session.tool.tool, ToolId::Move);

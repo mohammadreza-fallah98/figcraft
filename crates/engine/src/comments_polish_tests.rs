@@ -2,7 +2,7 @@
 //! edit and delete, reactions, @mentions, read state, filters and sorting, links that reveal a
 //! thread, and files from before all this.
 
-use figcraft_doc::{Comment, NodeId, mention_ranges};
+use figiran_doc::{Comment, NodeId, mention_ranges};
 use serde_json::{Value, json};
 
 use crate::Session;
@@ -164,7 +164,7 @@ fn read_state_follows_new_messages() {
     s.execute("comment.reply", &json!({"id": c, "text": "More", "author": "Sam"})).unwrap();
     assert!(comment(&s, c).is_unread("You"));
     s.execute("comment.markRead", &json!({})).unwrap();
-    s.execute("comment.markRead", &json!({"link": format!("figcraft://comment/{c}"), "read": false})).unwrap();
+    s.execute("comment.markRead", &json!({"link": format!("figiran://comment/{c}"), "read": false})).unwrap();
     assert!(comment(&s, c).is_unread("You"));
     assert!(!comment(&s, c).is_unread("Sam"));
     assert!(s.execute("comment.markRead", &json!({"link": "nope"})).is_err());
@@ -224,7 +224,7 @@ fn filters_sort_search_and_frames() {
     let ja = all["comments"].as_array().unwrap().iter().find(|j| j["id"] == a).unwrap().clone();
     assert_eq!(ja["frameName"], "Home");
     assert_eq!(ja["pageName"], "Page 1");
-    assert_eq!(ja["link"], format!("figcraft://comment/{a}"));
+    assert_eq!(ja["link"], format!("figiran://comment/{a}"));
     assert_eq!(list(&mut s, json!({"page": p2})), vec![c]);
     assert!(s.execute("comment.list", &json!({"filter": "weird"})).is_err());
     assert!(s.execute("comment.list", &json!({"sort": "weird"})).is_err());
@@ -264,7 +264,7 @@ fn links_open_and_zoom_to_a_thread() {
     let v = &s.ds().unwrap().view;
     assert_eq!((v.zoom, v.cx, v.cy), (3.0, 1050.0, 1060.0));
     assert!(s.execute("comment.open", &json!({"id": c, "view": "nowhere"})).is_err());
-    assert!(s.execute("comment.open", &json!({"link": "figcraft://comment/99"})).is_err());
+    assert!(s.execute("comment.open", &json!({"link": "figiran://comment/99"})).is_err());
     // Zooming to a cluster of pins at least doubles the zoom.
     let d = add(&mut s, 1052.0, 1061.0, "Near", "Sam");
     s.execute("view.set", &json!({"zoom": 0.1})).unwrap();
@@ -308,12 +308,12 @@ fn prompt_briefs_a_thread_for_an_agent() {
     assert_eq!(r["count"], 1);
     assert_eq!(r["truncated"], false);
     let text = r["text"].as_str().unwrap();
-    assert!(text.contains("# FigCraft feedback"));
+    assert!(text.contains("# FigIran feedback"));
     assert!(text.contains("Make the padding 12"));
     assert!(text.contains("Button"));
     assert!(text.contains(&format!("node {f}")));
     assert!(text.contains("Replies:") && text.contains("Sam: Agreed"));
-    assert!(text.contains(&format!("figcraft://comment/{c}")));
+    assert!(text.contains(&format!("figiran://comment/{c}")));
     assert!(text.contains("comment.reply") && text.contains("comment.resolve"));
     let list = r["comments"].as_array().unwrap();
     assert_eq!(list.len(), 1);

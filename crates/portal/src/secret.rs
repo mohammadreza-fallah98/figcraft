@@ -46,7 +46,7 @@ pub struct SystemStore {
 
 /// The service name entries are filed under.
 #[cfg(any(windows, target_os = "macos"))]
-const SERVICE: &str = "FigCraft portal";
+const SERVICE: &str = "FigIran portal";
 
 #[cfg(any(windows, target_os = "macos"))]
 impl SystemStore {

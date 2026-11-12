@@ -1,7 +1,7 @@
 //! Variable width strokes: measuring paths and outlining strokes whose width follows a profile.
 
-use figcraft_doc::{StrokeAlign, StrokeCap, StrokeJoin, StrokeProps, WidthPreset, WidthProfile};
-use figcraft_geom::kurbo::{BezPath, Circle, Point, Rect, Shape};
+use figiran_doc::{StrokeAlign, StrokeCap, StrokeJoin, StrokeProps, WidthPreset, WidthProfile};
+use figiran_geom::kurbo::{BezPath, Circle, Point, Rect, Shape};
 
 use crate::stroke_outline;
 use crate::width::*;

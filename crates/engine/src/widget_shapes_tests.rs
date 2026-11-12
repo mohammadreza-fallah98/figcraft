@@ -11,8 +11,8 @@ use crate::Session;
 use crate::components::tests::{ex, idv, node};
 use crate::plugins_tests::{install, undo_len};
 use crate::widgets_tests::{W, err};
-use figcraft_doc::{NodeId, NodeKind};
-use figcraft_geom::rotation_degrees;
+use figiran_doc::{NodeId, NodeKind};
+use figiran_geom::rotation_degrees;
 
 const ID: &str = "org.test.shapes";
 const ICON: &str = r##"<svg xmlns="http://www.w3.org/2000/svg" width="24" height="12"><rect width="24" height="12" fill="#ff0000"/><circle cx="6" cy="6" r="4" fill="#00ff00"/></svg>"##;
@@ -54,7 +54,7 @@ fn a_line_has_the_documented_defaults() {
     assert_eq!([n.width, n.height], [100.0, 0.0]);
     assert!(n.locked);
     assert_eq!(n.strokes.len(), 1);
-    assert!(matches!(n.strokes[0].kind, figcraft_color::PaintKind::Solid { color: c } if c.to_css_hex() == "#000000"));
+    assert!(matches!(n.strokes[0].kind, figiran_color::PaintKind::Solid { color: c } if c.to_css_hex() == "#000000"));
     assert_eq!(n.stroke.weight, 1.0);
 }
 

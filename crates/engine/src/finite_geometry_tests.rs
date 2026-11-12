@@ -11,8 +11,8 @@ fn rect(s: &mut Session) -> crate::NodeId {
 }
 
 fn assert_roundtrips(s: &Session) {
-    let bytes = figcraft_format::save_bytes(s.doc().unwrap(), None).unwrap();
-    assert!(figcraft_format::load_bytes(&bytes).is_ok(), "the saved file reopens");
+    let bytes = figiran_format::save_bytes(s.doc().unwrap(), None).unwrap();
+    assert!(figiran_format::load_bytes(&bytes).is_ok(), "the saved file reopens");
 }
 
 #[test]
@@ -40,9 +40,9 @@ fn huge_scale_is_refused_and_the_file_still_reopens() {
 }
 
 /// A settled document of `groups` groups of `per` rectangles each, and one of the rectangles.
-fn large(groups: usize, per: usize) -> (figcraft_doc::Document, crate::NodeId) {
-    use figcraft_doc::NodeKind;
-    let mut doc = figcraft_doc::Document::new("Large");
+fn large(groups: usize, per: usize) -> (figiran_doc::Document, crate::NodeId) {
+    use figiran_doc::NodeKind;
+    let mut doc = figiran_doc::Document::new("Large");
     let page = doc.first_page().unwrap();
     let mut last = None;
     for g in 0..groups {
@@ -74,7 +74,7 @@ fn a_layer_already_out_of_range_does_not_block_edits_to_others() {
     // through, and an edit that touches the damaged layer is refused.
     let (mut doc, id) = large(2, 3);
     let page = doc.first_page().unwrap();
-    let broken = doc.create(page, figcraft_doc::NodeKind::Rectangle, "broken", 0.0, 0.0, 10.0, 10.0).unwrap();
+    let broken = doc.create(page, figiran_doc::NodeKind::Rectangle, "broken", 0.0, 0.0, 10.0, 10.0).unwrap();
     doc.node_mut(broken).unwrap().width = f64::NAN;
     doc.take_dirty();
     let mut s = Session::with_document(doc);

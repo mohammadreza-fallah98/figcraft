@@ -4,7 +4,7 @@
 
 use std::io::Write;
 
-use figcraft_doc::{Document, NodeKind};
+use figiran_doc::{Document, NodeKind};
 
 use crate::message::{self, CatchUp, ClientMsg, ServerMsg};
 use crate::{Client, Error, Limits, NoRecompute, Outgoing, Replica, Server};

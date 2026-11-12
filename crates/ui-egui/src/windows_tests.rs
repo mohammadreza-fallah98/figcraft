@@ -4,7 +4,7 @@
 use std::sync::mpsc::{Receiver, channel};
 
 use egui::{RawInput, ViewportEvent, ViewportId, ViewportInfo};
-use figcraft_engine::Session;
+use figiran_engine::Session;
 use serde_json::{Value, json};
 
 use crate::control::{ControlReply, ControlRequest};
@@ -296,7 +296,7 @@ fn an_emptied_window_forgets_its_ime_context() {
     let w = crate::control::handle(&mut app, &ctx, "window.new", &json!({"index": 0})).unwrap()["window"].as_u64().unwrap();
     frame(&ctx, &mut app, false);
     let vp = crate::windows::viewport(w);
-    let target = ImeTarget::new(Id::unique("figcraft.test.ime"), 3);
+    let target = ImeTarget::new(Id::unique("figiran.test.ime"), 3);
     let observe = |tracker: &mut ImeContextTracker| {
         let text = "a";
         let observation = ImeObservation::new(1, 1, target).purpose(IMEPurpose::Normal).committed(Some(CommittedText::new(text, 1, 1)));
@@ -329,7 +329,7 @@ impl crate::Services for SaveAs {
 }
 
 fn temp_dir(tag: &str) -> std::path::PathBuf {
-    let d = std::env::temp_dir().join(format!("figcraft-close-save-{tag}-{}", std::process::id()));
+    let d = std::env::temp_dir().join(format!("figiran-close-save-{tag}-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&d);
     std::fs::create_dir_all(&d).unwrap();
     d
@@ -386,7 +386,7 @@ fn the_unsaved_changes_question_offers_save_dont_save_and_cancel() {
 #[test]
 fn save_saves_a_file_with_a_path_and_then_closes() {
     let d = temp_dir("path");
-    let path = d.join("a.figcraft");
+    let path = d.join("a.figiran");
     let (ctx, mut app, asked) = asking(Some(&path), vec![]);
     assert_eq!(rects_in(&path), 0);
     crate::windows::answer_close(&mut app, &ctx, crate::windows::CloseAnswer::Save);
@@ -402,7 +402,7 @@ fn save_waits_for_a_panel_field_to_commit() {
     // The click on Save takes the keyboard from a panel field, which commits what was typed next
     // frame: the save comes after that commit (stood in for by a command run before the frame).
     let d = temp_dir("field");
-    let path = d.join("a.figcraft");
+    let path = d.join("a.figiran");
     let (ctx, mut app, _) = asking(Some(&path), vec![]);
     crate::windows::answer_close(&mut app, &ctx, crate::windows::CloseAnswer::Save);
     app.session.execute("shape.rectangle", &json!({"x": 20, "y": 0, "width": 10, "height": 10})).unwrap();
@@ -415,7 +415,7 @@ fn save_waits_for_a_panel_field_to_commit() {
 #[test]
 fn save_asks_where_for_an_untitled_file_and_closes_once_saved() {
     let d = temp_dir("untitled");
-    let path = d.join("new.figcraft");
+    let path = d.join("new.figiran");
     let (ctx, mut app, asked) = asking(None, vec![path.clone()]);
     crate::windows::answer_close(&mut app, &ctx, crate::windows::CloseAnswer::Save);
     settle(&ctx, &mut app);
@@ -438,7 +438,7 @@ fn a_cancelled_save_as_or_a_failed_save_keeps_the_window_open() {
 
     // The save fails (its folder is gone): the error shows and the window stays.
     let d = temp_dir("gone");
-    let path = d.join("a.figcraft");
+    let path = d.join("a.figiran");
     let (ctx, mut app, _) = asking(Some(&path), vec![]);
     std::fs::remove_dir_all(&d).unwrap();
     crate::windows::answer_close(&mut app, &ctx, crate::windows::CloseAnswer::Save);
@@ -450,7 +450,7 @@ fn a_cancelled_save_as_or_a_failed_save_keeps_the_window_open() {
 #[test]
 fn dont_save_closes_and_cancel_keeps_the_window() {
     let d = temp_dir("answers");
-    let path = d.join("a.figcraft");
+    let path = d.join("a.figiran");
     let (ctx, mut app, _) = asking(Some(&path), vec![]);
     crate::windows::answer_close(&mut app, &ctx, crate::windows::CloseAnswer::Cancel);
     settle(&ctx, &mut app);
@@ -468,7 +468,7 @@ fn one_save_saves_every_untitled_file_of_the_window_then_closes() {
     // Two new files with changes: Save asks where for each in turn, then the window closes,
     // without asking the question again in between (#1173 review).
     let d = temp_dir("two");
-    let (a, b) = (d.join("a.figcraft"), d.join("b.figcraft"));
+    let (a, b) = (d.join("a.figiran"), d.join("b.figiran"));
     let (ctx, mut app, asked) = asking(None, vec![a.clone(), b.clone()]);
     app.session.execute("file.new", &json!({"name": "Second"})).unwrap();
     app.session.execute("shape.rectangle", &json!({"x": 0, "y": 0, "width": 10, "height": 10})).unwrap();
@@ -486,7 +486,7 @@ fn one_save_saves_every_untitled_file_of_the_window_then_closes() {
 #[test]
 fn enter_answers_save() {
     let d = temp_dir("enter");
-    let path = d.join("a.figcraft");
+    let path = d.join("a.figiran");
     let (ctx, mut app, _) = asking(Some(&path), vec![]);
     frame(&ctx, &mut app, false);
     let enter = |pressed| egui::Event::Key { key: egui::Key::Enter, physical_key: None, pressed, repeat: false, modifiers: egui::Modifiers::NONE };

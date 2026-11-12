@@ -7,7 +7,7 @@ use crate::Session;
 use crate::components::tests::ex;
 use crate::plugins_tests::{OnRefusal, install, manifest, script};
 
-const SECRET: &str = "/home/someone/private/clients/acme.figcraft";
+const SECRET: &str = "/home/someone/private/clients/acme.figiran";
 
 fn two_files() -> Session {
     let mut s = Session::new();
@@ -51,7 +51,7 @@ fn a_plugin_gets_names_but_no_paths() {
 fn a_plugin_gets_library_names_but_not_their_links() {
     const LINK: &str = "ws://tracker.example:9/?file=f&token=per-file-secret";
     let mut s = Session::new();
-    s.doc_mut().unwrap().libraries_mut().enabled.push(figcraft_doc::LibraryLink {
+    s.doc_mut().unwrap().libraries_mut().enabled.push(figiran_doc::LibraryLink {
         id: "lib".into(),
         name: "Kit".into(),
         path: LINK.into(),
@@ -66,9 +66,9 @@ fn a_plugin_gets_library_names_but_not_their_links() {
 
 #[test]
 fn a_plugin_gets_a_fixed_message_for_library_update_failures() {
-    const LINK: &str = "/home/someone/private/kits/kit.figcraft";
+    const LINK: &str = "/home/someone/private/kits/kit.figiran";
     let mut s = Session::new();
-    s.doc_mut().unwrap().libraries_mut().enabled.push(figcraft_doc::LibraryLink {
+    s.doc_mut().unwrap().libraries_mut().enabled.push(figiran_doc::LibraryLink {
         id: "lib".into(),
         name: "Kit".into(),
         path: LINK.into(),

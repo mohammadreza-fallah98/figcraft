@@ -7,7 +7,7 @@
 
 use std::sync::{Arc, Weak};
 
-use figcraft_doc::{Document, Node, NodeId};
+use figiran_doc::{Document, Node, NodeId};
 
 /// One kept value and what it was made from. The document is held weakly, so a kept value never
 /// keeps an old snapshot alive; the weak reference keeps its address from being reused.
@@ -46,7 +46,7 @@ pub(crate) fn cached<T: Clone + Send + Sync + 'static>(
 /// started from and how far it moved them (page units). What depends only on the selected layers'
 /// shapes, not where they are, is worked out from that document, so it is kept for the whole
 /// gesture instead of made again on every move (#1571).
-pub(crate) fn moved(ds: &figcraft_engine::DocState) -> Option<(Arc<Document>, (f64, f64))> {
+pub(crate) fn moved(ds: &figiran_engine::DocState) -> Option<(Arc<Document>, (f64, f64))> {
     let it = ds.interaction.as_ref()?;
     let d = it.moved_by?;
     (it.selection == ds.selection).then(|| (it.doc.clone(), d))
@@ -55,7 +55,7 @@ pub(crate) fn moved(ds: &figcraft_engine::DocState) -> Option<(Arc<Document>, (f
 /// The document to work out from what a move doesn't change (which layers, their kinds and
 /// parents): the one a gesture that only moved the selection started from, kept for the whole
 /// gesture ([`moved`]), else `doc`.
-pub(crate) fn unmoved(ds: &figcraft_engine::DocState, doc: &Arc<Document>) -> Arc<Document> {
+pub(crate) fn unmoved(ds: &figiran_engine::DocState, doc: &Arc<Document>) -> Arc<Document> {
     moved(ds).map_or_else(|| doc.clone(), |(base, _)| base)
 }
 

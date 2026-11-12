@@ -4,8 +4,8 @@
 //! screenshots).
 
 use egui::accesskit::Node;
-use figcraft_doc::NodeId;
-use figcraft_engine::Session;
+use figiran_doc::NodeId;
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::component_swap_default_tests::tree;

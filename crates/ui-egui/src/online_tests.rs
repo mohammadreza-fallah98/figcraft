@@ -9,9 +9,9 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use egui::{Event, Key, Shape, pos2};
-use figcraft_engine::Prefs;
-use figcraft_engine::figcraft_collab::message::{Admin, AdminReply, ClientMsg, FileInfo, OwnedFile, TeamFile};
-use figcraft_engine::live::{
+use figiran_engine::Prefs;
+use figiran_engine::figiran_collab::message::{Admin, AdminReply, ClientMsg, FileInfo, OwnedFile, TeamFile};
+use figiran_engine::live::{
     Access, Event as LiveEvent, HostInfo, HostOptions, LiveLink, NetReply, NetRequest, Peer, Presence, PublishOptions, Role, SessionInfo,
     Shared as SharedLinks, SharedLink,
 };
@@ -57,7 +57,7 @@ fn info(role: Role, name: &str) -> SessionInfo {
         color: "#14AE5C".into(),
         file_name: name.into(),
         pages: vec![],
-        link: "figcraft://join?host=192.168.1.20:47900&file=f&token=AbCdEfGhIjKlMnOpQrStUv".into(),
+        link: "figiran://join?host=192.168.1.20:47900&file=f&token=AbCdEfGhIjKlMnOpQrStUv".into(),
         url: String::new(),
         address: "192.168.1.20:47900".into(),
         network: true,
@@ -70,7 +70,7 @@ fn info(role: Role, name: &str) -> SessionInfo {
 fn links(file: &str, n: usize) -> SharedLinks {
     let link = |what: &str, code: String| SharedLink {
         id: format!("{what}{n}"),
-        link: format!("figcraft://join?server={SERVER}&file={file}&token=Shared{what}Shared{what}0{n}"),
+        link: format!("figiran://join?server={SERVER}&file={file}&token=Shared{what}Shared{what}0{n}"),
         code: Some(code),
     };
     SharedLinks { edit: link("edit", format!("NEWED1T0{n}")), view: Some(link("view", format!("NEWV1EW0{n}"))), comment: None }
@@ -154,7 +154,7 @@ impl crate::Services for Clipboard {
 }
 
 fn edit_link(server: &str, file: &str) -> String {
-    format!("figcraft://join?server={server}&file={file}&token={EDIT_TOKEN}")
+    format!("figiran://join?server={server}&file={file}&token={EDIT_TOKEN}")
 }
 
 /// A record as the preferences file holds it: `File <id>`, shared with a code or not.
@@ -276,8 +276,8 @@ fn a_row_opens_its_file_as_owner_and_its_tab_shows_when_it_arrives() {
     assert_eq!(script.lock().unwrap().joined, [edit_link(SERVER, "a")]);
     assert!(has_text(&shapes, "Joining…") && h.app.ui.home, "still on the home screen while it joins");
     // The owner's welcome and the document.
-    use figcraft_engine::figcraft_collab::message::ServerMsg;
-    use figcraft_engine::figcraft_collab::{Client, Limits, Outgoing, Server};
+    use figiran_engine::figiran_collab::message::ServerMsg;
+    use figiran_engine::figiran_collab::{Client, Limits, Outgoing, Server};
     let mut server = Server::new(h.app.session.doc().unwrap().clone(), "", Limits::default());
     let ClientMsg::Hello(me) = Client::hello("f", "", "Ada", "") else { panic!("no hello") };
     let (_, outs) = server.join(me).unwrap();
@@ -472,13 +472,13 @@ fn the_team_list_of_the_preferences_server_shows_and_a_row_joins_its_file() {
     click(&mut h, &shapes, "Copy link");
     let shapes = menu(&mut h, "Pricing");
     click(&mut h, &shapes, "Copy browser link");
-    let link = format!("figcraft://join?server={SERVER}&file=t2&team=1");
-    let browser = format!("{web}#join=figcraft%3A%2F%2Fjoin%3Fserver%3Dwss%3A%2F%2Fshare.example%2F%26file%3Dt2%26team%3D1");
+    let link = format!("figiran://join?server={SERVER}&file=t2&team=1");
+    let browser = format!("{web}#join=figiran%3A%2F%2Fjoin%3Fserver%3Dwss%3A%2F%2Fshare.example%2F%26file%3Dt2%26team%3D1");
     assert_eq!(script.lock().unwrap().copied, [link, browser]);
     // A click joins the file by its team list link.
     let shapes = h.frames(1);
     click(&mut h, &shapes, "Homepage");
-    assert_eq!(script.lock().unwrap().joined, [format!("figcraft://join?server={SERVER}&file=t1&team=1")]);
+    assert_eq!(script.lock().unwrap().joined, [format!("figiran://join?server={SERVER}&file=t1&team=1")]);
 }
 
 #[test]
@@ -496,7 +496,7 @@ fn a_server_without_a_team_list_shows_none_and_the_shipped_public_server_isnt_as
     assert!(has_text(&open(&mut h), "Couldn't reach share.example for its team list."));
     // The public server the app ships with keeps no team list: it isn't asked.
     let (mut h, script) = harness(vec![]);
-    h.app.session.prefs.publish_server = figcraft_engine::live::DEFAULT_SERVER.into();
+    h.app.session.prefs.publish_server = figiran_engine::live::DEFAULT_SERVER.into();
     open(&mut h);
     assert!(script.lock().unwrap().asked.is_empty());
 }

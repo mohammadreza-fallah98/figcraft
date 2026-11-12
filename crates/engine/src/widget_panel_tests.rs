@@ -10,7 +10,7 @@ use crate::Session;
 use crate::components::tests::{ex, idv, node};
 use crate::plugins_tests::{install, undo_len};
 use crate::widgets_tests::{W, err, state};
-use figcraft_doc::NodeId;
+use figiran_doc::NodeId;
 
 const ID: &str = "org.test.dial";
 

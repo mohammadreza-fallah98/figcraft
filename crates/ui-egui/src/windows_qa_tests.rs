@@ -3,8 +3,8 @@
 //! Escape closes a dialog without deselecting.
 
 use egui::{Event, Key, Modifiers, Pos2, Rect, vec2};
-use figcraft_doc::NodeId;
-use figcraft_engine::Session;
+use figiran_doc::NodeId;
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::a11y::focused_name;

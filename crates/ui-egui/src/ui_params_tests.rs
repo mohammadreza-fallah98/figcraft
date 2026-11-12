@@ -1,8 +1,8 @@
 //! Params the panels build at run time name only what their commands take: a name a command
 //! doesn't list is refused (#1413), which would break the control that sent it.
 
-use figcraft_doc::{ExportColorProfile, ExportFormat, ExportSetting, NodeId, PrintSettings, VdCompat};
-use figcraft_engine::Session;
+use figiran_doc::{ExportColorProfile, ExportFormat, ExportSetting, NodeId, PrintSettings, VdCompat};
+use figiran_engine::Session;
 use serde_json::{Value, json};
 
 use crate::{FigApp, NoServices};

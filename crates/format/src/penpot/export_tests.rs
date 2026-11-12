@@ -1,10 +1,10 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::io::{Cursor, Read};
 
-use figcraft_doc::color::{Color, ColorStop, Gradient, GradientKind, ImageScaleMode, Paint, PaintKind};
-use figcraft_doc::geom::{Affine, Point, Shape};
-use figcraft_doc::proto::{Action, Direction, Easing, Flow, Interaction, OverlayPosition, Transition, Trigger};
-use figcraft_doc::{
+use figiran_doc::color::{Color, ColorStop, Gradient, GradientKind, ImageScaleMode, Paint, PaintKind};
+use figiran_doc::geom::{Affine, Point, Shape};
+use figiran_doc::proto::{Action, Direction, Easing, Flow, Interaction, OverlayPosition, Transition, Trigger};
+use figiran_doc::{
     AutoLayout, Blur, Collection, ColorOperand, CrossAlign, Document, Effect, EffectKind, GridTrack, LayoutMode, LineHeight, MainAlign, Mode, NodeId,
     NodeKind, Shadow, Sizing, StrokeAlign, StrokeCap, StyleRun, TextAlignH, TextAutoResize, TextData, Variable, VariableType, VariableValue,
     VectorNetwork,
@@ -87,7 +87,7 @@ fn outline_bounds(doc: &Document, id: NodeId) -> [f64; 4] {
     let n = doc.node(id).unwrap();
     let path = match &n.kind {
         NodeKind::Vector { network } => network.stroke_path(),
-        _ => figcraft_doc::geometry::shape_path(n).unwrap(),
+        _ => figiran_doc::geometry::shape_path(n).unwrap(),
     };
     let b = (doc.world_transform(id) * path).bounding_box();
     [b.x0, b.y0, b.x1, b.y1]
@@ -192,11 +192,11 @@ fn stroked_closed_vectors_are_written_with_their_corner_smoothing() {
         n.strokes = vec![Paint::solid(Color::BLACK)];
         n.corners.smoothing = 0.6;
     }
-    let want = figcraft_doc::geom::rounded_rect(100.0, 100.0, [20.0; 4], 0.6).area().abs();
-    let plain = figcraft_doc::geom::rounded_rect(100.0, 100.0, [20.0; 4], 0.0).area().abs();
+    let want = figiran_doc::geom::rounded_rect(100.0, 100.0, [20.0; 4], 0.6).area().abs();
+    let plain = figiran_doc::geom::rounded_rect(100.0, 100.0, [20.0; 4], 0.0).area().abs();
     assert!((want - plain).abs() > 10.0, "smoothing changes the outline: {want} vs {plain}");
     let (back, _, _) = roundtrip(&doc);
-    let written = figcraft_doc::geometry::shape_path(back.node(named(&back, "Smoothed")).unwrap()).unwrap().area().abs();
+    let written = figiran_doc::geometry::shape_path(back.node(named(&back, "Smoothed")).unwrap()).unwrap().area().abs();
     assert!((written - want).abs() < 0.5, "the written path keeps the smoothed corners: {written} vs {want}");
 }
 
@@ -755,7 +755,7 @@ fn prototype_interactions_and_flows_round_trip() {
     assert_eq!(flows.len(), 1);
     assert_eq!(flows[0].start, named(&back, "Home"));
     if let Action::OpenOverlay { anchor, .. } = &mut doc.node_mut(button).unwrap().interactions[1].actions[0] {
-        *anchor = figcraft_doc::proto::OverlayAnchor::TriggerOutside;
+        *anchor = figiran_doc::proto::OverlayAnchor::TriggerOutside;
     }
     let (_, warnings) = export(&doc).unwrap();
     assert!(warnings.iter().any(|warning| warning.contains("Overlay anchor") && warning.contains("screen")), "{warnings:?}");
@@ -826,15 +826,15 @@ fn a_coloured_run_does_not_recolour_the_rest_of_the_text() {
 fn display_grids_and_guides_round_trip() {
     let mut doc = Document::new("Grids");
     let p = page(&doc);
-    doc.node_mut(p).unwrap().guides.push(figcraft_doc::Guide { vertical: true, offset: 64.0 });
+    doc.node_mut(p).unwrap().guides.push(figiran_doc::Guide { vertical: true, offset: 64.0 });
     let frame = add(&mut doc, p, NodeKind::Frame, "Board", 100.0, 50.0, 400.0, 300.0);
     {
         let n = doc.node_mut(frame).unwrap();
         n.grids = vec![
-            figcraft_doc::LayoutGrid { count: 12, gutter: 16.0, offset: 24.0, ..figcraft_doc::LayoutGrid::columns() },
-            figcraft_doc::LayoutGrid { size: 8.0, ..figcraft_doc::LayoutGrid::default() },
+            figiran_doc::LayoutGrid { count: 12, gutter: 16.0, offset: 24.0, ..figiran_doc::LayoutGrid::columns() },
+            figiran_doc::LayoutGrid { size: 8.0, ..figiran_doc::LayoutGrid::default() },
         ];
-        n.guides = vec![figcraft_doc::Guide { vertical: false, offset: 10.0 }];
+        n.guides = vec![figiran_doc::Guide { vertical: false, offset: 10.0 }];
     }
     let (back, e, _) = roundtrip(&doc);
     let grids = &shape(&e, "Board")["grids"];
@@ -995,10 +995,10 @@ fn legacy_image_shapes_stretch_over_their_fills_like_penpot() {
 }
 
 #[test]
-fn page_guides_reloaded_from_a_figcraft_file_are_exported() {
+fn page_guides_reloaded_from_a_figiran_file_are_exported() {
     let mut doc = Document::new("Reloaded");
     let p = page(&doc);
-    doc.node_mut(p).unwrap().guides = vec![figcraft_doc::Guide { vertical: false, offset: 410.0 }];
+    doc.node_mut(p).unwrap().guides = vec![figiran_doc::Guide { vertical: false, offset: 410.0 }];
     let e = entries(&export(&doc).unwrap().0);
     let page_json = e.iter().find(|(k, _)| k.matches('/').count() == 3 && k.contains("/pages/")).unwrap().1;
     assert_eq!(page_json["guides"].as_object().unwrap().values().next().unwrap()["position"], 410);

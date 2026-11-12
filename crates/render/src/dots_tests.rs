@@ -4,8 +4,8 @@
 
 use std::sync::Arc;
 
-use figcraft_color::{Color, Paint};
-use figcraft_doc::{Document, NodeKind};
+use figiran_color::{Color, Paint};
+use figiran_doc::{Document, NodeKind};
 
 use crate::{Dots, Options, Retained, View, render_view, render_view_single};
 
@@ -13,7 +13,7 @@ fn dots() -> Dots {
     Dots { step: 24.0, size: 2.0, color: Color::new(0.0, 0.0, 0.0, 0.5), faded: Color::new(0.0, 0.0, 0.0, 0.25), lines: false, major: 2 }
 }
 
-fn page_with_square() -> (Document, figcraft_doc::NodeId) {
+fn page_with_square() -> (Document, figiran_doc::NodeId) {
     let mut d = Document::new("dots");
     let page = d.first_page().unwrap();
     let r = d.create(page, NodeKind::Rectangle, "Square", 40.0, 40.0, 60.0, 60.0).unwrap();

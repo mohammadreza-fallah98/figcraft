@@ -10,8 +10,8 @@
 
 use std::collections::BTreeMap;
 
-use figcraft_doc::proto::{Action, ConditionalBlock, Expr, ExprOp, MAX_ACTION_DEPTH, walk};
-use figcraft_doc::{Variable, VariableType, VariableValue, Variables};
+use figiran_doc::proto::{Action, ConditionalBlock, Expr, ExprOp, MAX_ACTION_DEPTH, walk};
+use figiran_doc::{Variable, VariableType, VariableValue, Variables};
 use serde_json::{Value, json};
 
 use super::CommandSpec;
@@ -140,7 +140,7 @@ pub fn placeholder(kind: VariableType) -> VariableValue {
         VariableType::Number => VariableValue::Number(0.0),
         VariableType::String => VariableValue::String(String::new()),
         VariableType::Boolean => VariableValue::Boolean(true),
-        VariableType::Color => VariableValue::Color(figcraft_color::Color::BLACK),
+        VariableType::Color => VariableValue::Color(figiran_color::Color::BLACK),
     }
 }
 

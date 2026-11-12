@@ -3,7 +3,7 @@
 
 use crate::Session;
 use crate::tools::{PointerEvent, PointerKind, ToolId};
-use figcraft_doc::NodeKind;
+use figiran_doc::NodeKind;
 use serde_json::json;
 
 fn click(s: &mut Session, x: f64, y: f64) {

@@ -5,8 +5,8 @@
 
 use std::sync::Arc;
 
-use figcraft_doc::{Document, HandleMirroring, NodeId, NodeKind, VectorNetwork, Vertex};
-use figcraft_geom::{Affine, Point, Rect, Vec2};
+use figiran_doc::{Document, HandleMirroring, NodeId, NodeKind, VectorNetwork, Vertex};
+use figiran_geom::{Affine, Point, Rect, Vec2};
 
 use super::point_snap;
 use super::regions::region_hit;
@@ -122,7 +122,7 @@ const MIDPOINT_PX: f64 = 6.0;
 
 /// The page point at `t` (0..1) along segment `seg` of vector `id`.
 fn segment_point(doc: &Document, id: NodeId, seg: usize, t: f64) -> Option<Point> {
-    use figcraft_geom::kurbo::ParamCurve;
+    use figiran_geom::kurbo::ParamCurve;
     let c = network(doc, id)?.cubic(seg)?;
     Some(doc.world_transform(id) * c.eval(t.clamp(0.0, 1.0)))
 }
@@ -190,7 +190,7 @@ impl Session {
     pub fn vector_edit_box(&self) -> Option<[Point; 4]> {
         let ds = self.ds().ok()?;
         if let Gesture::Vector(VGesture::BoxRotate { b, angle, .. }) = &self.tool.gesture {
-            let m = figcraft_geom::rotate_about(Affine::IDENTITY, b.center(), -angle);
+            let m = figiran_geom::rotate_about(Affine::IDENTITY, b.center(), -angle);
             return Some(b.corners().map(|c| m * c));
         }
         transform::shown_box(&ds.doc, ds.vector_edit.as_ref()?).map(|b| b.corners())
@@ -440,8 +440,8 @@ impl Session {
                     let mut polys: Vec<Vec<[f64; 2]>> = Vec::new();
                     let mut path = face.path.clone();
                     path.apply_affine(w);
-                    figcraft_geom::kurbo::flatten(path.iter(), 0.25 / ev.zoom.max(1e-6), |el| {
-                        use figcraft_geom::kurbo::PathEl;
+                    figiran_geom::kurbo::flatten(path.iter(), 0.25 / ev.zoom.max(1e-6), |el| {
+                        use figiran_geom::kurbo::PathEl;
                         match el {
                             PathEl::MoveTo(p) => polys.push(vec![[p.x, p.y]]),
                             PathEl::LineTo(p) => {
@@ -951,7 +951,7 @@ impl Session {
                 if ev.shift {
                     angle = (angle / 15.0).round() * 15.0;
                 }
-                let m = figcraft_geom::rotate_about(Affine::IDENTITY, c, -angle);
+                let m = figiran_geom::rotate_about(Affine::IDENTITY, c, -angle);
                 self.preview(|doc, _| transform::transform_box(doc, id, &b, m))?;
                 self.tool.overlay.cursor = Cursor::Rotate((ev.p() - c).atan2().to_degrees());
                 self.vgesture(VGesture::BoxRotate { b, start_angle, angle });

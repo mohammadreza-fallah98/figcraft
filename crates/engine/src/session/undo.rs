@@ -1,6 +1,6 @@
 use super::{
     Arc, BatchScope, BatchStep, DocState, Document, EngineError, HistoryEntry, Interaction, NodeId, PREVIEW_READ_ONLY, Result, Session, UiRequest,
-    Value, cmd, figcraft_collab, json, normalize, textpreview,
+    Value, cmd, figiran_collab, json, normalize, textpreview,
 };
 
 struct GroupDocCheckpoint {
@@ -29,7 +29,7 @@ impl Session {
     /// How many undo and redo steps the active document has (the user's own in a live session).
     pub fn undo_depth(&self) -> (usize, usize) {
         match self.ds() {
-            Ok(ds) if self.live_doc(ds.uid) => self.live().client().map_or((0, 0), figcraft_collab::Client::history_len),
+            Ok(ds) if self.live_doc(ds.uid) => self.live().client().map_or((0, 0), figiran_collab::Client::history_len),
             Ok(ds) => (ds.history.undo.len(), ds.history.redo.len()),
             Err(_) => (0, 0),
         }
@@ -147,8 +147,7 @@ impl Session {
         let (uid, doc) = (ds.uid, ds.doc.clone());
         if self.clipboard.source_doc == uid {
             self.clipboard.copied_components.retain(|id| {
-                doc.node(*id)
-                    .is_some_and(|n| matches!(n.kind, figcraft_doc::NodeKind::Component { .. } | figcraft_doc::NodeKind::ComponentSet { .. }))
+                doc.node(*id).is_some_and(|n| matches!(n.kind, figiran_doc::NodeKind::Component { .. } | figiran_doc::NodeKind::ComponentSet { .. }))
             });
         }
         Ok(true)

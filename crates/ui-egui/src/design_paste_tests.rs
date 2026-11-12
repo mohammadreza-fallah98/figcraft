@@ -1,5 +1,5 @@
-use figcraft_engine::Session;
-use figcraft_engine::cmd::edit::{CLIP_CLOSE, CLIP_OPEN};
+use figiran_engine::Session;
+use figiran_engine::cmd::edit::{CLIP_CLOSE, CLIP_OPEN};
 use serde_json::json;
 
 use crate::{FigApp, Services};
@@ -67,10 +67,7 @@ fn editable_design_layers_take_priority_over_a_png_representation() {
 
     assert_eq!(selected_names(&app), ["Copied layer"]);
     assert_eq!(app.session.doc().unwrap().node_count(), before + 1);
-    assert!(matches!(
-        app.session.doc().unwrap().node(figcraft_doc::NodeId(selected)).unwrap().fills[0].kind,
-        figcraft_color::PaintKind::Solid { .. }
-    ));
+    assert!(matches!(app.session.doc().unwrap().node(figiran_doc::NodeId(selected)).unwrap().fills[0].kind, figiran_color::PaintKind::Solid { .. }));
 }
 
 #[test]

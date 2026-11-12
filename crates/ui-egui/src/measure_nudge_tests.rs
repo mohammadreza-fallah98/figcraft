@@ -3,8 +3,8 @@
 //! and the selection's handles and size label hide while measuring (its outline stays).
 
 use egui::{Event, Key, Modifiers, Pos2, Shape};
-use figcraft_doc::NodeId;
-use figcraft_engine::Session;
+use figiran_doc::NodeId;
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::layers_drag_tests::Ui;

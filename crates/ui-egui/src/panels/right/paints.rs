@@ -259,7 +259,7 @@ fn range_fill(app: &mut FigApp, ui: &mut Ui, doc: &Document, id: NodeId, start: 
                     let mut child = ui.new_child(egui::UiBuilder::new().max_rect(text_r));
                     if let Some(h) =
                         widgets::text_field_inline(&mut child, Id::unique("range_hex"), &c.to_hex(), text_r.shrink2(vec2(0.0, 4.0)), regular(11.0))
-                        && let Some(nc) = figcraft_color::Color::from_hex_or_name(&h)
+                        && let Some(nc) = figiran_color::Color::from_hex_or_name(&h)
                     {
                         app.run("text.style", json!({"id": id, "start": start, "end": end, "textFills": [nc.to_css_hex()]}));
                     }
@@ -284,7 +284,7 @@ fn range_fill(app: &mut FigApp, ui: &mut Ui, doc: &Document, id: NodeId, start: 
 /// stroke align/weight, per-side weights and advanced stroke settings.
 pub(super) fn paints(app: &mut FigApp, ui: &mut Ui, doc: &Document, sel: &[NodeId], fills: bool) {
     if fills
-        && let Some((id, a, b)) = figcraft_engine::textedit::selected_range(&app.session)
+        && let Some((id, a, b)) = figiran_engine::textedit::selected_range(&app.session)
         && a < b
         && sel.contains(&id)
     {
@@ -295,7 +295,7 @@ pub(super) fn paints(app: &mut FigApp, ui: &mut Ui, doc: &Document, sel: &[NodeI
     let ids = sel.to_vec();
     // Regions selected in vector edit mode: their own fills (#1875); the fill commands edit those too.
     let region_list = match sel {
-        [id] if fills => figcraft_engine::vectoredit::selected_region_fills(&app.session, *id),
+        [id] if fills => figiran_engine::vectoredit::selected_region_fills(&app.session, *id),
         _ => None,
     };
     // The fill style, a variable bound to the layer's fill and the image crop are the layer's:
@@ -303,7 +303,7 @@ pub(super) fn paints(app: &mut FigApp, ui: &mut Ui, doc: &Document, sel: &[NodeI
     let region = region_list.is_some();
     // Else a text's fills are what its characters show: one list they share, or mixed (#1856).
     let list = region_list.unwrap_or_else(|| {
-        common(doc, sel, |n| if fills { figcraft_engine::cmd::lists::character_fills(n) } else { Some(n.strokes.clone()) }).flatten()
+        common(doc, sel, |n| if fills { figiran_engine::cmd::lists::character_fills(n) } else { Some(n.strokes.clone()) }).flatten()
     });
     let title = if fills { tr("Fill") } else { tr("Stroke") };
     let empty = list.as_ref().is_none_or(|l| l.is_empty());
@@ -432,7 +432,7 @@ pub(super) fn paints(app: &mut FigApp, ui: &mut Ui, doc: &Document, sel: &[NodeI
         // each side binds to a number variable on its own.
         if let Some(sides) = common(doc, sel, |n| n.stroke.sides).flatten() {
             let col = widgets::col_width(ui.available_width());
-            let fields = ["T", "R", "B", "L"].into_iter().zip(figcraft_engine::cmd::props::STROKE_SIDES);
+            let fields = ["T", "R", "B", "L"].into_iter().zip(figiran_engine::cmd::props::STROKE_SIDES);
             for first in [0, 2] {
                 row(ui, 32.0, |ui| {
                     for (k, (label, field)) in fields.clone().enumerate().skip(first).take(2) {
@@ -462,7 +462,7 @@ fn paint_row(app: &mut FigApp, ui: &mut Ui, ids: &[NodeId], i: usize, p: &Paint,
             let r = child.max_rect();
             // The variable bound to this paint's colour (its key on the layers: `fill` or `fills/<i>/color`).
             let bound = app.session.doc().ok().filter(|_| !region).and_then(|d| {
-                let key = ids.first().and_then(|id| d.node(*id)).and_then(|n| figcraft_engine::cmd::lists::paint_binding_key(n, fills, i))?;
+                let key = ids.first().and_then(|id| d.node(*id)).and_then(|n| figiran_engine::cmd::lists::paint_binding_key(n, fills, i))?;
                 Some((key.to_string(), crate::variable_ui::bound_name(d, &ids, key)?))
             });
             match &p.kind {
@@ -494,7 +494,7 @@ fn paint_row(app: &mut FigApp, ui: &mut Ui, ids: &[NodeId], i: usize, p: &Paint,
                         &color.to_hex(),
                         text_r.shrink2(vec2(0.0, 4.0)),
                         regular(11.0),
-                    ) && let Some(c) = figcraft_color::Color::from_hex_or_name(&h)
+                    ) && let Some(c) = figiran_color::Color::from_hex_or_name(&h)
                     {
                         app.run(cmd, json!({"ids": ids, "index": i, "color": c.to_css_hex()}));
                     }

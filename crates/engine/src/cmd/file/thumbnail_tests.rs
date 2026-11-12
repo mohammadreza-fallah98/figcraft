@@ -1,6 +1,6 @@
 use super::*;
-use figcraft_color::{Color, Paint};
-use figcraft_geom::Affine;
+use figiran_color::{Color, Paint};
+use figiran_geom::Affine;
 
 const RED: Color = Color::from_rgb8_const(255, 0, 0);
 const GREEN: Color = Color::from_rgb8_const(0, 255, 0);
@@ -60,7 +60,7 @@ fn invalid_flags_and_non_frames_keep_the_default_thumbnail() {
     let (mut s, cover, wide) = scene();
     let default = thumbnail(s.doc().unwrap()).unwrap();
     for value in ["false", "TRUE", ""] {
-        s.doc_mut().unwrap().get_mut(cover).unwrap().plugin_data.insert("figcraft.thumbnail".into(), value.into());
+        s.doc_mut().unwrap().get_mut(cover).unwrap().plugin_data.insert("figiran.thumbnail".into(), value.into());
         assert_eq!(thumbnail(s.doc().unwrap()).unwrap(), default, "flag {value:?}");
     }
     choose(&mut s, wide);
@@ -147,7 +147,7 @@ fn native_save_and_fig_export_embed_the_same_chosen_thumbnail() {
     let native = file_bytes(s.ds().unwrap()).unwrap();
     let (fig, _) = super::export::fig_bytes(s.doc().unwrap()).unwrap();
     for bytes in [native, fig] {
-        let png = figcraft_format::thumbnail::thumbnail_png(std::io::Cursor::new(bytes)).unwrap();
+        let png = figiran_format::thumbnail::thumbnail_png(std::io::Cursor::new(bytes)).unwrap();
         let actual = image::load_from_memory(&png).unwrap().to_rgba8();
         assert_eq!(actual.dimensions(), (200, 200));
         assert_eq!(actual, expected);

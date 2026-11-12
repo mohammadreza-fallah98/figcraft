@@ -2,7 +2,7 @@
 
 use crate::props::{Effect, LayoutGrid};
 use crate::text::{ParagraphStyle, TextStyle};
-use figcraft_color::{Color, Paint};
+use figiran_color::{Color, Paint};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 

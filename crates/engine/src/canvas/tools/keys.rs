@@ -64,11 +64,11 @@ impl Session {
         // Outline mode draws no fills: shapes are clicked on their outlines, reaching what's behind.
         if let Some(v) = self.ds().ok().map(|d| &d.view).filter(|v| v.outlines) {
             // What it draws besides the shapes can be clicked too.
-            let also = figcraft_doc::geometry::OutlineHits { hidden: v.outline_hidden, bounds: v.outline_bounds };
-            return figcraft_doc::geometry::hit_outlines(doc, focus.unwrap_or(page), p, tol, Some(&result), also);
+            let also = figiran_doc::geometry::OutlineHits { hidden: v.outline_hidden, bounds: v.outline_bounds };
+            return figiran_doc::geometry::hit_outlines(doc, focus.unwrap_or(page), p, tol, Some(&result), also);
         }
         match focus {
-            Some(f) => figcraft_doc::geometry::hit_in(doc, f, p, tol, Some(&result)),
+            Some(f) => figiran_doc::geometry::hit_in(doc, f, p, tol, Some(&result)),
             None => doc.hit_test(page, p, tol, Some(&result)),
         }
     }

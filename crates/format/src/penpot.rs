@@ -1,16 +1,16 @@
 //! Native, offline importer for Penpot 2.x `.penpot` exports (ZIP / JSON).
 //!
 //! The archive contains `manifest.json`, one JSON per page and shape, and image blobs in
-//! `objects/`. Imported shapes are ordinary FigCraft nodes, not a flattened SVG.
+//! `objects/`. Imported shapes are ordinary FigIran nodes, not a flattened SVG.
 //! Only the supported subset is mapped; unknown properties are not silently represented as
 //! fully editable. This module has no Python, network or UI dependency and works with WASM.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::io::{self, Cursor, Read};
 
-use figcraft_doc::color::{BlendMode, Color, ColorStop, Gradient, GradientKind, ImageScaleMode, Paint, PaintKind};
-use figcraft_doc::geom::{Affine, BezPath, Shape};
-use figcraft_doc::{
+use figiran_doc::color::{BlendMode, Color, ColorStop, Gradient, GradientKind, ImageScaleMode, Paint, PaintKind};
+use figiran_doc::geom::{Affine, BezPath, Shape};
+use figiran_doc::{
     AutoLayout, Blur, BoolOp, CellAlign, Collection, ContentAlign, CrossAlign, Document, Effect, EffectKind, GridAlign, GridKind, GridTrack, Guide,
     HConstraint, LayoutGrid, LayoutMode, LetterSpacing, LineHeight, MainAlign, MaskType, Mode, NodeId, NodeKind, Shadow, Sizing, StrokeAlign,
     StrokeCap, StrokeJoin, Style, StyleKind, StyleRun, TextAlignH, TextAutoResize, TextCase, TextData, TextDecoration, TextStyle, VConstraint,
@@ -272,7 +272,7 @@ fn display_grids(v: &Value, warnings: &mut Vec<String>) -> Vec<LayoutGrid> {
 fn finish_layout(doc: &mut Document, frame: NodeId, v: &Value, warnings: &mut Vec<String>) {
     let Some(f) = doc.node(frame) else { return };
     let Some(al) = f.layout.clone() else { return };
-    let kids: Vec<figcraft_doc::Node> = f.children.iter().filter_map(|id| doc.node(*id)).filter(|n| !n.child_layout.absolute).cloned().collect();
+    let kids: Vec<figiran_doc::Node> = f.children.iter().filter_map(|id| doc.node(*id)).filter(|n| !n.child_layout.absolute).cloned().collect();
     if kids.iter().any(|n| n.plugin_data.contains_key("penpot.unsupported.itemLayout")) {
         if let Some(n) = doc.node_mut(frame) {
             n.layout = None;
@@ -361,7 +361,7 @@ fn finish_masked_group(doc: &mut Document, group: NodeId, source: &Value, warnin
 }
 
 /// Read one exported `.penpot` archive without touching the filesystem or running a converter.
-/// Returns native, editable FigCraft nodes plus notes about unsupported features.
+/// Returns native, editable FigIran nodes plus notes about unsupported features.
 pub fn import(bytes: &[u8]) -> Result<(Document, Vec<String>), FormatError> {
     if bytes.len() > MAX_ARCHIVE {
         return Err(corrupt("archive exceeds 512 MiB"));
@@ -436,7 +436,7 @@ pub fn import(bytes: &[u8]) -> Result<(Document, Vec<String>), FormatError> {
             .and_then(|kept| serde_json::to_string(&kept).ok())
             .filter(|encoded| encoded.len() <= 16_384);
         // Library swatches remain useful as native document colors even when a
-        // Penpot shared-style/variable reference has no FigCraft equivalent.
+        // Penpot shared-style/variable reference has no FigIran equivalent.
         import_document_colors(&mut z, &base, &mut doc, &mut warnings, &mut inflate_budget);
         let library_font_refs = import_typography_styles(&mut z, &base, &mut doc, &mut warnings, &mut inflate_budget);
         if let Some(source) = import_token_variables(&mut z, &base, &mut doc, &mut active_modes, &mut warnings, &mut inflate_budget) {
@@ -620,8 +620,8 @@ pub fn import(bytes: &[u8]) -> Result<(Document, Vec<String>), FormatError> {
     }
     doc.current_page = doc.first_page();
     // Penpot's multidimensional themes and original token aliases cannot safely be
-    // flattened to a single FigCraft mode. Store the bounded original on the first
-    // page, which survives saving as .figcraft; never claim live shape bindings.
+    // flattened to a single FigIran mode. Store the bounded original on the first
+    // page, which survives saving as .figiran; never claim live shape bindings.
     if let Some(page) = doc.first_page()
         && let Some(node) = doc.node_mut(page)
     {
@@ -646,7 +646,7 @@ pub fn import(bytes: &[u8]) -> Result<(Document, Vec<String>), FormatError> {
     if !structural_issues.is_empty() {
         warn(
             &mut warnings,
-            format!("FigCraft document has {} remaining structural issue(s) after Penpot import; review before editing", structural_issues.len()),
+            format!("FigIran document has {} remaining structural issue(s) after Penpot import; review before editing", structural_issues.len()),
         );
     }
     report_unsupported_layout(&doc, &mut warnings);
@@ -672,7 +672,7 @@ pub(crate) fn layout_fingerprint(doc: &Document, id: NodeId) -> Option<String> {
 }
 
 /// Fingerprint native text and its paints for source-preserving export.
-pub(crate) fn text_fingerprint(node: &figcraft_doc::Node) -> Option<String> {
+pub(crate) fn text_fingerprint(node: &figiran_doc::Node) -> Option<String> {
     match &node.kind {
         NodeKind::Text(text) => fingerprint(&serde_json::json!({"text": text, "fills": node.fills})),
         _ => None,
@@ -680,7 +680,7 @@ pub(crate) fn text_fingerprint(node: &figcraft_doc::Node) -> Option<String> {
 }
 
 /// Fingerprint stroke paints and stroke geometry settings.
-pub(crate) fn strokes_fingerprint(node: &figcraft_doc::Node) -> Option<String> {
+pub(crate) fn strokes_fingerprint(node: &figiran_doc::Node) -> Option<String> {
     fingerprint(&serde_json::json!({"strokes": node.strokes, "stroke": node.stroke}))
 }
 
@@ -737,11 +737,11 @@ fn keep_component_sources(doc: &mut Document, file_id: &str, sources: &BTreeMap<
     }
 }
 
-/// Turn the imported Penpot prototype links into working FigCraft interactions and flows.
+/// Turn the imported Penpot prototype links into working FigIran interactions and flows.
 ///
 /// Every shape keeps its Penpot interactions in its metadata, and every page its Penpot
 /// flows. Now that the whole document is in, the Penpot shape ids they name can be
-/// resolved to FigCraft node ids.
+/// resolved to FigIran node ids.
 fn import_prototype_links(doc: &mut Document, warnings: &mut Vec<String>) {
     let by_penpot_id: BTreeMap<String, NodeId> = doc.nodes().filter_map(|n| Some((n.plugin_data.get("penpot.id")?.clone(), n.id))).collect();
     prototype::resolve_destinations(doc, &by_penpot_id, warnings);
@@ -764,7 +764,7 @@ fn import_prototype_links(doc: &mut Document, warnings: &mut Vec<String>) {
 
 /// Collect readable, bounded layout compatibility warnings after importing every page.
 /// Per-layer source properties survive a save/open cycle in `plugin_data`, even where
-/// FigCraft's current layout engine does not expose the same feature.
+/// FigIran's current layout engine does not expose the same feature.
 fn report_unsupported_layout(doc: &Document, warnings: &mut Vec<String>) {
     for (flag, explanation) in [("penpot.unsupported.alignSelf", "unrecognized per-element alignment")] {
         let mut count = 0usize;
@@ -789,10 +789,10 @@ fn report_unsupported_layout(doc: &Document, warnings: &mut Vec<String>) {
     }
 }
 
-/// Link fully mapped local Penpot component copies to FigCraft's native component graph.
+/// Link fully mapped local Penpot component copies to FigIran's native component graph.
 ///
 /// A Penpot instance may have detached, reordered or injected layers. Syncing one of those as a
-/// FigCraft instance would *delete content*. We therefore link only exact shapeRef trees, and
+/// FigIran instance would *delete content*. We therefore link only exact shapeRef trees, and
 /// leave every other copy independent with its original metadata intact.
 fn link_local_instances(doc: &mut Document, warnings: &mut Vec<String>) {
     let mut masters = BTreeMap::new();
@@ -890,8 +890,8 @@ fn link_local_instances(doc: &mut Document, warnings: &mut Vec<String>) {
 }
 
 /// Preflight an instance and its descendants. The order of children must match exactly because
-/// FigCraft's synchronization follows the master's order. Mapping by name alone is unsafe.
-fn refers_to(doc: &Document, by_penpot_id: &BTreeMap<String, NodeId>, copy: &figcraft_doc::Node, source: &figcraft_doc::Node) -> bool {
+/// FigIran's synchronization follows the master's order. Mapping by name alone is unsafe.
+fn refers_to(doc: &Document, by_penpot_id: &BTreeMap<String, NodeId>, copy: &figiran_doc::Node, source: &figiran_doc::Node) -> bool {
     let Some(target) = source.plugin_data.get("penpot.id") else { return false };
     let mut reference = copy.plugin_data.get("penpot.shapeRef");
     for _ in 0..MAX_DEPTH {
@@ -947,7 +947,7 @@ fn match_instance_tree(
         matches!((&copy.kind, &source.kind), (NodeKind::Frame, NodeKind::Component { .. }))
     } else {
         // Paths, booleans and component sets must be byte-for-byte equivalent: their geometry
-        // cannot be carried by FigCraft's generic instance override groups.
+        // cannot be carried by FigIran's generic instance override groups.
         match (&copy.kind, &source.kind) {
             (NodeKind::Text(_), NodeKind::Text(_)) => true,
             (NodeKind::Frame, NodeKind::Instance { .. }) => true,
@@ -967,7 +967,7 @@ fn match_instance_tree(
     {
         return Err(at("swapped nested component instance"));
     }
-    // These fields have no reliable component override in FigCraft yet. Any difference must
+    // These fields have no reliable component override in FigIran yet. Any difference must
     // keep the copy independent so a later component sync cannot silently erase it.
     let blocks = |differs: bool| differs && !is_root;
     if copy.clip != source.clip
@@ -1045,7 +1045,7 @@ fn match_instance_tree(
 }
 
 /// Identify native property groups overridden by an imported instance.
-fn differing_fields(copy: &figcraft_doc::Node, source: &figcraft_doc::Node) -> Vec<&'static str> {
+fn differing_fields(copy: &figiran_doc::Node, source: &figiran_doc::Node) -> Vec<&'static str> {
     [
         ("clip", copy.clip != source.clip),
         ("mask", copy.is_mask != source.is_mask),
@@ -1070,12 +1070,12 @@ fn differing_fields(copy: &figcraft_doc::Node, source: &figcraft_doc::Node) -> V
 
 /// Return a compact, inspectable snapshot of unsupported Penpot geometry/properties. Keeping
 /// the source data makes later import upgrades and manual reconstruction possible after saving.
-fn preserve_source(node: &mut figcraft_doc::Node, v: &Value, keys: &[&str]) {
+fn preserve_source(node: &mut figiran_doc::Node, v: &Value, keys: &[&str]) {
     preserve_source_within(node, v, keys, 16_384);
 }
 
 /// Retain selected source fields without exceeding the metadata size budget.
-fn preserve_source_within(node: &mut figcraft_doc::Node, v: &Value, keys: &[&str], limit: usize) {
+fn preserve_source_within(node: &mut figiran_doc::Node, v: &Value, keys: &[&str], limit: usize) {
     for &key in keys {
         if let Some(value) = v.get(key) {
             // Never fill a document with arbitrary megabytes of opaque source JSON.
@@ -1134,7 +1134,7 @@ fn grid_track(v: &Value) -> Option<GridTrack> {
     }
 }
 
-/// Map Penpot layout fields to the FigCraft frame layout engine. Unsupported directions / custom
+/// Map Penpot layout fields to the FigIran frame layout engine. Unsupported directions / custom
 /// grid track types are intentionally left as absolute-positioned frames (not approximated).
 fn layout_props(v: &Value, warnings: &mut Vec<String>) -> Option<AutoLayout> {
     let mode = string(v, "layout").or_else(|| string(v, "layoutMode"))?;
@@ -1213,7 +1213,7 @@ fn layout_props(v: &Value, warnings: &mut Vec<String>) -> Option<AutoLayout> {
     Some(al)
 }
 
-/// Penpot grid-cell indices are one-based; FigCraft uses zero-based indices. The `shapes`
+/// Penpot grid-cell indices are one-based; FigIran uses zero-based indices. The `shapes`
 /// memberships are the authoritative mapping (not a cell's UUID).
 fn grid_cells(parent: &Value) -> BTreeMap<&str, &Value> {
     let mut out = BTreeMap::new();
@@ -1236,7 +1236,7 @@ fn align_cell(v: Option<&str>) -> Option<CellAlign> {
 }
 
 /// Apply sizing, margins, alignment and one-based grid-cell placement to a layer.
-fn apply_child_layout(v: &Value, cell: Option<&Value>, node: &mut figcraft_doc::Node) {
+fn apply_child_layout(v: &Value, cell: Option<&Value>, node: &mut figiran_doc::Node) {
     node.child_layout.sizing_h = penpot_sizing(string(v, "layoutItemHSizing"));
     node.child_layout.sizing_v = penpot_sizing(string(v, "layoutItemVSizing"));
     node.child_layout.absolute = v.get("layoutItemAbsolute").and_then(Value::as_bool) == Some(true);
@@ -1267,8 +1267,8 @@ fn apply_child_layout(v: &Value, cell: Option<&Value>, node: &mut figcraft_doc::
     }
 }
 
-/// Bring Penpot library color swatches into FigCraft's editable document palette.
-/// Bind only the narrow subset of Penpot `appliedTokens` that FigCraft can represent
+/// Bring Penpot library color swatches into FigIran's editable document palette.
+/// Bind only the narrow subset of Penpot `appliedTokens` that FigIran can represent
 /// without changing the initial appearance: single solid fill/stroke colors and fixed
 /// layer width/height. Penpot stores token names without their set; if two sets contain
 /// the same name, choosing one would silently change the design when modes change.
@@ -1277,7 +1277,7 @@ const NUMBER_TOKEN_PROPERTIES: &[&str] =
     &["columnGap", "rowGap", "p1", "p2", "p3", "p4", "r1", "r2", "r3", "r4", "strokeWidth", "fontSize", "letterSpacing"];
 
 /// Find a bindable native field only when its current value matches the token.
-fn token_number_field(node: &figcraft_doc::Node, property: &str, value: f64) -> Option<&'static str> {
+fn token_number_field(node: &figiran_doc::Node, property: &str, value: f64) -> Option<&'static str> {
     let same = |current: f64| value.is_finite() && (current - value).abs() < 0.0001;
     let layout = node.layout.as_ref();
     let vertical = layout.is_some_and(|l| l.mode == LayoutMode::Vertical);
@@ -1375,13 +1375,13 @@ fn bind_applied_tokens(doc: &mut Document, active_modes: &BTreeMap<String, Strin
                         token_number_field(node, property, value).ok_or(if NUMBER_TOKEN_PROPERTIES.contains(&property) {
                             "layer value differs from the token"
                         } else {
-                            "property has no FigCraft binding"
+                            "property has no FigIran binding"
                         })?
                     }
                     ("fontFamily", VariableValue::String(family)) if matches!(&node.kind, NodeKind::Text(t) if t.style.font_family == family) => {
                         "fontFamily"
                     }
-                    _ => return Err("property has no FigCraft binding"),
+                    _ => return Err("property has no FigIran binding"),
                 };
                 Ok((field, id.clone()))
             })();
@@ -1420,7 +1420,7 @@ fn bind_applied_tokens(doc: &mut Document, active_modes: &BTreeMap<String, Strin
         warn(
             warnings,
             format!(
-                "Linked {linked} Penpot token reference(s) to native FigCraft properties (colors, sizes, gaps, padding, radii, stroke widths, font sizes and families)"
+                "Linked {linked} Penpot token reference(s) to native FigIran properties (colors, sizes, gaps, padding, radii, stroke widths, font sizes and families)"
             ),
         );
     }
@@ -1478,7 +1478,7 @@ fn import_document_colors(z: &mut ZipArchive<Cursor<&[u8]>>, base: &str, doc: &m
     }
 }
 
-/// Import named Penpot typography assets as native reusable FigCraft text styles.
+/// Import named Penpot typography assets as native reusable FigIran text styles.
 /// Keep original values on the text nodes: attaching a shared style automatically
 /// would override local formatting unless the source explicitly links it.
 fn import_typography_styles(
@@ -1538,7 +1538,7 @@ fn import_typography_styles(
     custom_refs
 }
 
-/// DTCG typography and shadow objects are not scalar FigCraft variables. Instead, bring
+/// DTCG typography and shadow objects are not scalar FigIran variables. Instead, bring
 /// simple literal compound values across as reusable native styles. In particular, do
 /// not evaluate token aliases here: active themes may map those to different values.
 fn compound_number(value: &Value) -> Option<f64> {
@@ -1701,7 +1701,7 @@ fn scalar_token(token: &Value) -> Option<(VariableType, VariableValue)> {
 }
 
 /// Native alias variables must have the same type as their target. Penpot's
-/// token type vocabulary is larger than FigCraft's four scalar types; unknown
+/// token type vocabulary is larger than FigIran's four scalar types; unknown
 /// kinds remain source metadata rather than being converted incorrectly.
 fn token_color(text: &str) -> Option<Color> {
     let text = text.trim();
@@ -1735,7 +1735,7 @@ fn token_kind(token: &Value) -> Option<VariableType> {
 
 /// A Penpot alias is an entire value of the form `{path.to.token}`, not a
 /// string containing an interpolated expression. Do not interpret references
-/// outside the same token set as a live FigCraft variable without a mode map.
+/// outside the same token set as a live FigIran variable without a mode map.
 fn token_alias(token: &Value) -> Option<&str> {
     let text = token.get("value").or_else(|| token.get("$value"))?.as_str()?;
     let path = text.strip_prefix('{')?.strip_suffix('}')?;
@@ -2462,7 +2462,7 @@ fn import_token_variables(
         );
     }
     if value.get("themes").is_some_and(|v| !v.is_null()) {
-        warn(warnings, "Penpot themes and active set combinations are preserved as source metadata, not editable FigCraft modes".into());
+        warn(warnings, "Penpot themes and active set combinations are preserved as source metadata, not editable FigIran modes".into());
     }
     if count > 0 {
         warn(
@@ -2478,7 +2478,7 @@ fn import_token_variables(
 /// A source variant reference is meaningful even when its component is left
 /// independent. Warn instead of marking such layers as linked editable variants.
 fn report_design_system_limits(doc: &Document, warnings: &mut Vec<String>) {
-    let in_set = |node: &figcraft_doc::Node| {
+    let in_set = |node: &figiran_doc::Node| {
         matches!(node.kind, NodeKind::Component { .. })
             && node.parent.and_then(|p| doc.node(p)).is_some_and(|p| matches!(p.kind, NodeKind::ComponentSet { .. }))
     };
@@ -2497,7 +2497,7 @@ fn report_design_system_limits(doc: &Document, warnings: &mut Vec<String>) {
 }
 
 /// File library components point at an existing page shape (`mainInstanceId`). Use this to turn
-/// that original into a native FigCraft component. Copies are still independent layers until the
+/// that original into a native FigIran component. Copies are still independent layers until the
 /// Penpot override/source graph can be translated safely (see docs).
 fn component_masters(
     z: &mut ZipArchive<Cursor<&[u8]>>,
@@ -2861,7 +2861,7 @@ fn svg_gradient(radial: bool, attrs: &serde_json::Map<String, Value>, stops_node
     };
     let space = if user_space { to_unit? * gradient_transform } else { gradient_transform };
     let map = |p: (f64, f64)| {
-        let q = space * figcraft_doc::geom::Point::new(p.0, p.1);
+        let q = space * figiran_doc::geom::Point::new(p.0, p.1);
         (q.x.is_finite() && q.y.is_finite() && q.x.abs() <= 1e6 && q.y.abs() <= 1e6).then_some((q.x, q.y))
     };
     let (from, to, width) = (map(from)?, map(to)?, map(width)?);
@@ -2993,7 +2993,7 @@ fn layer_kind(
     is_master: bool,
     (x, y, w, h): (f64, f64, f64, f64),
     warnings: &mut Vec<String>,
-) -> (NodeKind, Option<figcraft_doc::geom::Rect>, Option<BezPath>) {
+) -> (NodeKind, Option<figiran_doc::geom::Rect>, Option<BezPath>) {
     let mut path_box = None;
     let mut vector_source = None;
     let kind = match typ {
@@ -3045,7 +3045,7 @@ fn layer_kind(
 }
 
 /// A layer's stroke settings from its first Penpot stroke.
-fn apply_stroke(node: &mut figcraft_doc::Node, stroke: &Value) {
+fn apply_stroke(node: &mut figiran_doc::Node, stroke: &Value) {
     node.stroke.weight = number(stroke, "strokeWidth", 1.0).clamp(0.0, 10000.0);
     node.stroke.align = match string(stroke, "strokeAlignment") {
         Some("center") => StrokeAlign::Center,
@@ -3086,7 +3086,7 @@ fn apply_stroke(node: &mut figcraft_doc::Node, stroke: &Value) {
 }
 
 /// A layer's visibility, lock, opacity, blend, clip, mask and constraints.
-fn apply_appearance(node: &mut figcraft_doc::Node, v: &Value) {
+fn apply_appearance(node: &mut figiran_doc::Node, v: &Value) {
     node.visible = v.get("hidden").and_then(Value::as_bool) != Some(true);
     node.locked = v.get("blocked").and_then(Value::as_bool) == Some(true);
     node.opacity = number(v, "opacity", 1.0).clamp(0.0, 1.0) as f32;
@@ -3116,7 +3116,7 @@ fn apply_appearance(node: &mut figcraft_doc::Node, v: &Value) {
 
 /// An `svg-raw` layer's source tree and markup, kept for the engine to expand (bounded by
 /// `svg_bytes`, the archive's raw SVG budget).
-fn keep_raw_svg(node: &mut figcraft_doc::Node, v: &Value, name: &str, svg_bytes: &mut usize, warnings: &mut Vec<String>) {
+fn keep_raw_svg(node: &mut figiran_doc::Node, v: &Value, name: &str, svg_bytes: &mut usize, warnings: &mut Vec<String>) {
     // If future SVG support improves, keep the original tree (when small)
     // alongside the reconstructed markup for faithful re-import.
     preserve_source(node, v, &["content", "svgAttrs", "svg-attrs"]);
@@ -3135,7 +3135,7 @@ fn keep_raw_svg(node: &mut figcraft_doc::Node, v: &Value, name: &str, svg_bytes:
 }
 
 /// A text layer's font references, kept as the source names them.
-fn keep_font_refs(node: &mut figcraft_doc::Node, v: &Value) {
+fn keep_font_refs(node: &mut figiran_doc::Node, v: &Value) {
     let references = referenced_google_fonts(v);
     if !references.is_empty() {
         node.plugin_data.insert("penpot.googleFontRefs".into(), serde_json::to_string(&references).unwrap_or_default());
@@ -3193,7 +3193,7 @@ const PRESERVED_LAYER_KEYS: &[&str] = &[
 ];
 
 /// The Penpot ids a layer keeps: its own, its file's and its component's.
-fn keep_ids(node: &mut figcraft_doc::Node, v: &Value, id: &str, base: &str, master: Option<&String>) {
+fn keep_ids(node: &mut figiran_doc::Node, v: &Value, id: &str, base: &str, master: Option<&String>) {
     node.plugin_data.insert("penpot.id".into(), id.to_owned());
     if let Some(file_id) = base.strip_prefix("files/") {
         node.plugin_data.insert("penpot.fileId".into(), file_id.to_owned());
@@ -3206,9 +3206,9 @@ fn keep_ids(node: &mut figcraft_doc::Node, v: &Value, id: &str, base: &str, mast
     }
 }
 
-/// The Penpot source fields a layer keeps: the layout and other settings FigCraft can't hold, and
+/// The Penpot source fields a layer keeps: the layout and other settings FigIran can't hold, and
 /// its component references.
-fn keep_source(node: &mut figcraft_doc::Node, v: &Value, typ: &str) {
+fn keep_source(node: &mut figiran_doc::Node, v: &Value, typ: &str) {
     // Mark unsupported properties on their exact source nodes. Layout changes may
     // otherwise silently discard these Penpot-specific rules on subsequent edits.
     if string(v, "layoutItemAlignSelf")
@@ -3231,7 +3231,7 @@ fn keep_source(node: &mut figcraft_doc::Node, v: &Value, typ: &str) {
 
 /// A text layer's fills: a paint all its runs share moves to the layer, and a text layer with no
 /// fill gets black.
-fn settle_text_fills(node: &mut figcraft_doc::Node, typ: &str) {
+fn settle_text_fills(node: &mut figiran_doc::Node, typ: &str) {
     if let NodeKind::Text(text) = &mut node.kind
         && let Some(paints) = uniform_text_fills(text)
     {
@@ -3370,7 +3370,7 @@ impl LayerImport<'_, '_> {
             && let Some(NodeKind::Vector { network }) = self.doc.node_mut(created).map(|n| &mut n.kind)
         {
             for region in &mut network.regions {
-                region.winding = figcraft_doc::WindingRule::EvenOdd;
+                region.winding = figiran_doc::WindingRule::EvenOdd;
             }
         }
         if let Some(node) = self.doc.node_mut(created) {
@@ -3392,7 +3392,7 @@ impl LayerImport<'_, '_> {
             keep_ids(node, v, id, self.base, self.masters.get(id));
             apply_child_layout(v, cell, node);
             // The prototype links are kept until every page is in the document, when the
-            // Penpot shape ids they name can be resolved to FigCraft node ids.
+            // Penpot shape ids they name can be resolved to FigIran node ids.
             prototype::keep_interaction_source(node, v, self.warnings);
             keep_source(node, v, typ);
             node.constrain_proportions = v.get("proportionLock").and_then(Value::as_bool) == Some(true);
@@ -3655,7 +3655,7 @@ fn text_style(v: &Value, base: &TextStyle) -> TextStyle {
 }
 
 /// Penpot nests paragraphs, lines and character runs. Keep runs at Unicode character offsets;
-/// bytes would truncate multibyte characters when the user edits the resulting FigCraft text.
+/// bytes would truncate multibyte characters when the user edits the resulting FigIran text.
 fn text_node(v: &Value) -> TextData {
     let mut fragments: Vec<(String, Value)> = Vec::new();
     fn own_style(v: &Value, inherited: &serde_json::Map<String, Value>) -> serde_json::Map<String, Value> {
@@ -3785,7 +3785,7 @@ fn text_node(v: &Value) -> TextData {
 }
 
 /// Approximate SVG/Penpot elliptical endpoint arcs with at most four editable cubic
-/// Bézier segments. These are *native* FigCraft vector handles, not an SVG image.
+/// Bézier segments. These are *native* FigIran vector handles, not an SVG image.
 /// Uses the W3C SVG endpoint-to-centre conversion and keeps all intermediate values finite.
 fn arc_to_cubics(path: &mut BezPath, from: (f64, f64), to: (f64, f64), rx: f64, ry: f64, rotation_degrees: f64, large: bool, sweep: bool) -> bool {
     use std::f64::consts::{FRAC_PI_2, PI};
@@ -3905,14 +3905,14 @@ fn inherited_fill(shapes: &BTreeMap<String, Value>, v: &Value) -> Value {
 
 /// Convert a filled path into an editable vector network.
 fn filled_network(path: &BezPath) -> VectorNetwork {
-    use figcraft_doc::geom::kurbo::PathEl;
+    use figiran_doc::geom::kurbo::PathEl;
     let mut closed = BezPath::new();
     let mut synthetic_ids = BTreeSet::new();
     let mut segments = 0usize;
     let mut started = false;
-    let mut open: Option<(figcraft_doc::geom::Point, figcraft_doc::geom::Point)> = None;
+    let mut open: Option<(figiran_doc::geom::Point, figiran_doc::geom::Point)> = None;
     let mut close =
-        |closed: &mut BezPath, segments: &mut usize, open: Option<(figcraft_doc::geom::Point, figcraft_doc::geom::Point)>, synthetic: bool| {
+        |closed: &mut BezPath, segments: &mut usize, open: Option<(figiran_doc::geom::Point, figiran_doc::geom::Point)>, synthetic: bool| {
             let Some((start, end)) = open else { return };
             closed.close_path();
             if (end - start).hypot() > 1e-6 {
@@ -3978,7 +3978,7 @@ fn vector_path(v: &Value, warnings: &mut Vec<String>) -> Option<VectorNetwork> {
 /// Parse supported vector commands and report unrepresentable geometry.
 fn vector_bezpath(v: &Value, warnings: &mut Vec<String>) -> Option<BezPath> {
     if let Some(d) = v.get("content").and_then(Value::as_str) {
-        let path = figcraft_doc::geom::svg_path(d).ok().filter(|p| !p.elements().is_empty())?;
+        let path = figiran_doc::geom::svg_path(d).ok().filter(|p| !p.elements().is_empty())?;
         let origin = Affine::translate((-geometry(v, "x", 0.0), -geometry(v, "y", 0.0)));
         return Some(origin * path);
     }
@@ -4196,7 +4196,7 @@ fn paints(
             if let Some(hash) = resolved {
                 images.insert(id.to_owned(), hash.clone());
                 // A Penpot image with keepAspectRatio=false stretches the full source
-                // rectangle into the layer. FigCraft's Crop mode with identity UV mapping
+                // rectangle into the layer. FigIran's Crop mode with identity UV mapping
                 // is the native, editable representation (Fill would crop the edges).
                 let stretch = image.get("keepAspectRatio").and_then(Value::as_bool) == Some(false);
                 let mut p = Paint::image(hash, if stretch { ImageScaleMode::Crop } else { ImageScaleMode::Fill });
@@ -4233,7 +4233,7 @@ fn paints(
 }
 
 /// Penpot gradient handles are unit-box positions. The `width` factor defines the perpendicular
-/// radius of a radial gradient; FigCraft stores that as a perpendicular handle position.
+/// radius of a radial gradient; FigIran stores that as a perpendicular handle position.
 fn gradient(v: &Value) -> Option<Gradient> {
     let kind = match string(v, "type")? {
         "linear" => GradientKind::Linear,
@@ -4795,7 +4795,7 @@ mod tests {
 
     #[test]
     fn crop_identity_is_the_native_equivalent_of_stretched_penpot_image() {
-        // FigCraft Crop maps unit coordinates into image UV. The identity transform
+        // FigIran Crop maps unit coordinates into image UV. The identity transform
         // stretches the full image to the node regardless of aspect ratio.
         let mut p = Paint::image("source", ImageScaleMode::Crop);
         if let PaintKind::Image(ref mut img) = p.kind {
@@ -5142,11 +5142,11 @@ mod tests {
         let (doc, _) = import(&archive_with_shapes(&shapes)).unwrap();
         let frame = doc.nodes().find(|n| n.name == "Mirrored").unwrap();
         let child = doc.nodes().find(|n| n.name == "Dot").unwrap();
-        let world = |t: Affine, x: f64, y: f64| t * figcraft_doc::geom::Point::new(x, y);
-        assert_eq!(world(frame.transform, 0.0, 0.0), figcraft_doc::geom::Point::new(300.0, 50.0));
+        let world = |t: Affine, x: f64, y: f64| t * figiran_doc::geom::Point::new(x, y);
+        assert_eq!(world(frame.transform, 0.0, 0.0), figiran_doc::geom::Point::new(300.0, 50.0));
         let child_world = frame.transform * child.transform;
-        assert_eq!(world(child_world, 0.0, 0.0), figcraft_doc::geom::Point::new(120.0, 60.0));
-        assert_eq!(world(child_world, 10.0, 10.0), figcraft_doc::geom::Point::new(110.0, 70.0));
+        assert_eq!(world(child_world, 0.0, 0.0), figiran_doc::geom::Point::new(120.0, 60.0));
+        assert_eq!(world(child_world, 10.0, 10.0), figiran_doc::geom::Point::new(110.0, 70.0));
     }
 
     #[test]
@@ -5422,7 +5422,7 @@ mod tests {
         let (doc, _) = import(&archive_with_shapes(&[(id, ring)])).unwrap();
         let NodeKind::Vector { network } = &doc.nodes().find(|n| n.name == "Ring").unwrap().kind else { panic!("expected vector") };
         assert!(!network.regions.is_empty());
-        assert!(network.regions.iter().all(|r| r.winding == figcraft_doc::WindingRule::EvenOdd));
+        assert!(network.regions.iter().all(|r| r.winding == figiran_doc::WindingRule::EvenOdd));
     }
 
     #[test]
@@ -5457,7 +5457,7 @@ mod tests {
         let NodeKind::Vector { network } = &doc.nodes().find(|n| n.name == "Script").unwrap().kind else { panic!("expected vector") };
         assert_eq!(network.segments.len(), 6);
         assert_eq!(network.regions.iter().map(|r| r.loops.len()).sum::<usize>(), 2);
-        assert!(network.fill_path().contains(figcraft_doc::geom::Point::new(90.0, 10.0)));
+        assert!(network.fill_path().contains(figiran_doc::geom::Point::new(90.0, 10.0)));
         let unfilled = "c8000000-0000-0000-0000-000000000002";
         let line = serde_json::json!({"id":unfilled,"type":"path","name":"Line","strokes":[{"strokeColor":"#000000","strokeWidth":1}],
             "content":"M0 0 L100 0 L100 100"});
@@ -5608,7 +5608,7 @@ mod tests {
         let (doc, warnings) = import(&archive_with_shapes(&[(id, gradient)])).unwrap();
         assert!(warnings.is_empty(), "{warnings:?}");
         let n = doc.nodes().find(|n| n.name == "Gradient test").unwrap();
-        assert!(matches!(&n.fills[0].kind, figcraft_doc::color::PaintKind::Gradient(_)));
+        assert!(matches!(&n.fills[0].kind, figiran_doc::color::PaintKind::Gradient(_)));
         assert_eq!(n.strokes.len(), 1);
         assert!((n.strokes[0].opacity - 0.5).abs() < 0.01);
         assert_eq!(n.stroke.weight, 3.0);
@@ -5760,10 +5760,10 @@ mod tests {
     }
 
     /// Optional real-file regression test. Kept out of the repository: it may contain user assets.
-    /// Run with FIGCRAFT_PENPOT_SAMPLE=/path/to/example.penpot cargo test -p figcraft-format penpot
+    /// Run with FIGIRAN_PENPOT_SAMPLE=/path/to/example.penpot cargo test -p figiran-format penpot
     #[test]
     fn imports_sample_when_provided() {
-        let Ok(path) = std::env::var("FIGCRAFT_PENPOT_SAMPLE") else {
+        let Ok(path) = std::env::var("FIGIRAN_PENPOT_SAMPLE") else {
             return;
         };
         let bytes = std::fs::read(path).unwrap();
@@ -6385,7 +6385,7 @@ mod tests {
 
     #[test]
     fn penpot_v12_user_sample_can_be_imported_saved_and_reopened() {
-        let Ok(path) = std::env::var("FIGCRAFT_PENPOT_SAMPLE") else {
+        let Ok(path) = std::env::var("FIGIRAN_PENPOT_SAMPLE") else {
             return;
         };
         let data = std::fs::read(&path).unwrap();
@@ -6406,7 +6406,7 @@ mod tests {
 
     // --- Prototypes
 
-    use figcraft_doc::proto::Action;
+    use figiran_doc::proto::Action;
 
     /// Two frames and a button that navigates from one to the other.
     fn prototype_shapes() -> Vec<(&'static str, Value)> {
@@ -6426,16 +6426,16 @@ mod tests {
     }
 
     #[test]
-    fn penpot_navigation_becomes_a_working_figcraft_interaction() {
+    fn penpot_navigation_becomes_a_working_figiran_interaction() {
         let (doc, warnings) = import(&archive_with_shapes(&prototype_shapes())).unwrap();
         assert!(doc.validate().is_empty(), "{warnings:?}");
         let button = doc.nodes().find(|n| n.name == "Go").unwrap();
         assert_eq!(button.interactions.len(), 1);
         let interaction = &button.interactions[0];
-        assert_eq!(interaction.trigger, figcraft_doc::proto::Trigger::OnClick);
-        assert_eq!(interaction.transition, figcraft_doc::proto::Transition::SlideIn { direction: figcraft_doc::proto::Direction::Right });
+        assert_eq!(interaction.trigger, figiran_doc::proto::Trigger::OnClick);
+        assert_eq!(interaction.transition, figiran_doc::proto::Transition::SlideIn { direction: figiran_doc::proto::Direction::Right });
         assert_eq!(interaction.duration_ms, 400);
-        assert_eq!(interaction.easing, figcraft_doc::proto::Easing::EaseOut);
+        assert_eq!(interaction.easing, figiran_doc::proto::Easing::EaseOut);
         let Action::Navigate { dest, .. } = &interaction.actions[0] else { panic!("expected a navigation") };
         let details = doc.nodes().find(|n| n.name == "Details").unwrap();
         assert_eq!(*dest, details.id, "the destination is the frame the link names");
@@ -6466,7 +6466,7 @@ mod tests {
         };
         let menu = doc.nodes().find(|n| n.name == "Menu").unwrap();
         assert_eq!(*dest, menu.id);
-        assert_eq!(*position, figcraft_doc::proto::OverlayPosition::BottomCenter);
+        assert_eq!(*position, figiran_doc::proto::OverlayPosition::BottomCenter);
         assert!(*close_on_outside);
         assert!(background.is_some(), "Penpot's overlay background comes across");
     }
@@ -6514,7 +6514,7 @@ mod tests {
     }
 
     #[test]
-    fn penpot_page_flows_become_figcraft_flows() {
+    fn penpot_page_flows_become_figiran_flows() {
         let first = "cccccccc-cccc-cccc-cccc-cccccccccccc";
         let shapes = prototype_shapes();
         let page = serde_json::json!({"id":"bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb","name":"Canvas","index":0,

@@ -2,7 +2,7 @@
 
 Current candidate font pin: `37827adc41fd165f9a9234ac40f94dbad353aa69` restores the complete prior Latin catalog
 alongside the migration fallbacks. Central font tests and license checks passed;
-publication is pending approval. Managed run `egui037-figcraft-latin-ci-20261025-0711`
+publication is pending approval. Managed run `egui037-figiran-latin-ci-20261025-0711`
 passed with required fonts: five targeted build-input tests plus full CI, including
 WASM and plugin builds (3,257 passing executions, zero failures, nine ignored across
 72 summaries; repeated tests are counted). This supersedes the optional-font-only
@@ -10,12 +10,12 @@ qualification below for the restored catalog.
 
 ## Current local qualification — 2026-10-25
 
-Latest combined-source qualification includes main `2a3b7d4fa78e67ecdc7bdfe8b4781e50e5b2612e`, preserving its text-on-path, style-variable, export and Dev Mode changes. Managed full CI `egui037-figcraft-main2a-ci-20261025-0745` passed with required fonts: 3,297 passing executions, zero failures and nine ignored across 71 summaries, including WASM and plugin builds. Fresh independent review accepted the integration. The capture/IME/field-save refactor addresses the prior Sonar complexity findings; remote analysis still needs the approved update. Native/browser, platform IME and paired performance gaps below remain open.
+Latest combined-source qualification includes main `2a3b7d4fa78e67ecdc7bdfe8b4781e50e5b2612e`, preserving its text-on-path, style-variable, export and Dev Mode changes. Managed full CI `egui037-figiran-main2a-ci-20261025-0745` passed with required fonts: 3,297 passing executions, zero failures and nine ignored across 71 summaries, including WASM and plugin builds. Fresh independent review accepted the integration. The capture/IME/field-save refactor addresses the prior Sonar complexity findings; remote analysis still needs the approved update. Native/browser, platform IME and paired performance gaps below remain open.
 
 ### Earlier review-fix qualification
 
 The published refresh preserves main `9f788753` and passed managed full CI
-`egui037-figcraft-main-refresh-ci-20261025-0618`: 3,247 passing executions, zero
+`egui037-figiran-main-refresh-ci-20261025-0618`: 3,247 passing executions, zero
 failures and nine ignored. The 3,242 counts below describe the earlier `10702311`
 qualification, before five additional main-branch tests. These are execution counts,
 not distinct regressions. The release font input is under review separately; a
@@ -32,10 +32,10 @@ both the migration history and that upstream target as parents. The selected egu
 `7ba8af4de70ba657a652266ddee2920bfc501c851520a49ac60c8044a5c23cc1`.
 The normal UI enables `default_fonts` and `monochrome_emoji_fonts`.
 
-Managed full CI `egui037-figcraft-final-ci-20261024-2312` passed with bundled fonts.
-Managed full CI `egui037-figcraft-system-font-ci-20261025-0402` also passed without
+Managed full CI `egui037-figiran-final-ci-20261024-2312` passed with bundled fonts.
+Managed full CI `egui037-figiran-system-font-ci-20261025-0402` also passed without
 bundled craft-fonts, using a licensed DejaVu Sans system-font fixture via XDG_DATA_HOME.
-The final qualification run `egui037-figcraft-final-qualification-ci-20261025-0453`
+The final qualification run `egui037-figiran-final-qualification-ci-20261025-0453`
 repeated that configuration successfully after the documentation reconciliation.
 Both runs completed formatting, strict lint, workspace tests, doctests, translations,
 layering, assets, WASM checks, and plugin fmt/lint/tests/release-WASM builds. Each log
@@ -105,7 +105,7 @@ Human review and human merge are required; no publication is authorized by this 
   window whose batch they acknowledge, so an empty child frame cannot error the root's. Focus-epoch fencing for
   text/IME batches remains part of the E21b nextstep.
 - Incoming IME byte deletion is implemented for the custom text editor
-  (`figcraft_engine::textedit::delete_surrounding_bytes`, wired from `ImeEvent::DeleteSurroundingBytes`)
+  (`figiran_engine::textedit::delete_surrounding_bytes`, wired from `ImeEvent::DeleteSurroundingBytes`)
   and tested for multibyte CJK, a supplementary emoji, deletion-only input and one undo step.
   Partial characters are preserved (a byte count ending inside one deletes only the whole
   characters it covers, matching the fork and egui's `surrounding_bytes_to_chars`). The selection
@@ -116,7 +116,7 @@ Human review and human merge are required; no publication is authorized by this 
 
 ## Outgoing IME surrounding text (E21b/P7b)
 
-Implemented for FigCraft's one custom IME producer, `shortcuts::ime_output`, against the reviewed
+Implemented for FigIran's one custom IME producer, `shortcuts::ime_output`, against the reviewed
 fork API. The descriptor now carries:
 
 - a stable owner `(document uid, text node)` and the engine's `TextEdit::editing_session` as the
@@ -129,7 +129,7 @@ fork API. The descriptor now carries:
   the generation, so the early shortcut/palette idles were removed. A late `window.new` that moves
   the edited file to another window makes the old viewport observe idle for that pass;
 - a bounded (≤ 4000 UTF-8 bytes) committed-text snapshot from
-  `figcraft_engine::textedit::ime_surrounding`: logical model text, never `bidi::display`, with the
+  `figiran_engine::textedit::ime_surrounding`: logical model text, never `bidi::display`, with the
   UI-only pre-edit excluded, character caret/anchor converted independently to UTF-8 byte offsets
   (reversed selections stay reversed), and an explicit `Unavailable` reason when no edit/text node
   exists or the selection alone exceeds the budget. Empty text is `Available("",0,0)`.
@@ -173,7 +173,7 @@ not a passing claim.
 - The committed root `[patch.crates-io]` table pins the egui family and winit to
   immutable published fork revisions. `craft-window` is pinned to the reviewed
   craft-libs revision targeting egui 0.37; its optional `egui` feature stays disabled
-  because FigCraft needs only the frame probe.
+  because FigIran needs only the frame probe.
 - `Cargo.lock` is committed and resolves the canonical Git sources without local
   path overrides. Use `--locked`; the earlier parent integration config is not
   required to reproduce this graph.

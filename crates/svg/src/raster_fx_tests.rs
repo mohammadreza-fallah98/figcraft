@@ -2,8 +2,8 @@
 //! texture and progressive layer blur whole, background blur from what lies beneath; inner shadows
 //! over the fills and under the strokes. Every export stays valid SVG and is deterministic.
 
-use figcraft_color::{BlendMode, Color, Paint};
-use figcraft_doc::{Blur, BlurType, Document, Effect, EffectKind, NodeId, NodeKind, Noise, Shadow, StrokeAlign, Texture};
+use figiran_color::{BlendMode, Color, Paint};
+use figiran_doc::{Blur, BlurType, Document, Effect, EffectKind, NodeId, NodeKind, Noise, Shadow, StrokeAlign, Texture};
 
 use super::*;
 

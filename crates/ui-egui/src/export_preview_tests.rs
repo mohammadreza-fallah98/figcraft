@@ -3,8 +3,8 @@
 //! transparency checkerboard next to a correct export. And its setting rows: a size only for
 //! images, and advanced options named as the reference app names them.
 
-use figcraft_doc::{Document, NodeId};
-use figcraft_engine::Session;
+use figiran_doc::{Document, NodeId};
+use figiran_engine::Session;
 use serde_json::{Value, json};
 
 use crate::assets_panel::thumbnail_pixmap;
@@ -17,8 +17,8 @@ fn doc_after(commands: &[(&str, Value)]) -> (Document, Vec<NodeId>) {
 }
 
 /// Whether the pixmap paints anything (any pixel not fully transparent).
-fn paints(pix: &figcraft_render::Pixmap) -> bool {
-    figcraft_render::to_rgba8(pix).as_chunks::<4>().0.iter().any(|p| p.get(3).copied().unwrap_or(0) > 0)
+fn paints(pix: &figiran_render::Pixmap) -> bool {
+    figiran_render::to_rgba8(pix).as_chunks::<4>().0.iter().any(|p| p.get(3).copied().unwrap_or(0) > 0)
 }
 
 #[test]
@@ -122,7 +122,7 @@ pub(crate) fn click(u: &mut crate::layers_drag_tests::Ui, p: egui::Pos2) {
 /// Android Vector Drawable is in the format dropdown as "XML", and choosing it sets the format.
 #[test]
 fn the_format_dropdown_offers_android_vector_drawable() {
-    assert!(figcraft_doc::ExportFormat::ALL.contains(&figcraft_doc::ExportFormat::VectorDrawable));
+    assert!(figiran_doc::ExportFormat::ALL.contains(&figiran_doc::ExportFormat::VectorDrawable));
     let mut s = Session::new();
     let r = crate::present_tests::id(&s.execute("shape.rectangle", &json!({"x": 0, "y": 0, "width": 100, "height": 80})).unwrap());
     s.execute("select.set", &json!({"ids": [r]})).unwrap();
@@ -136,7 +136,7 @@ fn the_format_dropdown_offers_android_vector_drawable() {
     let xml = nodes.iter().find(|(l, _)| l == "XML").map(|n| n.1).unwrap_or_else(|| panic!("no XML row in {nodes:?}"));
     click(&mut u, xml);
     let doc = u.app.session.doc().unwrap();
-    assert_eq!(doc.node(r).unwrap().exports[0].format, figcraft_doc::ExportFormat::VectorDrawable);
+    assert_eq!(doc.node(r).unwrap().exports[0].format, figiran_doc::ExportFormat::VectorDrawable);
 }
 
 /// The File > Export dialog has an XML preset.

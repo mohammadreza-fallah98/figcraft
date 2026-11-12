@@ -1,11 +1,11 @@
 //! The right-click menu on a layer: the copy commands sit in a Copy as submenu under Paste to
-//! replace; "Copy link to selection" puts `figcraft://node/<id>` on the clipboard and says so, and
+//! replace; "Copy link to selection" puts `figiran://node/<id>` on the clipboard and says so, and
 //! with nothing selected the command copies nothing.
 
 use std::sync::{Arc, Mutex};
 
 use egui::Pos2;
-use figcraft_engine::Session;
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::layers_drag_tests::Ui;
@@ -50,7 +50,7 @@ fn the_context_menu_groups_the_copy_commands_under_copy_as() {
     let at = text_center(&shapes, "Copy link to selection");
     u.button(at, true);
     u.button(at, false);
-    assert_eq!(*copied.lock().unwrap(), vec![format!("figcraft://node/{}", f.0)], "the link to the frame");
+    assert_eq!(*copied.lock().unwrap(), vec![format!("figiran://node/{}", f.0)], "the link to the frame");
     assert_eq!(u.app.ui.toast.as_ref().map(|t| t.0.as_str()), Some("Link copied"));
     assert!(u.app.ui.context_menu.is_none(), "the menu closes");
 }
@@ -103,7 +103,7 @@ fn copying_a_link_on_a_frame_inside_a_selected_section_links_that_frame() {
         crate::canvas::open_context_menu(&mut u.app, at, false);
         crate::menus::invoke(&mut u.app, "edit.copyLink");
         let last = copied.lock().unwrap().last().cloned();
-        assert_eq!(last, Some(format!("figcraft://node/{}", frame.0)), "the frame at x={x}");
+        assert_eq!(last, Some(format!("figiran://node/{}", frame.0)), "the frame at x={x}");
     }
 }
 
@@ -125,5 +125,5 @@ fn copying_a_link_from_a_frames_name_label_links_that_frame() {
     crate::canvas::open_context_menu(&mut u.app, at, false);
     assert_eq!(u.app.session.selection(), vec![a], "the label's frame is selected");
     crate::menus::invoke(&mut u.app, "edit.copyLink");
-    assert_eq!(copied.lock().unwrap().last().cloned(), Some(format!("figcraft://node/{}", a.0)));
+    assert_eq!(copied.lock().unwrap().last().cloned(), Some(format!("figiran://node/{}", a.0)));
 }

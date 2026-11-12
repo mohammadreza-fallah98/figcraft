@@ -5,15 +5,15 @@ use super::{FigApp, Point, PointerKind, Pos2, Rect, Ui, json, pointer_event};
 /// the same, so it isn't sent again.
 #[derive(Clone, Debug, PartialEq)]
 pub(crate) struct HoverKey {
-    event: figcraft_engine::tools::PointerEvent,
-    doc: Option<(u64, figcraft_engine::doc::NodeId, u64)>,
-    selection: Vec<figcraft_engine::doc::NodeId>,
-    tool: figcraft_engine::ToolId,
+    event: figiran_engine::tools::PointerEvent,
+    doc: Option<(u64, figiran_engine::doc::NodeId, u64)>,
+    selection: Vec<figiran_engine::doc::NodeId>,
+    tool: figiran_engine::ToolId,
     modes: [bool; 3],
 }
 
 impl HoverKey {
-    fn of(app: &FigApp, event: figcraft_engine::tools::PointerEvent) -> Self {
+    fn of(app: &FigApp, event: figiran_engine::tools::PointerEvent) -> Self {
         let ds = app.session.ds().ok();
         HoverKey {
             event,
@@ -406,9 +406,9 @@ pub fn open_context_menu(app: &mut FigApp, pos: Pos2, deep: bool) {
     if let Ok(ds) = app.session.ds() {
         let (doc, page, sel, zoom) = (ds.doc.clone(), ds.page, ds.selection.clone(), ds.view.zoom.max(1e-6));
         // A frame's name label is the frame, as on a press, even where it sits over a section.
-        let label = figcraft_engine::tools::label_at(&doc, page, &app.session.tool.labels, p);
+        let label = figiran_engine::tools::label_at(&doc, page, &app.session.tool.labels, p);
         let hit = app.session.hit(&doc, page, p, 2.0 / zoom);
-        let target = label.or_else(|| hit.map(|leaf| figcraft_doc::geometry::select_target(&doc, leaf, &sel, deep)));
+        let target = label.or_else(|| hit.map(|leaf| figiran_doc::geometry::select_target(&doc, leaf, &sel, deep)));
         if let Some(target) = target
             && !sel.contains(&target)
         {

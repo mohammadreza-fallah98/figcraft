@@ -10,7 +10,7 @@
 //! the menu catalog, and the baked-in catalogs. A `tr("Dev Mode")` added to the code would need an
 //! English entry, which this rejects.
 
-use figcraft_engine::catalog::MENU;
+use figiran_engine::catalog::MENU;
 
 use crate::i18n::{LANGS, Text};
 
@@ -38,7 +38,7 @@ fn entry_texts(text: &Text) -> Vec<&str> {
 /// Every label the app publishes, with where it comes from.
 fn labels() -> Vec<(String, &'static str)> {
     let mut out: Vec<(String, &'static str)> =
-        figcraft_engine::all_commands().iter().flat_map(|c| [(format!("{} label", c.id), c.label), (format!("{} params", c.id), c.params)]).collect();
+        figiran_engine::all_commands().iter().flat_map(|c| [(format!("{} label", c.id), c.label), (format!("{} params", c.id), c.params)]).collect();
     out.extend(MENU.iter().map(|m| (format!("menu {}", m.id), m.label)));
     out
 }
@@ -47,7 +47,7 @@ fn labels() -> Vec<(String, &'static str)> {
 fn command_labels_and_parameter_docs_read_developer_mode() {
     let bad: Vec<String> = labels().into_iter().filter(|(_, text)| retired(text)).map(|(what, text)| format!("{what}: {text:?}")).collect();
     assert!(bad.is_empty(), "a label still names the retired mode:\n{}", bad.join("\n"));
-    let id = figcraft_engine::find_command("view.devMode").expect("the mode's command exists");
+    let id = figiran_engine::find_command("view.devMode").expect("the mode's command exists");
     assert_eq!(id.label, "Developer Mode", "the mode's command label");
 }
 
@@ -81,7 +81,7 @@ fn the_catalogs_name_developer_mode() {
 fn the_inspect_tab_and_its_refusal_read_developer_mode() {
     assert_eq!(crate::app::right_tab_label(crate::RightTab::Inspect), "Developer Mode", "the panel's name");
     // The engine's refusal on a board, and the toast the UI shows where the mode refuses an edit.
-    let board = figcraft_engine::board::NOT_ON_BOARDS;
+    let board = figiran_engine::board::NOT_ON_BOARDS;
     assert!(!retired(board), "{board:?}");
     assert_eq!(crate::i18n::LANGS.first().map(|l| l.code), Some("en"), "English is baked in first");
     assert!(

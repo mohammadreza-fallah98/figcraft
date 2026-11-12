@@ -1,11 +1,11 @@
 use super::*;
-use figcraft_doc::NodeKind;
+use figiran_doc::NodeKind;
 
 use crate::present_tests::{Ui, id};
 
 #[test]
 fn device_picker_reflows_without_resizing_the_saved_frame_and_can_revert() {
-    let mut session = figcraft_engine::Session::new();
+    let mut session = figiran_engine::Session::new();
     let frame = id(&session.execute("node.create", &json!({"type": "frame", "width": 894, "height": 844})).unwrap());
     let right =
         id(&session.execute("node.create", &json!({"type": "rectangle", "parent": frame, "x": 804, "y": 20, "width": 80, "height": 40})).unwrap());
@@ -46,7 +46,7 @@ fn device_picker_reflows_without_resizing_the_saved_frame_and_can_revert() {
 
 #[test]
 fn device_presets_show_their_screen_at_the_real_resolution_in_their_body() {
-    let mut session = figcraft_engine::Session::new();
+    let mut session = figiran_engine::Session::new();
     let frame = id(&session.execute("node.create", &json!({"type": "frame", "width": 894, "height": 844})).unwrap());
     let mut ui = Ui::new(session);
     ui.run("proto.present", json!({"start": frame}));
@@ -74,7 +74,7 @@ fn device_presets_show_their_screen_at_the_real_resolution_in_their_body() {
 #[test]
 fn a_phone_scrolls_only_what_the_frames_overflow_allows() {
     let on_phone = |overflow: &str| {
-        let mut session = figcraft_engine::Session::new();
+        let mut session = figiran_engine::Session::new();
         let frame = id(&session.execute("node.create", &json!({"type": "frame", "width": 894, "height": 844})).unwrap());
         session.execute("node.create", &json!({"type": "rectangle", "parent": frame, "x": 650, "y": 1050, "width": 80, "height": 80})).unwrap();
         session.execute("node.set", &json!({"id": frame, "props": {"overflow": overflow}})).unwrap();
@@ -431,7 +431,7 @@ fn smart_animate_frame_cost() {
     let n = 10;
     for k in 0..n {
         let tmp = smart_interpolate(&d, a, &d, b, f64::from(k) / f64::from(n));
-        assert!(figcraft_render::render_node(&tmp, b, 2.0).is_some());
+        assert!(figiran_render::render_node(&tmp, b, 2.0).is_some());
     }
     let per = t0.elapsed().as_secs_f64() * 1000.0 / f64::from(n);
     eprintln!("smart animate: {per:.2} ms per frame (80 layers, 400x800 px)");

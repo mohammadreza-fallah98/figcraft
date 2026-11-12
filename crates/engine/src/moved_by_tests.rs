@@ -3,8 +3,8 @@
 //! from that document; `None` for anything else (a layer in an auto layout flow, a copy made with
 //! Alt), and gone with the gesture.
 
-use figcraft_doc::NodeId;
-use figcraft_geom::Point;
+use figiran_doc::NodeId;
+use figiran_geom::Point;
 use serde_json::json;
 
 use crate::Session;

@@ -3,7 +3,7 @@ use crate::handoff::{FILE, Note, clear, now, read, write};
 const VERIFIER: &str = "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk";
 
 fn temp(name: &str) -> std::path::PathBuf {
-    let dir = std::env::temp_dir().join(format!("figcraft-portal-{name}-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("figiran-portal-{name}-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     dir
 }

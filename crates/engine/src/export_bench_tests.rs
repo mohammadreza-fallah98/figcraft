@@ -1,15 +1,15 @@
-//! Export timings over the example files: every top-level frame of each `examples/*.figcraft`
-//! exported as PNG, JPG and WebP at 2x through [`export_file`], as Export and `figcraft-cli export`
+//! Export timings over the example files: every top-level frame of each `examples/*.figiran`
+//! exported as PNG, JPG and WebP at 2x through [`export_file`], as Export and `figiran-cli export`
 //! do. Run in release:
-//! `cargo test --release -p figcraft-engine --lib export_timings -- --ignored --nocapture`.
+//! `cargo test --release -p figiran-engine --lib export_timings -- --ignored --nocapture`.
 //!
-//! `FIGCRAFT_EXPORT_BENCH_RUNS` sets the timed runs (default 7; one warm-up run first),
-//! `FIGCRAFT_EXPORT_BENCH_FORMATS` the formats (default `png,jpg,webp`) and
-//! `FIGCRAFT_EXPORT_BENCH_OUT` a folder to write the files of the last run to (to compare outputs).
+//! `FIGIRAN_EXPORT_BENCH_RUNS` sets the timed runs (default 7; one warm-up run first),
+//! `FIGIRAN_EXPORT_BENCH_FORMATS` the formats (default `png,jpg,webp`) and
+//! `FIGIRAN_EXPORT_BENCH_OUT` a folder to write the files of the last run to (to compare outputs).
 
 use std::time::Instant;
 
-use figcraft_doc::{Document, ExportFormat, ExportSetting, NodeId};
+use figiran_doc::{Document, ExportFormat, ExportSetting, NodeId};
 
 use crate::cmd::file::{export_file, load_path};
 
@@ -17,7 +17,7 @@ use crate::cmd::file::{export_file, load_path};
 fn examples() -> Vec<(String, Document, Vec<NodeId>)> {
     let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../examples");
     let mut paths: Vec<_> =
-        std::fs::read_dir(&dir).unwrap().map(|e| e.unwrap().path()).filter(|p| p.extension().is_some_and(|e| e == "figcraft")).collect();
+        std::fs::read_dir(&dir).unwrap().map(|e| e.unwrap().path()).filter(|p| p.extension().is_some_and(|e| e == "figiran")).collect();
     paths.sort();
     paths
         .into_iter()
@@ -58,9 +58,9 @@ fn run(docs: &[(String, Document, Vec<NodeId>)], format: ExportFormat) -> (f64, 
 #[test]
 #[ignore = "timing: run in release with --ignored --nocapture"]
 fn export_timings() {
-    let runs: usize = std::env::var("FIGCRAFT_EXPORT_BENCH_RUNS").ok().and_then(|v| v.parse().ok()).unwrap_or(7).max(1);
-    let formats = std::env::var("FIGCRAFT_EXPORT_BENCH_FORMATS").unwrap_or_else(|_| "png,jpg,webp".into());
-    let out = std::env::var("FIGCRAFT_EXPORT_BENCH_OUT").ok();
+    let runs: usize = std::env::var("FIGIRAN_EXPORT_BENCH_RUNS").ok().and_then(|v| v.parse().ok()).unwrap_or(7).max(1);
+    let formats = std::env::var("FIGIRAN_EXPORT_BENCH_FORMATS").unwrap_or_else(|_| "png,jpg,webp".into());
+    let out = std::env::var("FIGIRAN_EXPORT_BENCH_OUT").ok();
     let docs = examples();
     let frames: usize = docs.iter().map(|d| d.2.len()).sum();
     println!("{} documents, {frames} frames, {runs} runs", docs.len());

@@ -1,8 +1,8 @@
 use super::*;
 use crate::model::{Grad, GradKind};
 use crate::paint::{GradOut, color_at, gradient, svd, turn_stops};
-use figcraft_color::{ColorStop, Gradient, GradientKind};
-use figcraft_geom::{Affine, Point};
+use figiran_color::{ColorStop, Gradient, GradientKind};
+use figiran_geom::{Affine, Point};
 
 fn two_stop(kind: GradientKind) -> Gradient {
     let mut g = Gradient::default_for(kind, hex("FF0000"));
@@ -42,8 +42,8 @@ fn vd_t(out: &GradOut, p: Point) -> Option<(f64, &Grad)> {
     Some((t, grad))
 }
 
-/// FigCraft's own parameter at `p` for a gradient with frame `f` (viewport ← unit).
-fn figcraft_t(kind: GradientKind, f: Affine, p: Point) -> f64 {
+/// FigIran's own parameter at `p` for a gradient with frame `f` (viewport ← unit).
+fn figiran_t(kind: GradientKind, f: Affine, p: Point) -> f64 {
     let u = f.inverse() * p;
     match kind {
         GradientKind::Linear => u.x,
@@ -62,7 +62,7 @@ fn layer_xfs() -> Vec<Affine> {
 }
 
 #[test]
-fn every_gradient_samples_where_figcraft_samples_it() {
+fn every_gradient_samples_where_figiran_samples_it() {
     let (w, h) = (100.0, 80.0);
     for kind in [GradientKind::Linear, GradientKind::Radial, GradientKind::Angular] {
         for g in [two_stop(kind), skewed(kind)] {
@@ -72,7 +72,7 @@ fn every_gradient_samples_where_figcraft_samples_it() {
                 for i in 0..40 {
                     for j in 0..40 {
                         let p = xf * Point::new(w * (i as f64 + 0.5) / 40.0, h * (j as f64 + 0.5) / 40.0);
-                        let want = figcraft_t(kind, f, p);
+                        let want = figiran_t(kind, f, p);
                         let (got, grad) = vd_t(&out, p).unwrap();
                         let stops: Vec<_> = g.sorted_stops().iter().map(|s| (f64::from(s.position), s.color)).collect();
                         let (a, b) = (color_at(&stops, want), color_at(&grad.stops, got));
@@ -97,16 +97,16 @@ fn the_written_gradient_matches_the_rendered_pixels() {
         let (mut d, p) = doc();
         let r = rect(&mut d, p, "R", 0.0, 0.0, 100.0, 80.0, "000000");
         d.get_mut(r).unwrap().fills = vec![Paint::gradient(skewed(kind))];
-        let area = figcraft_render::export_bounds(&d, r).unwrap();
-        let pix = figcraft_render::render_area(&d, &[r], area, 1.0).unwrap();
-        let rgba = figcraft_render::to_rgba8(&pix);
+        let area = figiran_render::export_bounds(&d, r).unwrap();
+        let pix = figiran_render::render_area(&d, &[r], area, 1.0).unwrap();
+        let rgba = figiran_render::to_rgba8(&pix);
         let out = gradient(&skewed(kind), 1.0, Affine::translate((-area.x0, -area.y0)) * d.world_transform(r), 100.0, 80.0, false);
         let f = Affine::translate((-area.x0, -area.y0)) * d.world_transform(r) * crate::paint::frame(&skewed(kind), 100.0, 80.0);
         let mut checked = 0;
         for y in (2..78).step_by(3) {
             for x in (2..98).step_by(3) {
                 let pt = Point::new(x as f64 + 0.5, y as f64 + 0.5);
-                let ft = figcraft_t(kind, f, pt);
+                let ft = figiran_t(kind, f, pt);
                 if kind == GradientKind::Angular && !ft.is_nan() && (!(0.03..=0.97).contains(&ft) || (ft - 0.6).abs() < 0.01) {
                     continue;
                 }
@@ -210,7 +210,7 @@ fn a_radial_gradient_sits_in_a_group_that_maps_the_unit_circle() {
     let (x0, y0, x1, y1) = bounds(tagged(&els, "path")[0].get("pathData").unwrap());
     let rot = gr.get("rotation").map_or(0.0, |v| v.parse::<f64>().unwrap()).to_radians();
     let m = Affine::translate((50.0, 25.0)) * Affine::rotate(rot) * Affine::scale_non_uniform(sx, sy);
-    let b = m.transform_rect_bbox(figcraft_geom::Rect::new(x0, y0, x1, y1));
+    let b = m.transform_rect_bbox(figiran_geom::Rect::new(x0, y0, x1, y1));
     assert!(close(b.x0, 0.0) && close(b.y0, 0.0) && (b.x1 - 100.0).abs() < 0.05 && (b.y1 - 50.0).abs() < 0.05, "{b:?}");
 }
 
@@ -241,7 +241,7 @@ fn a_sweep_is_written_as_a_sweep_gradient_with_its_seam() {
         ColorStop { position: 0.25, color: hex("FFFF00") },
         ColorStop { position: 1.0, color: hex("0000FF") },
     ];
-    d.get_mut(r).unwrap().fills = vec![figcraft_color::Paint::gradient(g)];
+    d.get_mut(r).unwrap().fills = vec![figiran_color::Paint::gradient(g)];
     let out = export(&d, &[r], Compat::BestEffort);
     let els = elements(&out.xml);
     let grads = tagged(&els, "gradient");

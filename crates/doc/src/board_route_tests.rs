@@ -1,6 +1,6 @@
 //! Connector routes (`board_route`): where an end attached to a side starts (#1916).
 
-use figcraft_geom::{Point, Rect};
+use figiran_geom::{Point, Rect};
 
 use crate::board::{Routing, Side};
 use crate::board_route::{END_GAP, RouteEnd, route_points};

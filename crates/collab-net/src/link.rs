@@ -5,9 +5,9 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
-use figcraft_collab::code;
-use figcraft_collab::message::{Access, Admin, AdminReply, ClientMsg, LibraryReply, LibraryReq, PluginReply, PluginReq};
-use figcraft_engine::live::{
+use figiran_collab::code;
+use figiran_collab::message::{Access, Admin, AdminReply, ClientMsg, LibraryReply, LibraryReq, PluginReply, PluginReq};
+use figiran_engine::live::{
     Bind, Event, HostInfo, HostOptions, LiveLink, NO_SESSION, NetReply, NetRequest, PageInfo, Presence, PublishOptions, Published, Resume, Role,
     SessionId, SessionInfo, Shared, WayIn,
 };
@@ -98,7 +98,7 @@ impl NetLink {
 }
 
 /// A new secret for a hosted session: one a join code can carry (`short`: 44 bits, see
-/// `figcraft_collab::code`), else a full one.
+/// `figiran_collab::code`), else a full one.
 fn session_secret(short: bool) -> Result<String, String> {
     match short {
         true => Ok(code::Local::new(Ipv4Addr::UNSPECIFIED, 0, token::random()?).token()),
@@ -160,7 +160,7 @@ impl LiveLink for NetLink {
             Bind::Addr(ip) => ip,
         };
         // A session shared with a join code: its secret is short enough to be typed with the
-        // address (see `figcraft_collab::code`); the code and the invite link name the same session.
+        // address (see `figiran_collab::code`); the code and the invite link name the same session.
         let file = if o.short { code::LOCAL_FILE.to_string() } else { token::file_id()? };
         let token = session_secret(o.short)?;
         // A way in for looking only: a second secret of the same kind, never the edit one.
@@ -178,7 +178,7 @@ impl LiveLink for NetLink {
             doc,
             name: o.name,
             limits: self.limits,
-            core: figcraft_collab::Limits::default(),
+            core: figiran_collab::Limits::default(),
         };
         let host = Host::start(cfg, inbox.clone()).map_err(|e| format!("can't listen on {ip}: {e}"))?;
         // Listening on every interface (`0.0.0.0`, `::`), the links name an address others reach.
@@ -342,7 +342,7 @@ impl LiveLink for NetLink {
 fn upload(o: PublishOptions, limits: &NetLimits) -> Result<Published, String> {
     let (server, query) = Endpoint::parse(&o.server)?;
     let key = requests::server_key(o.key, query)
-        .ok_or("the server address needs the server's key (ws://host:port/?key=…; `figcraft-server key` prints it)")?;
+        .ok_or("the server address needs the server's key (ws://host:port/?key=…; `figiran-server key` prints it)")?;
     requests::key_over_tls(&server, Some(&key))?;
     upload_file(&server, Some(&key), &o.name, &o.doc, limits, CONNECT).map(|(_, published, _)| published)
 }

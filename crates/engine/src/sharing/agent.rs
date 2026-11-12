@@ -7,7 +7,7 @@ use std::collections::HashSet;
 use std::sync::Arc;
 use std::time::Duration;
 
-use figcraft_doc::{Document, NodeId};
+use figiran_doc::{Document, NodeId};
 use web_time::Instant;
 
 use crate::{Session, changed_nodes};
@@ -45,7 +45,7 @@ pub(crate) type Before = (u64, Arc<Document>, Vec<NodeId>);
 /// did neither.
 fn touched(before: &Document, after: &Document, sel_before: &[NodeId], sel_after: &[NodeId]) -> Option<Vec<NodeId>> {
     let changed: Vec<NodeId> = if std::ptr::eq(before, after) { Vec::new() } else { changed_nodes(after, before) };
-    let edited: Vec<&figcraft_doc::Node> = changed.iter().filter_map(|i| after.node(*i)).filter(|n| !n.is_page()).collect();
+    let edited: Vec<&figiran_doc::Node> = changed.iter().filter_map(|i| after.node(*i)).filter(|n| !n.is_page()).collect();
     if !edited.is_empty() {
         let parents: HashSet<NodeId> = edited.iter().filter_map(|n| n.parent).collect();
         return Some(edited.iter().map(|n| n.id).filter(|i| !parents.contains(i)).take(MAX_LAYERS).collect());

@@ -2,8 +2,8 @@
 //! (#1571): the document must come out exactly as a full normalisation leaves it, for any set of
 //! layers moved, in the example files and during a drag.
 
-use figcraft_doc::{Document, NodeId};
-use figcraft_geom::kurbo::Affine;
+use figiran_doc::{Document, NodeId};
+use figiran_geom::kurbo::Affine;
 use serde_json::json;
 
 use crate::Session;
@@ -48,7 +48,7 @@ fn moved(base: &Document, ids: &[NodeId]) -> Document {
 fn moving_layers_of_the_examples_matches_a_full_normalise() {
     let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../examples");
     let mut paths: Vec<_> =
-        std::fs::read_dir(&dir).unwrap().map(|e| e.unwrap().path()).filter(|p| p.extension().is_some_and(|e| e == "figcraft")).collect();
+        std::fs::read_dir(&dir).unwrap().map(|e| e.unwrap().path()).filter(|p| p.extension().is_some_and(|e| e == "figiran")).collect();
     paths.sort();
     assert!(!paths.is_empty());
     for p in paths {

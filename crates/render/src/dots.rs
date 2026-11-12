@@ -3,7 +3,7 @@
 //! Each mark's pixels are computed from its page position alone, so bands and partial renders line
 //! up. Nothing is allocated per mark.
 
-use figcraft_color::Color;
+use figiran_color::Color;
 use tiny_skia::Pixmap;
 
 use crate::View;

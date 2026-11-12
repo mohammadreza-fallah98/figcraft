@@ -2,8 +2,8 @@ use serde_json::{Value, json};
 
 use crate::params::id_of;
 use crate::{EngineError, Session};
-use figcraft_doc::NodeId;
-use figcraft_doc::proto::{Action, OverlayAnchor, OverlayPosition};
+use figiran_doc::NodeId;
+use figiran_doc::proto::{Action, OverlayAnchor, OverlayPosition};
 
 fn frame(s: &mut Session, x: f64, w: f64, h: f64, name: &str) -> NodeId {
     id_of(&s.execute("frame.create", &json!({"x": x, "y": 0, "width": w, "height": h, "name": name})).unwrap()["id"]).unwrap()
@@ -46,8 +46,8 @@ fn the_anchor_is_set_read_and_undone() {
 fn fig_writes_a_manual_offset_from_the_trigger() {
     let mut s = Session::new();
     let (b, _) = dropdown(&mut s);
-    let (bytes, _) = figcraft_format::fig::export(s.doc().unwrap(), None).unwrap();
-    let (back, _) = figcraft_format::fig::import(&bytes, "x").unwrap();
+    let (bytes, _) = figiran_format::fig::export(s.doc().unwrap(), None).unwrap();
+    let (back, _) = figiran_format::fig::import(&bytes, "x").unwrap();
     let hot = back.nodes().find(|n| n.name == "Button").unwrap();
     assert!(
         matches!(hot.interactions[0].actions[0], Action::OpenOverlay { position: OverlayPosition::Manual, offset: Some([0.0, 40.0]), .. }),

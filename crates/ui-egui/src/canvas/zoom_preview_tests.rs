@@ -9,15 +9,15 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use figcraft_doc::{Document, NodeId};
-use figcraft_engine::Session;
-use figcraft_engine::params::id_of;
-use figcraft_render::{View, Work};
+use figiran_doc::{Document, NodeId};
+use figiran_engine::Session;
+use figiran_engine::params::id_of;
+use figiran_render::{View, Work};
 use serde_json::json;
 use web_time::Instant;
 
 use super::{CanvasState, shows};
-use figcraft_render::Retained;
+use figiran_render::Retained;
 
 use crate::render_worker::{
     Done, Inline, Job, PREVIEW_AFTER_MS, PREVIEW_FACTOR, Refined, Renders, SETTLE_MS, Worker, better, coarse_view, preview_with, render_now,
@@ -28,7 +28,7 @@ use crate::render_worker::{
 /// starts bumps the global font generation, and a render kept from before it is stale, so a pan
 /// or an edit meanwhile would redraw in full instead of patching.
 fn document() -> (Session, NodeId) {
-    figcraft_text::scan_system_fonts();
+    figiran_text::scan_system_fonts();
     let mut s = Session::new();
     for k in 0..12 {
         let k = f64::from(k);
@@ -96,7 +96,7 @@ fn same_pixels(a: &Done, b: &Done) -> bool {
     a.image.size == b.image.size && a.image.pixels == b.image.pixels
 }
 
-/// The same image up to where render bands meet ([`figcraft_render::Steps`] and the desktop's
+/// The same image up to where render bands meet ([`figiran_render::Steps`] and the desktop's
 /// parallel bands cut the view in different places): on each row, under a quarter of a level on
 /// average and at most one pixel in twenty off.
 fn close_pixels(a: &Done, b: &Done) -> bool {

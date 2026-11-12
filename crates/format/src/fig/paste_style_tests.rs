@@ -5,7 +5,7 @@
 //! A link to a style the payload doesn't hold at all keeps the colour stored with the layer, with
 //! a note. Built in code and read as `edit.pasteDesignLayers` reads a clipboard's design data.
 
-use figcraft_doc::{Document, Node};
+use figiran_doc::{Document, Node};
 
 use super::kiwi::Kv;
 use super::tests::{arr, canvas, e, g, node, o, s, schema, solid, xy};

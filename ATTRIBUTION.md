@@ -1,20 +1,19 @@
 # Attribution
 
 Every asset bundled in this repository (images, icons, fonts, data files) is listed here with its
-author, source and licence. `cargo xtask assets` fails if a file under `assets/`, `docs/brand/` or
+author, source and licence. `cargo xtask assets` fails if a file under `assets/` or
 `docs/images/` is missing from this list.
 
-FigCraft's user-interface icons are drawn in code (`crates/ui-egui/src/icons.rs`): original work,
+FigIran's user-interface icons are drawn in code (`crates/ui-egui/src/icons.rs`): original work,
 MIT OR Apache-2.0. No third-party icon sets are used.
 
 ## Assets in this repository
 
 | Path | Author | Source | Licence | Notes |
 |---|---|---|---|---|
-| `assets/app-icon/` (all files: `figcraft.svg`, `figcraft-small.svg`, `figcraft-*.png`, `figcraft.ico`, `hicolor/`) | The project owner (final brand mark, rounded F) | Original work, see [`assets/app-icon/README.md`](assets/app-icon/README.md); derived files resized from the supplied artwork | MIT OR Apache-2.0, [`assets/app-icon/LICENSE.txt`](assets/app-icon/LICENSE.txt) | FigCraft app icon (chameleon) |
-| `docs/brand/artcraft-logo.svg`, `docs/brand/artcraft-logo.png`, `docs/brand/artcraft-logo-white.svg`, `docs/brand/artcraft-logo-white.png`, `docs/brand/artcraft-mark.svg`, `docs/brand/artcraft-mark.png`, `docs/brand/artcraft-mark-black.svg`, `docs/brand/artcraft-mark-black.png` | ArtCraft Team | ArtCraft brand kit | ArtCraft brand terms (`docs/brand/LICENSE-brand.txt`), not open source | Trademarks; unmodified use within FigCraft only |
-| `docs/images/` (all screenshots and exports: `shot-*.png`, `art-*.png`) | FigCraft contributors | Screenshots of FigCraft showing synthetic demo documents made in FigCraft, and PNG exports of those documents by FigCraft's renderer | MIT OR Apache-2.0 | No third-party artwork |
-| `examples/*.figcraft` | FigCraft contributors | Synthetic demo documents built through FigCraft's command API; invented copy, shapes and vectors drawn from scratch, no images or embedded fonts | MIT OR Apache-2.0 | Text uses Inter (OFL, from craft-fonts or the system); no third-party artwork |
+| `assets/app-icon/` (all files: `figiran.svg`, `figiran-small.svg`, `figiran-*.png`, `figiran.ico`, `hicolor/`) | The project owner (final brand mark, rounded F) | Original work, see [`assets/app-icon/README.md`](assets/app-icon/README.md); derived files resized from the supplied artwork | MIT OR Apache-2.0 | FigIran app icon (hand-drawn vector redraws and raster renders of the rounded F) |
+| `docs/images/` (all screenshots and exports: `shot-*.png`, `art-*.png`) | FigIran contributors | Screenshots of FigIran showing synthetic demo documents made in FigIran, and PNG exports of those documents by FigIran's renderer | MIT OR Apache-2.0 | No third-party artwork |
+| `examples/*.figiran` | FigIran contributors | Synthetic demo documents built through FigIran's command API; invented copy, shapes and vectors drawn from scratch, no images or embedded fonts | MIT OR Apache-2.0 | Text uses Inter (OFL, from craft-fonts or the system); no third-party artwork |
 
 ## Fonts (build input, not in this repository)
 
@@ -31,7 +30,7 @@ Release builds embed fonts from the optional craft-fonts build input
 | BIZ UDPGothic, BIZ UDMincho, Shippori Mincho, Noto Sans Arabic, Noto Sans Georgian | SIL Open Font License 1.1 | Google Fonts (see craft-fonts) |
 
 The central catalog also contains Adobe-authored Source Sans 3 and Source Serif 4.
-FigCraft filters both families from every build in accordance with its asset policy.
+FigIran filters both families from every build in accordance with its asset policy.
 
 egui's default fonts (compiled into the `egui`/`epaint` crates) keep their own licences (OFL / Apache-2.0 / Ubuntu Font Licence); see those crates.
 
@@ -45,4 +44,4 @@ egui's default fonts (compiled into the `egui`/`epaint` crates) keep their own l
 
 | Path | Contributor | Source | Licence | Review |
 |---|---|---|---|---|
-| `crates/ui-egui/locales/ar.toml` | @hussain-hz with OpenAI Codex (AI-assisted) | Original Arabic wording from FigCraft's English catalog and engine command labels; no proprietary localisation consulted | MIT OR Apache-2.0 | Draft; native-speaker review and maintainer approval pending |
+| `crates/ui-egui/locales/ar.toml` | @hussain-hz with OpenAI Codex (AI-assisted) | Original Arabic wording from FigIran's English catalog and engine command labels; no proprietary localisation consulted | MIT OR Apache-2.0 | Draft; native-speaker review and maintainer approval pending |

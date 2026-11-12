@@ -9,9 +9,9 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use egui::{Event, Key, Shape};
-use figcraft_engine::figcraft_collab::code::{self, Local};
-use figcraft_engine::figcraft_collab::message::ClientMsg;
-use figcraft_engine::live::{
+use figiran_engine::figiran_collab::code::{self, Local};
+use figiran_engine::figiran_collab::message::ClientMsg;
+use figiran_engine::live::{
     Access, DEFAULT_SERVER, Event as LiveEvent, HostOptions, LiveLink, NetReply, NetRequest, Peer, Presence, PublishOptions, Published, Role,
     SessionInfo, Shared as SharedLinks, SharedLink, Status, WayIn,
 };
@@ -41,7 +41,7 @@ struct Script {
 fn links(n: usize, codes: Option<(&str, &str)>) -> SharedLinks {
     let link = |what: &str, code: Option<&str>| SharedLink {
         id: format!("{what}{n}"),
-        link: format!("figcraft://join?server=wss://share.example:443/&file=f1&token=Share{what}Share{what}0{n}"),
+        link: format!("figiran://join?server=wss://share.example:443/&file=f1&token=Share{what}Share{what}0{n}"),
         code: code.map(str::to_string),
     };
     SharedLinks { edit: link("edit", codes.map(|c| c.0)), view: Some(link("view", codes.map(|c| c.1))), comment: None }
@@ -56,7 +56,7 @@ const HOST: Local = Local { ip: std::net::Ipv4Addr::new(192, 168, 1, 20), port: 
 /// The same session's view-only secret.
 const VIEW: Local = Local { secret: 0xBA9_8765_4321, ..HOST };
 /// A link without a code in it (an address a code can't carry).
-const PLAIN: &str = "figcraft://join?host=[fd00::1]:47900&file=f&token=AbCdEfGhIjKlMnOpQrStUv";
+const PLAIN: &str = "figiran://join?host=[fd00::1]:47900&file=f&token=AbCdEfGhIjKlMnOpQrStUv";
 
 /// What the scripted link says about a session you are in as `role`, invited with `link`.
 fn info(role: Role, link: &str) -> SessionInfo {
@@ -83,7 +83,7 @@ impl LiveLink for Link {
         let mut s = self.0.lock().unwrap();
         s.session = session;
         let (link, view) = if opts.port == Some(6) { (PLAIN.to_string(), PLAIN.replace("AbCd", "View")) } else { (HOST.link(), VIEW.link()) };
-        let view = opts.view.then(|| WayIn { url: view.replace("figcraft://join?host=", "ws://"), link: view });
+        let view = opts.view.then(|| WayIn { url: view.replace("figiran://join?host=", "ws://"), link: view });
         s.hosted.push(opts);
         Ok(SessionInfo { view, ..info(Role::Host, &link) })
     }
@@ -111,9 +111,9 @@ impl LiveLink for Link {
         _: &str,
         file: &str,
         _: &str,
-        req: Option<figcraft_engine::figcraft_collab::message::Admin>,
-    ) -> Result<(figcraft_engine::live::HostInfo, Option<figcraft_engine::figcraft_collab::message::AdminReply>), String> {
-        use figcraft_engine::figcraft_collab::message::{Admin, AdminReply};
+        req: Option<figiran_engine::figiran_collab::message::Admin>,
+    ) -> Result<(figiran_engine::live::HostInfo, Option<figiran_engine::figiran_collab::message::AdminReply>), String> {
+        use figiran_engine::figiran_collab::message::{Admin, AdminReply};
         if matches!(req, Some(Admin::Remove { .. })) {
             self.0.lock().unwrap().removed.push(file.to_string());
         }
@@ -188,7 +188,7 @@ fn on_the_server(h: &mut Harness, script: &Shared, codes: Option<(&str, &str)>) 
 
 /// [`on_the_server`] with the server's links for others as given.
 fn shared_on_the_server(h: &mut Harness, script: &Shared, shared: SharedLinks) -> Vec<Shape> {
-    let link = |token: &str| format!("figcraft://join?server=wss://share.example:443/&file=f1&token={token}");
+    let link = |token: &str| format!("figiran://join?server=wss://share.example:443/&file=f1&token={token}");
     let published = Published {
         server: "wss://share.example:443/".into(),
         file: "f1".into(),
@@ -205,8 +205,8 @@ fn shared_on_the_server(h: &mut Harness, script: &Shared, shared: SharedLinks) -
 
 /// The session's document arrives (the host's welcome): it opens in a tab of its own.
 fn document_arrives(h: &mut Harness, script: &Shared) {
-    use figcraft_engine::figcraft_collab::message::ServerMsg;
-    use figcraft_engine::figcraft_collab::{Client, Limits, Outgoing, Server};
+    use figiran_engine::figiran_collab::message::ServerMsg;
+    use figiran_engine::figiran_collab::{Client, Limits, Outgoing, Server};
     let mut server = Server::new(h.app.session.doc().unwrap().clone(), "", Limits::default());
     let ClientMsg::Hello(me) = Client::hello("f", "", "Ada", "") else { panic!("no hello") };
     let (_, outs) = server.join(me).unwrap();
@@ -293,7 +293,7 @@ fn sharing_online_shows_the_code_copies_it_and_stops() {
     let shapes = click(&mut h, &shapes, "Copy code");
     let shapes = click(&mut h, &shapes, "Copy link");
     // The link is one made for others, not the owner's own.
-    assert_eq!(script.lock().unwrap().copied, ["K7M-2QX-9TD", "figcraft://join?server=wss://share.example:443/&file=f1&token=ShareeditShareedit00"]);
+    assert_eq!(script.lock().unwrap().copied, ["K7M-2QX-9TD", "figiran://join?server=wss://share.example:443/&file=f1&token=ShareeditShareedit00"]);
     // Someone joins: they are listed.
     script.lock().unwrap().events.push(LiveEvent::PeerJoined(Peer { client_id: 2, name: "Hana".into(), color: "#9747FF".into() }));
     let shapes_now = h.frames(2);
@@ -339,7 +339,7 @@ fn a_server_with_comment_links_offers_a_comment_code() {
     let mut shared = links(0, Some(("K7M2QX9TD", "4FHJ8R2WN")));
     shared.comment = Some(SharedLink {
         id: "comment0".into(),
-        link: "figcraft://join?server=wss://share.example:443/&file=f1&token=ShareCommentShareComm00".into(),
+        link: "figiran://join?server=wss://share.example:443/&file=f1&token=ShareCommentShareComm00".into(),
         code: Some("MNP4RT7WX".into()),
     });
     let shapes = shared_on_the_server(&mut h, &script, shared);
@@ -404,7 +404,7 @@ fn sharing_on_the_local_network_shows_its_longer_code() {
     assert!(has_text(&shapes, "Can view") && !has_text(&shapes, "Can comment"), "a view-only code too, no comment code");
     {
         let s = script.lock().unwrap();
-        assert!(s.hosted[0].short && s.hosted[0].view && s.hosted[0].bind == figcraft_engine::live::Bind::Lan && s.hosted[0].port.is_none());
+        assert!(s.hosted[0].short && s.hosted[0].view && s.hosted[0].bind == figiran_engine::live::Bind::Lan && s.hosted[0].port.is_none());
         assert!(s.published.is_empty(), "nothing goes to a server");
     }
     let shapes = click(&mut h, &shapes, "Copy code");
@@ -426,7 +426,7 @@ fn sharing_on_the_local_network_shows_its_longer_code() {
     h.app.ui.live.port = "6".into();
     click(&mut h, &shapes, "Start sharing");
     let s = script.lock().unwrap();
-    assert!(s.hosted[1].bind == figcraft_engine::live::Bind::Local && s.hosted[1].port == Some(6));
+    assert!(s.hosted[1].bind == figiran_engine::live::Bind::Local && s.hosted[1].port == Some(6));
 }
 
 /// Can view picked before a local network share starts: the view-only code is the one shown, so
@@ -493,7 +493,7 @@ fn the_join_field_takes_a_code_or_a_link_and_enter_joins() {
     type_text(&mut h, " k7m 2qx-9td ");
     assert_eq!(crate::live::inspect(&h.app)["joinField"], " k7m 2qx-9td ");
     key(&mut h, Key::Enter);
-    assert_eq!(script.lock().unwrap().joined, ["figcraft://join?server=wss://share.example/&code=K7M2QX9TD"]);
+    assert_eq!(script.lock().unwrap().joined, ["figiran://join?server=wss://share.example/&code=K7M2QX9TD"]);
     assert!(h.app.ui.live.code.is_empty(), "the field is cleared once the join started");
     let shapes = h.frames(2);
     assert!(has_text(&shapes, "Joining…") && has_text(&shapes, "Leave session"));
@@ -529,7 +529,7 @@ fn the_home_screen_joins_with_a_code_and_opens_the_file() {
     click(&mut h, &shapes, "Code or invite link");
     type_text(&mut h, "K7M-2QX-9TD");
     key(&mut h, Key::Enter);
-    assert_eq!(script.lock().unwrap().joined, ["figcraft://join?server=wss://share.example/&code=K7M2QX9TD"]);
+    assert_eq!(script.lock().unwrap().joined, ["figiran://join?server=wss://share.example/&code=K7M2QX9TD"]);
     let shapes = h.frames(2);
     assert!(has_text(&shapes, "Joining live session…") && h.app.ui.home, "the Join dialog shows the join");
     // It failed: the dialog says why, and the home screen stays.
@@ -560,7 +560,7 @@ fn the_join_dialog_is_the_same_field() {
     type_text(&mut h, "4fh j8r 2wn");
     key(&mut h, Key::Enter);
     h.frames(1);
-    assert_eq!(script.lock().unwrap().joined, ["figcraft://join?server=wss://share.example/&code=4FHJ8R2WN"]);
+    assert_eq!(script.lock().unwrap().joined, ["figiran://join?server=wss://share.example/&code=4FHJ8R2WN"]);
     assert!(h.app.ui.live.join.is_none(), "its field goes once the join started");
     assert!(has_text(&h.frames(1), "Joining live session…"), "and it shows the join");
 }

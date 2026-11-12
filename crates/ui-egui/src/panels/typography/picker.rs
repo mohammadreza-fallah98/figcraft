@@ -2,7 +2,7 @@ use super::{Align2, CornerRadius, Icon, Id, Rect, Sense, Tokens, Ui, icons, pos2
 
 // ---- Font picker ----
 
-const RECENT_KEY: &str = "figcraft_recent_fonts";
+const RECENT_KEY: &str = "figiran_recent_fonts";
 
 const ROW: f32 = 26.0;
 
@@ -104,7 +104,7 @@ pub(crate) fn font_picker(
                 }
                 ui.data_mut(|d| d.insert_temp(q_id, q.clone()));
                 let ql = q.trim().to_lowercase();
-                let all = figcraft_text::family_names();
+                let all = figiran_text::family_names();
                 let matches: Vec<String> = all.iter().filter(|f| ql.is_empty() || f.to_lowercase().contains(&ql)).cloned().collect();
                 let mut rows: Vec<PickRow> = Vec::new();
                 if ql.is_empty() {

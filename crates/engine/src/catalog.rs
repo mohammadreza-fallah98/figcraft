@@ -1,4 +1,4 @@
-//! The incumbent's main-menu tree with stable FigCraft command ids. A command registered under a
+//! The incumbent's main-menu tree with stable FigIran command ids. A command registered under a
 //! catalog id lights up its menu item, and `cargo xtask parity` measures coverage against it.
 //!
 //! Entries: (menu path, label, command id). `/` separates submenus; a label of `-` is a
@@ -26,7 +26,7 @@ pub static MENU: &[MenuItem] = &[
     // File
     m!("File", "New design file", "file.new"),
     m!("File", "New board", "file.newBoard"),
-    // FigCraft's own: boards and starter templates (not counted by `parity`, like the other items
+    // FigIran's own: boards and starter templates (not counted by `parity`, like the other items
     // of its own listed in `OWN`).
     m!("File", "New from template…", "file.newFromTemplate"),
     m!("File", "New window", "window.new"),
@@ -38,10 +38,10 @@ pub static MENU: &[MenuItem] = &[
     m!("File", "Save as…", "file.saveAs"),
     m!("File", "Save to version history…", "file.saveVersion"),
     m!("File", "Show version history", "file.versionHistory"),
-    // FigCraft's own: branches of the file.
+    // FigIran's own: branches of the file.
     m!("File", "Create branch…", "branch.create"),
     m!("File", SEP, ""),
-    // FigCraft's own (live sessions): not in the reference menu, so not counted by `parity`.
+    // FigIran's own (live sessions): not in the reference menu, so not counted by `parity`.
     m!("File", "Join live session…", "collab.join"),
     m!("File", "Publish to server…", "collab.publish"),
     m!("File", SEP, ""),
@@ -105,11 +105,11 @@ pub static MENU: &[MenuItem] = &[
     m!("View", "Pixel preview", "view.pixelPreview"),
     m!("View", "Mask outlines", "view.maskOutlines"),
     m!("View", "Frame outlines", "view.frameOutlines"),
-    // FigCraft's own: the canvas shows sRGB, so Display P3 files can mark what it can't show.
+    // FigIran's own: the canvas shows sRGB, so Display P3 files can mark what it can't show.
     m!("View", "Soft-proof sRGB", "view.proofSrgb"),
     m!("View", SEP, ""),
     m!("View/Panels", "Show/Hide UI", "view.toggleUi"),
-    // FigCraft's own: the window fills the screen (F11), for setups that hide the taskbar then.
+    // FigIran's own: the window fills the screen (F11), for setups that hide the taskbar then.
     m!("View", "Full screen", "view.fullscreen"),
     m!("View/Panels", "Reset panel widths", "view.panelWidths"),
     m!("View/Panels", "Layers", "view.layers"),
@@ -155,7 +155,7 @@ pub static MENU: &[MenuItem] = &[
     m!("Object", "Use as mask", "object.mask"),
     m!("Object", "Release mask", "object.releaseMask"),
     m!("Object", "Set as thumbnail", "object.setThumbnail"),
-    // FigCraft's own (in `OWN`): the way into crop mode that the Design panel also offers.
+    // FigIran's own (in `OWN`): the way into crop mode that the Design panel also offers.
     m!("Object", "Crop image", "image.crop"),
     m!("Object", SEP, ""),
     m!("Object", "Bring to front", "arrange.front"),
@@ -221,7 +221,7 @@ pub static MENU: &[MenuItem] = &[
     m!("Text/Case", "Lowercase", "text.caseLower"),
     m!("Text/Case", "Title case", "text.caseTitle"),
     // "Go to Text > Text direction. Select Left to right or Right to left." (Add right-to-left
-    // text); Auto, the way back to detection, is FigCraft's own (in `OWN`).
+    // text); Auto, the way back to detection, is FigIran's own (in `OWN`).
     m!("Text/Text direction", "Auto", "text.directionAuto"),
     m!("Text/Text direction", "Left to right", "text.directionLtr"),
     m!("Text/Text direction", "Right to left", "text.directionRtl"),
@@ -273,7 +273,7 @@ pub static MENU: &[MenuItem] = &[
     m!("Help", "Getting started", "help.gettingStarted"),
     m!("Help", "Keyboard shortcuts", "help.shortcuts"),
     m!("Help", "Help page", "help.page"),
-    m!("Help", "About FigCraft", "help.about"),
+    m!("Help", "About FigIran", "help.about"),
     // Toolbar
     m!("Tools", "Move", "tool.move"),
     m!("Tools", "Scale", "tool.scale"),
@@ -300,7 +300,7 @@ pub fn items() -> impl Iterator<Item = &'static MenuItem> {
     MENU.iter().filter(|m| m.label != SEP)
 }
 
-/// Items of FigCraft's own that the parity count leaves out (as it does the `collab.` ones).
+/// Items of FigIran's own that the parity count leaves out (as it does the `collab.` ones).
 const OWN: [&str; 6] = ["file.newFromTemplate", "file.newBoard", "help.gettingStarted", "text.missingFonts", "image.crop", "text.directionAuto"];
 
 /// Coverage: (implemented, total, missing ids). `extra` lists ids implemented by the UI layer.

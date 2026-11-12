@@ -4,8 +4,8 @@
 use std::collections::HashMap;
 use std::net::{IpAddr, Ipv4Addr};
 
-use figcraft_collab::{Limits, Server};
-use figcraft_doc::Document;
+use figiran_collab::{Limits, Server};
+use figiran_doc::Document;
 
 use super::{Admission, Backend, Closing, Hub, InFlight, Room};
 

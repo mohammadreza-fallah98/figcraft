@@ -3,8 +3,8 @@
 //! heal the selected points rather than cut the layer.
 
 use egui::{Event, Modifiers};
-use figcraft_doc::NodeId;
-use figcraft_engine::Session;
+use figiran_doc::NodeId;
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::layers_drag_tests::Ui;
@@ -13,9 +13,9 @@ fn id(v: serde_json::Value) -> NodeId {
     NodeId(v["id"].as_u64().unwrap())
 }
 
-fn net(u: &Ui, path: NodeId) -> figcraft_doc::VectorNetwork {
+fn net(u: &Ui, path: NodeId) -> figiran_doc::VectorNetwork {
     let doc = u.app.session.doc().unwrap();
-    figcraft_engine::vectoredit::network(doc, path).unwrap().clone()
+    figiran_engine::vectoredit::network(doc, path).unwrap().clone()
 }
 
 /// A three-point open path A-B-C in edit mode, B selected.
@@ -64,7 +64,7 @@ fn a_cut_command_heals_points_selected_in_another_edited_layer() {
     let mut u = Ui::new(Session::new());
     let a = id(u.app.session.execute("vector.create", &json!({"points": [[100, 100], [200, 100], [300, 100]], "closed": false})).unwrap());
     let b = id(u.app.session.execute("vector.create", &json!({"points": [[100, 200], [200, 200], [300, 200]], "closed": false})).unwrap());
-    figcraft_engine::vectoredit::begin_many(&mut u.app.session, &[a, b]).unwrap();
+    figiran_engine::vectoredit::begin_many(&mut u.app.session, &[a, b]).unwrap();
     // Points selected in the second layer, then the first made active: only `others` has a selection.
     u.app.session.execute("vector.edit.select", &json!({"id": b, "vertices": [1]})).unwrap();
     u.app.session.execute("vector.edit.select", &json!({"id": a, "add": true})).unwrap();

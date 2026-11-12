@@ -1,6 +1,6 @@
-use figcraft_color::{Color, Gradient, GradientKind, Paint};
-use figcraft_doc::{NodeId, NodeKind, Region, VectorNetwork, WindingRule};
-use figcraft_geom::{Affine, Point, Shape};
+use figiran_color::{Color, Gradient, GradientKind, Paint};
+use figiran_doc::{NodeId, NodeKind, Region, VectorNetwork, WindingRule};
+use figiran_geom::{Affine, Point, Shape};
 use serde_json::{Value, json};
 
 use crate::Session;
@@ -141,7 +141,7 @@ fn merge_all_inherited_gradient_regions_with_distinct_frames_is_not_a_noop() {
         let NodeKind::Vector { network } = &mut node.kind else { panic!("expected vector") };
         for (region, offset) in network.regions.iter_mut().zip([0.0, 12.0]) {
             region.fills = None;
-            region.paint_space = Some(figcraft_doc::RegionPaintSpace { width: 100.0, height: 100.0, transform: Affine::translate((offset, 0.0)) });
+            region.paint_space = Some(figiran_doc::RegionPaintSpace { width: 100.0, height: 100.0, transform: Affine::translate((offset, 0.0)) });
         }
     }
     let before_a = normalized_paint_world(&s, vector, 0);
@@ -154,7 +154,7 @@ fn merge_all_inherited_gradient_regions_with_distinct_frames_is_not_a_noop() {
     assert!(!s.doc().unwrap().contains(vector), "the selected regions are merged into a new vector");
     assert_eq!(network(&s, merged).regions.len(), 1);
     assert_eq!(network(&s, merged).regions[0].fills, None, "node gradient remains inherited");
-    assert!(matches!(s.doc().unwrap().node(merged).unwrap().fills[0].kind, figcraft_color::PaintKind::Gradient(_)));
+    assert!(matches!(s.doc().unwrap().node(merged).unwrap().fills[0].kind, figiran_color::PaintKind::Gradient(_)));
     assert_same_transform(normalized_paint_world(&s, merged, 0), before_a);
 }
 
@@ -163,7 +163,7 @@ fn exceeding_arrangement_capacity_never_drops_unprocessed_regions() {
     let mut s = Session::new();
     let vector = split_vector(&mut s);
     let mut net = VectorNetwork::default();
-    for i in 0..=figcraft_pathops::MAX_ARRANGEMENT_INPUTS {
+    for i in 0..=figiran_pathops::MAX_ARRANGEMENT_INPUTS {
         let mut part = box_path(i as f64 * 12.0, 0.0, i as f64 * 12.0 + 10.0, 10.0);
         part.regions[0].fills = Some(vec![Paint::solid(Color::BLACK)]);
         append(&mut net, part);
@@ -246,7 +246,7 @@ fn merged_region_keeps_a_transformed_source_gradient_frame() {
     s.set_selection(vec![crossing, vector]);
     let result = ex(&mut s, "shapeBuilder.merge", json!({"points": [[point.x, point.y]]}));
     let merged = id(&result);
-    assert!(matches!(&network(&s, merged).regions[0].fills.as_ref().unwrap()[0].kind, figcraft_color::PaintKind::Gradient(_)));
+    assert!(matches!(&network(&s, merged).regions[0].fills.as_ref().unwrap()[0].kind, figiran_color::PaintKind::Gradient(_)));
     assert_same_transform(before, normalized_paint_world(&s, merged, 0));
 }
 
@@ -301,7 +301,7 @@ fn removing_the_left_region_keeps_the_right_region_paint_frame() {
     assert!((node.width - 50.0).abs() < 1e-6, "the layer is reboxed to the surviving region: {}", node.width);
     let net = network(&s, vector);
     assert_eq!(net.regions.len(), 1);
-    assert!(matches!(&net.regions[0].fills.as_ref().unwrap()[0].kind, figcraft_color::PaintKind::Gradient(_)));
+    assert!(matches!(&net.regions[0].fills.as_ref().unwrap()[0].kind, figiran_color::PaintKind::Gradient(_)));
     assert!((world_region_area(&s, vector, 0) - 5000.0).abs() < 1e-6);
     assert_same_transform(before, normalized_paint_world(&s, vector, 0));
 }

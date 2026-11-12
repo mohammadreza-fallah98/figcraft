@@ -12,9 +12,9 @@ use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::sync::{Arc, Mutex, OnceLock};
 
-use figcraft_color::{Paint, PaintKind};
-use figcraft_doc::{Document, EffectKind, Node, NodeKind, SPREAD_MITER_LIMIT, Shadow};
-use figcraft_geom::{Affine, BezPath};
+use figiran_color::{Paint, PaintKind};
+use figiran_doc::{Document, EffectKind, Node, NodeKind, SPREAD_MITER_LIMIT, Shadow};
+use figiran_geom::{Affine, BezPath};
 use tiny_skia::{FillRule, Pixmap, PixmapPaint, Transform};
 
 use crate::draw::{hash_path, node_outline, stroke_area, stroke_rule, ts_path, ts_transform};
@@ -72,7 +72,7 @@ fn outlines(doc: &Document, n: &Node, fill_counts: fn(&Paint) -> bool) -> Option
     {
         return None;
     }
-    let closed = is_bool || is_text || figcraft_doc::geometry::is_closed(n);
+    let closed = is_bool || is_text || figiran_doc::geometry::is_closed(n);
     let outline = node_outline(doc, n);
     let mut out = Vec::new();
     if has_fill
@@ -82,7 +82,7 @@ fn outlines(doc: &Document, n: &Node, fill_counts: fn(&Paint) -> bool) -> Option
         out.push(o);
     }
     if n.has_visible_stroke() {
-        let geom = if is_bool { outline.map(|(p, _)| p) } else { figcraft_doc::geometry::stroke_geometry(n) };
+        let geom = if is_bool { outline.map(|(p, _)| p) } else { figiran_doc::geometry::stroke_geometry(n) };
         if let Some(g) = geom {
             out.push(((*stroke_area(n, &g, closed)).clone(), stroke_rule(n, closed)));
         }
@@ -107,7 +107,7 @@ fn band(path: &BezPath, rule: FillRule, half: f64, shrink: bool, res: f32) -> Op
     if let Some(b) = band_cache().lock().unwrap_or_else(std::sync::PoisonError::into_inner).get(&key) {
         return b.clone();
     }
-    let simplified = (shrink && rule == FillRule::Winding).then(|| figcraft_pathops::simplify(path).ok()).flatten();
+    let simplified = (shrink && rule == FillRule::Winding).then(|| figiran_pathops::simplify(path).ok()).flatten();
     let stroke = tiny_skia::Stroke {
         width: (half * 2.0) as f32,
         line_join: tiny_skia::LineJoin::Miter,
@@ -162,7 +162,7 @@ pub(crate) fn whole_px(v: f64) -> i32 {
     if v.is_finite() { v.round().clamp(-100_000.0, 100_000.0) as i32 } else { 0 }
 }
 
-fn color4(c: figcraft_color::Color) -> [f32; 4] {
+fn color4(c: figiran_color::Color) -> [f32; 4] {
     let c = c.sanitized();
     [c.r, c.g, c.b, c.a]
 }

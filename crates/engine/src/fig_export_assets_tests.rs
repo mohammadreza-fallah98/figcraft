@@ -1,9 +1,9 @@
 //! `.fig` export through `file.export` and back through `file.open`: variables with their modes,
 //! the layers bound to them (also inside instances shown in another mode), shared styles, and
 //! instances that are resized, fill an auto layout or were scaled come back as they were. The
-//! format's own tests (written fields, damaged files) are in `figcraft_format::fig`.
+//! format's own tests (written fields, damaged files) are in `figiran_format::fig`.
 
-use figcraft_doc::{Document, NodeKind};
+use figiran_doc::{Document, NodeKind};
 use serde_json::{Value, json};
 
 use crate::Session;
@@ -98,7 +98,7 @@ fn variables_styles_and_instance_sizes_come_back() {
     // What the outline shows: the instance in the dark frame takes the dark values.
     assert!(before.iter().any(|l| l.contains("\"In the dark\"") && l.contains("111827")), "{before:#?}");
     assert!(before.iter().any(|l| l.contains("\"Resized\"") && l.contains("200.0×120.0")), "{before:#?}");
-    let path = std::env::temp_dir().join(format!("figcraft-fig-assets-{}.fig", std::process::id()));
+    let path = std::env::temp_dir().join(format!("figiran-fig-assets-{}.fig", std::process::id()));
     let r = run(&mut s, "file.export", json!({"format": "fig", "path": path.to_string_lossy()}));
     assert_eq!(r["warnings"], json!([]));
     let r = run(&mut s, "file.open", json!({"path": path.to_string_lossy()}));
@@ -130,14 +130,14 @@ fn a_text_styles_paragraph_values_come_back_from_a_fig_file() {
     let t = id(&run(&mut s, "text.create", json!({"text": "One\nTwo", "x": 0, "y": 0})));
     run(&mut s, "node.set", json!({"ids": [t], "paragraphSpacing": 12, "paragraphIndent": 8, "listStyle": "bulleted"}));
     run(&mut s, "style.create", json!({"type": "text", "name": "Audit", "from": t}));
-    let path = std::env::temp_dir().join(format!("figcraft-fig-text-style-{}.fig", std::process::id()));
+    let path = std::env::temp_dir().join(format!("figiran-fig-text-style-{}.fig", std::process::id()));
     run(&mut s, "file.export", json!({"format": "fig", "path": path.to_string_lossy()}));
     run(&mut s, "file.open", json!({"path": path.to_string_lossy()}));
     let _ = std::fs::remove_file(&path);
     let doc = s.doc().unwrap();
     let st = doc.styles.iter().find(|x| x.name == "Audit").unwrap();
-    let figcraft_doc::StyleKind::Text { paragraph, .. } = &st.kind else { panic!("{:?}", st.kind) };
-    assert_eq!((paragraph.paragraph_spacing, paragraph.paragraph_indent, paragraph.list), (12.0, 8.0, figcraft_doc::ListStyle::Bulleted));
+    let figiran_doc::StyleKind::Text { paragraph, .. } = &st.kind else { panic!("{:?}", st.kind) };
+    assert_eq!((paragraph.paragraph_spacing, paragraph.paragraph_indent, paragraph.list), (12.0, 8.0, figiran_doc::ListStyle::Bulleted));
     // The layer the style was made from is linked to it again, showing the same values.
     let layer = doc.nodes().find(|n| n.kind.text().is_some()).unwrap();
     assert_eq!(layer.styles.text.as_deref(), Some(st.id.as_str()));
@@ -147,13 +147,13 @@ fn a_text_styles_paragraph_values_come_back_from_a_fig_file() {
 fn every_example_keeps_its_variables_and_styles() {
     let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../examples");
     let Ok(files) = std::fs::read_dir(dir) else { return };
-    for p in files.flatten().map(|e| e.path()).filter(|p| p.extension().is_some_and(|x| x == "figcraft")) {
+    for p in files.flatten().map(|e| e.path()).filter(|p| p.extension().is_some_and(|x| x == "figiran")) {
         let mut s = Session::new();
         run(&mut s, "file.open", json!({"path": p.to_string_lossy()}));
         let before = outline(s.doc().unwrap());
         let counts = |d: &Document| (d.variables.collections.len(), d.variables.variables.len(), d.styles.len());
         let had = counts(s.doc().unwrap());
-        let out = std::env::temp_dir().join(format!("figcraft-fig-assets-{}-{}.fig", std::process::id(), p.file_stem().unwrap().to_string_lossy()));
+        let out = std::env::temp_dir().join(format!("figiran-fig-assets-{}-{}.fig", std::process::id(), p.file_stem().unwrap().to_string_lossy()));
         let r = run(&mut s, "file.export", json!({"format": "fig", "path": out.to_string_lossy()}));
         let warnings = r["warnings"].to_string();
         assert!(!warnings.contains("variable") && !warnings.contains("style"), "{}: {warnings}", p.display());
@@ -199,10 +199,10 @@ fn nested_instances_of_variants_link_to_their_mains_layers() {
     run(&mut s, "node.set", json!({"ids": [first], "name": "First"}));
     run(&mut s, "node.set", json!({"ids": [second], "name": "Second"}));
     // The second one shows the other variant.
-    let nested = s.doc().unwrap().node(figcraft_doc::NodeId(second)).unwrap().children[0].0;
+    let nested = s.doc().unwrap().node(figiran_doc::NodeId(second)).unwrap().children[0].0;
     run(&mut s, "instance.swap", json!({"ids": [nested], "component": dusk}));
     let before = outline(s.doc().unwrap());
-    let path = std::env::temp_dir().join(format!("figcraft-fig-nested-{}.fig", std::process::id()));
+    let path = std::env::temp_dir().join(format!("figiran-fig-nested-{}.fig", std::process::id()));
     run(&mut s, "file.export", json!({"format": "fig", "path": path.to_string_lossy()}));
     let r = run(&mut s, "file.open", json!({"path": path.to_string_lossy()}));
     assert_eq!(r["warnings"], json!([]));
@@ -240,8 +240,8 @@ fn stored_variable_ids_keep_exported_binding_identity() {
     run(&mut s, "node.set", json!({"id": r, "props": {"name": "Styled"}}));
     run(&mut s, "node.create", json!({"type": "rectangle", "props": {"name": "Bound", "fill": {"$var": surface["id"]}}}));
     run(&mut s, "variable.update", json!({"variable": shadow["id"], "name": surface["id"]}));
-    let (bytes, _) = figcraft_format::fig::export(s.doc().unwrap(), None).unwrap();
-    let (back, _) = figcraft_format::fig::import(&bytes, "identity").unwrap();
+    let (bytes, _) = figiran_format::fig::export(s.doc().unwrap(), None).unwrap();
+    let (back, _) = figiran_format::fig::import(&bytes, "identity").unwrap();
     let bound = back.nodes().find(|n| n.name == "Bound").unwrap().bound.values().next().unwrap();
     assert_eq!(back.variables.get_by_id(bound).unwrap().name, "surface");
     let style = back.styles.iter().find(|s| s.name == "Surface").unwrap();

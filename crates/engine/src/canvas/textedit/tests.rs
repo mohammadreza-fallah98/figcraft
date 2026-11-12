@@ -1,6 +1,6 @@
 use super::*;
 use crate::tools::{PointerEvent, PointerKind};
-use figcraft_doc::{ListStyle, TextAutoResize, TextCase, TextDecoration};
+use figiran_doc::{ListStyle, TextAutoResize, TextCase, TextDecoration};
 use serde_json::json;
 
 fn setup(text: &str) -> (Session, NodeId) {
@@ -42,7 +42,7 @@ fn whole_editing_session_is_one_undo_step() {
     let t = data(&s, id);
     assert_eq!(t.characters, "Hello");
     assert!(t.runs.is_empty());
-    assert_eq!(t.align_h, figcraft_doc::TextAlignH::Left);
+    assert_eq!(t.align_h, figiran_doc::TextAlignH::Left);
 }
 
 #[test]
@@ -136,7 +136,7 @@ fn ev(kind: PointerKind, x: f64, y: f64, shift: bool) -> PointerEvent {
 #[test]
 fn pointer_double_click_drag_and_shift_click() {
     let (mut s, id) = setup("Hello world");
-    let Some((l, _)) = figcraft_text::layout_node(s.doc().unwrap().node(id).unwrap()) else { return };
+    let Some((l, _)) = figiran_text::layout_node(s.doc().unwrap().node(id).unwrap()) else { return };
     if l.glyphs.is_empty() {
         return; // no fonts
     }

@@ -1,7 +1,7 @@
 //! Dev Mode in the UI, the tail: the compare view compares with a saved version picked at its
 //! bottom, and falls back when that version goes away.
 
-use figcraft_engine::Session;
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::dev_compare::CompareView;
@@ -56,7 +56,7 @@ fn dev_mode_keys_refuse_design_edits_and_say_why() {
     assert!(u.app.session.doc().unwrap().contains(r), "not deleted");
     assert_eq!(x(&u), Some(20.0), "not nudged");
     assert_eq!(u.app.session.doc().unwrap().node(r).map(|n| n.opacity), Some(1.0), "opacity kept");
-    assert_eq!(u.app.session.tool.tool, figcraft_engine::tools::ToolId::Move, "no drawing tool");
+    assert_eq!(u.app.session.tool.tool, figiran_engine::tools::ToolId::Move, "no drawing tool");
     assert!(u.app.ui.toast.as_ref().is_some_and(|(m, _)| m.contains("Shift+D")));
     // In the design the same keys edit.
     u.app.ui.right_tab = crate::RightTab::Design;
@@ -104,7 +104,7 @@ fn dev_mode_pastes_only_a_comments_link() {
     app.ui.right_tab = crate::RightTab::Inspect;
     crate::menus::paste(&mut app, None, None);
     assert_eq!(layers(&app), 0, "text doesn't paste into the design in Dev Mode");
-    app.services = Box::new(TextClip(format!("figcraft://comment/{c}")));
+    app.services = Box::new(TextClip(format!("figiran://comment/{c}")));
     crate::menus::paste(&mut app, None, None);
     assert_eq!(app.ui.comments.open, Some(c), "the link opens its thread");
 }
@@ -308,7 +308,7 @@ impl egui::DroppedFile for DroppedBytes {
 /// Hover `names` over the canvas (one frame: what it shows), then drop them there with `bytes`.
 fn drop_on_canvas(u: &mut crate::layers_drag_tests::Ui, names: &[&str], bytes: &[u8]) -> Vec<egui::Shape> {
     let at = u.app.canvas.rect.center();
-    let path = |n: &str| std::path::Path::new("figcraft-dev-mode-drop").join(n);
+    let path = |n: &str| std::path::Path::new("figiran-dev-mode-drop").join(n);
     let hovered = names.iter().map(|n| egui::HoveredFile { path: Some(path(n)), mime: String::new() }).collect();
     let out = u.frame_raw(egui::RawInput { events: vec![egui::Event::PointerMoved(at)], hovered_files: hovered, ..Default::default() });
     let files = names.iter().map(|n| std::sync::Arc::new(DroppedBytes(path(n), bytes.to_vec())) as egui::DroppedFileHandle).collect();
@@ -333,7 +333,7 @@ fn dev_mode_imports_no_dropped_file_into_the_design_and_says_why() {
     }
     assert_eq!(layers(&u), 0, "the design is unchanged");
     // A dropped document still opens as a file of its own.
-    let s = drop_on_canvas(&mut u, &["Other.figcraft"], b"");
+    let s = drop_on_canvas(&mut u, &["Other.figiran"], b"");
     assert!(crate::live_tests::has_text(&s, "Drop to open"));
     assert_eq!(u.app.ui.pending_opens.iter().map(|p| p.command).collect::<Vec<_>>(), ["file.open"]);
     u.app.ui.pending_opens.clear();
@@ -361,7 +361,7 @@ fn dev_mode_assets_panel_places_and_applies_nothing() {
     u.app.ui.left_tab = crate::LeftTab::Assets;
     u.app.ui.right_tab = crate::RightTab::Inspect;
     let instances = |u: &crate::layers_drag_tests::Ui| {
-        u.app.session.doc().unwrap().nodes().filter(|n| matches!(n.kind, figcraft_doc::NodeKind::Instance { .. })).count()
+        u.app.session.doc().unwrap().nodes().filter(|n| matches!(n.kind, figiran_doc::NodeKind::Instance { .. })).count()
     };
     let styled = |u: &crate::layers_drag_tests::Ui| u.app.session.doc().unwrap().node(r).is_some_and(|n| n.styles.fill.is_some());
     let click = |u: &mut crate::layers_drag_tests::Ui, text: &str| {
@@ -396,9 +396,9 @@ fn dev_mode_assets_panel_places_and_applies_nothing() {
 
 #[test]
 fn dev_mode_assets_panel_accepts_no_library_updates() {
-    let dir = std::env::temp_dir().join(format!("figcraft-dev-mode-updates-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("figiran-dev-mode-updates-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
-    let path = dir.join("Library.figcraft");
+    let path = dir.join("Library.figiran");
     let mut lib = Session::new();
     lib.execute("style.create", &json!({"type": "paint", "name": "Brand", "value": [{"type": "solid", "color": "#0000FF"}]})).unwrap();
     lib.execute("library.publish", &json!({})).unwrap();

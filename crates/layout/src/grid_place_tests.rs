@@ -2,7 +2,7 @@
 //! cell-by-cell search did, on randomised grids with anchored, half-anchored and spanning
 //! children, while no longer testing every cell of a span at every position.
 
-use figcraft_doc::{AutoLayout, Document, NodeId, NodeKind};
+use figiran_doc::{AutoLayout, Document, NodeId, NodeKind};
 
 use crate::{GridCell, MAX_GRID_CELLS, MAX_TRACKS, grid_place};
 

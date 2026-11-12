@@ -4,7 +4,7 @@ use std::collections::BTreeSet;
 use std::sync::Arc;
 
 use egui::{Align2, Color32, CornerRadius, Id, Rect, Sense, Stroke, Ui, Vec2, pos2, vec2};
-use figcraft_doc::{Document, NodeId, NodeKind};
+use figiran_doc::{Document, NodeId, NodeKind};
 use serde_json::json;
 
 use crate::a11y::{self, Region, RowInfo, Tip};
@@ -21,29 +21,29 @@ pub const RAIL_WIDTH: f32 = 56.0;
 const RAIL_ICON: f32 = 20.0;
 
 /// A boolean operation's icon.
-pub fn op_icon(op: figcraft_doc::BoolOp) -> Icon {
+pub fn op_icon(op: figiran_doc::BoolOp) -> Icon {
     match op {
-        figcraft_doc::BoolOp::Union => Icon::Union,
-        figcraft_doc::BoolOp::Subtract => Icon::Subtract,
-        figcraft_doc::BoolOp::Intersect => Icon::Intersect,
-        figcraft_doc::BoolOp::Exclude => Icon::Exclude,
+        figiran_doc::BoolOp::Union => Icon::Union,
+        figiran_doc::BoolOp::Subtract => Icon::Subtract,
+        figiran_doc::BoolOp::Intersect => Icon::Intersect,
+        figiran_doc::BoolOp::Exclude => Icon::Exclude,
     }
 }
 
 pub fn node_icon(doc: &Document, id: NodeId) -> Icon {
     let Some(n) = doc.node(id) else { return Icon::Rectangle };
     // An operand combining by an operation other than its group's shows that operation.
-    if let Some(op) = figcraft_engine::booleans::distinct_op(doc, id) {
+    if let Some(op) = figiran_engine::booleans::distinct_op(doc, id) {
         return op_icon(op);
     }
     match &n.kind {
         NodeKind::Page { .. } => Icon::Page,
-        NodeKind::Frame if figcraft_engine::components::is_slot(doc, id) => Icon::Slot,
+        NodeKind::Frame if figiran_engine::components::is_slot(doc, id) => Icon::Slot,
         NodeKind::Frame => {
             if let Some(l) = &n.layout {
                 match l.mode {
-                    figcraft_doc::LayoutMode::Vertical => Icon::LayoutV,
-                    figcraft_doc::LayoutMode::Grid => Icon::LayoutGrid,
+                    figiran_doc::LayoutMode::Vertical => Icon::LayoutV,
+                    figiran_doc::LayoutMode::Grid => Icon::LayoutGrid,
                     _ => Icon::LayoutH,
                 }
             } else {
@@ -53,7 +53,7 @@ pub fn node_icon(doc: &Document, id: NodeId) -> Icon {
         NodeKind::Group => Icon::Group,
         NodeKind::Section { .. } => Icon::Section,
         NodeKind::Rectangle => {
-            if n.fills.iter().any(|f| matches!(f.kind, figcraft_color::PaintKind::Image(_))) {
+            if n.fills.iter().any(|f| matches!(f.kind, figiran_color::PaintKind::Image(_))) {
                 Icon::Image
             } else {
                 Icon::Rectangle
@@ -536,12 +536,12 @@ pub(crate) fn list_width(ui: &Ui) -> f32 {
 pub(crate) const NAME_ROOM: f32 = 1200.0;
 
 /// A row's name: the layer's, or its kind's label when it has none.
-fn row_name(n: &figcraft_doc::Node) -> &str {
+fn row_name(n: &figiran_doc::Node) -> &str {
     if n.name.is_empty() { tr(n.kind.label()) } else { &n.name }
 }
 
 /// The font a row's name is drawn in: top-level frames and sections stand out.
-fn name_font(doc: &Document, page: NodeId, n: &figcraft_doc::Node) -> egui::FontId {
+fn name_font(doc: &Document, page: NodeId, n: &figiran_doc::Node) -> egui::FontId {
     let top_level = doc.node(n.parent.unwrap_or(page)).is_some_and(|p| p.is_page());
     if top_level && (n.kind.is_frame_like() || matches!(n.kind, NodeKind::Section { .. })) { semibold(11.0) } else { regular(11.0) }
 }
@@ -588,7 +588,7 @@ fn listed_rows(doc: &Document, page: NodeId, expanded: &BTreeSet<NodeId>, filter
 }
 
 /// Whether the children of `n` don't show on the canvas (given whether `n` itself doesn't).
-fn hides_children(n: &figcraft_doc::Node, dimmed: bool) -> bool {
+fn hides_children(n: &figiran_doc::Node, dimmed: bool) -> bool {
     dimmed || !n.visible || n.hides_contents()
 }
 
@@ -614,7 +614,7 @@ fn matching(doc: &Document, id: NodeId, q: &str, out: &mut Vec<Row>) {
         let Some(cn) = doc.node(*c) else { continue };
         let name = if cn.name.is_empty() { cn.kind.label() } else { cn.name.as_str() };
         if name.to_lowercase().contains(q) {
-            let above: Vec<&figcraft_doc::Node> = doc.ancestors(*c).iter().filter_map(|a| doc.node(*a)).filter(|a| !a.is_page()).collect();
+            let above: Vec<&figiran_doc::Node> = doc.ancestors(*c).iter().filter_map(|a| doc.node(*a)).filter(|a| !a.is_page()).collect();
             let dimmed = above.iter().any(|a| hides_children(a, false));
             out.push(Row { id: *c, depth: 0, has_kids: false, dimmed, locked_above: above.iter().any(|a| a.locked) });
         }
@@ -823,7 +823,7 @@ fn row_color(t: &Tokens, component: bool, shown: bool, normal: Color32, faded: C
 
 /// The pointer `p` over row `rects` = [row, padded row]: the drop zone it shows (-1 above, 0 into,
 /// 1 below), whether holding there should open the collapsed row, and whether the button was released.
-fn drop_zone(ui: &mut Ui, p: egui::Pos2, rects: [Rect; 2], x0: f32, id: NodeId, collapsed: bool, n: &figcraft_doc::Node) -> (i8, bool, bool) {
+fn drop_zone(ui: &mut Ui, p: egui::Pos2, rects: [Rect; 2], x0: f32, id: NodeId, collapsed: bool, n: &figiran_doc::Node) -> (i8, bool, bool) {
     let [r, rr] = rects;
     let mut open = false;
     let rel = (p.y - r.min.y) / r.height();
@@ -927,7 +927,7 @@ fn select_clicked(app: &mut FigApp, rows: &[Row], sel: &[NodeId], id: NodeId, m:
     if let Ok(ds) = app.session.ds_mut()
         && ds.text_edit.is_some()
     {
-        let _ = figcraft_engine::textedit::end(&mut app.session);
+        let _ = figiran_engine::textedit::end(&mut app.session);
     }
 }
 
@@ -962,7 +962,7 @@ fn eye_lock(
     t: &Tokens,
     rects: [Rect; 2],
     row: &Row,
-    n: &figcraft_doc::Node,
+    n: &figiran_doc::Node,
     over: bool,
     dev: bool,
     sweep: &mut Option<Sweep>,
@@ -1282,7 +1282,7 @@ fn layers(app: &mut FigApp, ui: &mut Ui) {
             // What is inside the dragged layers, and inside an instance, takes no drop.
             refused |= over
                 && (doc.ancestors(row.id).iter().any(|a| moving.contains(a))
-                    || n.parent.is_some_and(|p| figcraft_engine::components::structure_locked(&doc, p)));
+                    || n.parent.is_some_and(|p| figiran_engine::components::structure_locked(&doc, p)));
             if dragging.is_some()
                 && !blocked(row.id)
                 && let Some(p) = ui.input(|i| i.pointer.hover_pos())

@@ -2,7 +2,7 @@
 //! the reference app's eyedropper does): it asks the UI which (`dialog.createFromColor`) and leaves the
 //! selection's fills alone; a plain pick still fills the selection.
 
-use figcraft_doc::NodeId;
+use figiran_doc::NodeId;
 use serde_json::json;
 
 use crate::Session;

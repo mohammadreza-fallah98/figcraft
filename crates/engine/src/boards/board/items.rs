@@ -49,7 +49,7 @@ pub(crate) fn add_text(doc: &mut Document, parent: NodeId, text: &str, size: f64
         n.child_layout.sizing_h = Sizing::Fill;
     })?;
     if let Some(n) = doc.node(id)
-        && let Some((w, h)) = figcraft_text::auto_size(n)
+        && let Some((w, h)) = figiran_text::auto_size(n)
         && let Some(n) = doc.node_mut(id)
     {
         (n.width, n.height) = (w, h);
@@ -228,7 +228,7 @@ pub(super) fn add_connected(s: &mut Session, p: &Value) -> Result<Value> {
     // connector leaves by the handle's side and arrives by the side facing it.
     let (to_at, from_side, to_side) = match drop_point(cmd, p)? {
         Some((x, y)) => {
-            let local = doc.world_transform(parent).inverse() * figcraft_geom::Point::new(x, y);
+            let local = doc.world_transform(parent).inverse() * figiran_geom::Point::new(x, y);
             if !(local.x.is_finite() && local.y.is_finite()) {
                 return Err(bad(cmd, "`at` can't be placed in that parent"));
             }
@@ -345,7 +345,7 @@ pub(super) fn stamp_cmd(s: &mut Session, p: &Value) -> Result<Value> {
     let half = STAMP_SIZE / 2.0;
     let doc = s.doc_mut()?;
     // It sticks to the object it lands on (it moves with it).
-    let on = super::derived::stamp_target(doc, page, figcraft_geom::Point::new(x, y), None);
+    let on = super::derived::stamp_target(doc, page, figiran_geom::Point::new(x, y), None);
     let id = add(doc, page, NodeKind::Frame, stamp.label(), (x - half, y - half), (STAMP_SIZE, STAMP_SIZE), |n| {
         n.fills = vec![Paint::solid(stamp.color())];
         n.corners.radii = [half; 4];
@@ -354,7 +354,7 @@ pub(super) fn stamp_cmd(s: &mut Session, p: &Value) -> Result<Value> {
         n.board = Some(BoardItem::Stamp { stamp, author, on });
     })?;
     for part in stamp.mark() {
-        let path = figcraft_geom::BezPath::from_svg(part.d).map_err(|e| EngineError::Other(format!("stamp mark: {e}")))?;
+        let path = figiran_geom::BezPath::from_svg(part.d).map_err(|e| EngineError::Other(format!("stamp mark: {e}")))?;
         add(doc, id, NodeKind::Vector { network: VectorNetwork::from_path(&path) }, "Mark", (0.0, 0.0), (STAMP_SIZE, STAMP_SIZE), |n| {
             if part.filled {
                 n.fills = vec![Paint::solid(Color::WHITE)];

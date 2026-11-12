@@ -7,7 +7,7 @@
 //! and used by `inspect.code`. A component connected to code (see [`crate::code_connect`]) shows
 //! its real snippet instead.
 
-use figcraft_doc::{Document, NodeId, NodeKind, PropDef};
+use figiran_doc::{Document, NodeId, NodeKind, PropDef};
 use serde_json::{Value, json};
 
 use crate::cmd::CommandSpec;

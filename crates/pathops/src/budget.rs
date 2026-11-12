@@ -8,7 +8,7 @@
 //! 200 000 segments and 1.8 s for 2 million crossings, and a union of 1 000 squares one by one
 //! (2 million segments swept) takes 1.8 s.
 
-use figcraft_geom::kurbo::{BezPath, ParamCurveExtrema, Rect};
+use figiran_geom::kurbo::{BezPath, ParamCurveExtrema, Rect};
 
 use crate::PathOpsError;
 

@@ -2,7 +2,7 @@
 //! copies its instances need kept ahead of the pages, honest notes for what the cap kept out, and
 //! one note for the cap itself.
 
-use figcraft_doc::{Document, NodeKind};
+use figiran_doc::{Document, NodeKind};
 
 use super::kiwi::{Kv, Schema};
 use super::{MAX_FIG_NODES, export, import, layer_budget, map};

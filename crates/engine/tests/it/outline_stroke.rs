@@ -1,8 +1,8 @@
 //! Outline stroke keeps the renderer's holes and existing property ownership.
 
-use figcraft_doc::{Document, NodeId, NodeKind};
-use figcraft_engine::Session;
-use figcraft_render::{Options, View, render_view};
+use figiran_doc::{Document, NodeId, NodeKind};
+use figiran_engine::Session;
+use figiran_render::{Options, View, render_view};
 use serde_json::{Value, json};
 
 fn run(s: &mut Session, command: &str, params: Value) -> Value {
@@ -58,7 +58,7 @@ fn outline_keeps_rings_through_undo_and_native_reopen() {
         assert!(after.node(id).unwrap().strokes.is_empty());
         assert_eq!(s.selection(), vec![group]);
         assert_eq!(s.undo_depth(), (depth.0 + 1, 0));
-        let (loaded, notes) = figcraft_format::load_bytes(&figcraft_format::save_bytes(&after, None).unwrap()).unwrap();
+        let (loaded, notes) = figiran_format::load_bytes(&figiran_format::save_bytes(&after, None).unwrap()).unwrap();
         assert!(notes.is_empty(), "{notes:?}");
         same_pixels(&pixels(&loaded), &expected);
         assert!(s.undo().unwrap());

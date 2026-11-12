@@ -19,7 +19,7 @@ pub const FIELD_H: f32 = 24.0;
 pub const PAD: f32 = 16.0;
 /// A section's right margin: 8. The panel's grid is `16 | 88 | 8 | 88 | 8 | 24 | 8`: a 240 pt
 /// panel, its content 16 in from the left and 8 from the right, two 88 pt columns, an 8 pt gutter
-/// between them and 8 + 24 + 8 for the buttons at a row's end. FigCraft's own: the columns are
+/// between them and 8 + 24 + 8 for the buttons at a row's end. FigIran's own: the columns are
 /// equal, and the buttons sit on the same 24 pt rhythm as the icon buttons the panel already has.
 pub const PAD_RIGHT: f32 = 8.0;
 /// Between the panel's grid columns.
@@ -1137,7 +1137,7 @@ pub fn paint_field(
     ui: &mut Ui,
     id: Id,
     opacity_id: Id,
-    paint: &figcraft_color::Paint,
+    paint: &figiran_color::Paint,
     width: f32,
     content: impl FnOnce(&mut Ui, Rect),
 ) -> (Response, Option<FieldEdit>) {
@@ -1160,7 +1160,7 @@ pub fn paint_field(
 }
 
 /// A paint swatch (with checkerboard under transparent colours).
-pub fn swatch(ui: &mut Ui, paint: &figcraft_color::Paint, size: f32) -> Response {
+pub fn swatch(ui: &mut Ui, paint: &figiran_color::Paint, size: f32) -> Response {
     swatch_named(ui, paint, size, tr("Color"))
 }
 
@@ -1214,7 +1214,7 @@ pub fn slider(
 
 /// [`swatch`] with the screen reader's name for the field it belongs to, so a panel's swatches
 /// are told apart from every other colour control (and from each other).
-pub fn swatch_named(ui: &mut Ui, paint: &figcraft_color::Paint, size: f32, label: &str) -> Response {
+pub fn swatch_named(ui: &mut Ui, paint: &figiran_color::Paint, size: f32, label: &str) -> Response {
     let (rect, resp) = ui.allocate_exact_size(vec2(size, size), Sense::click());
     // The value is only spelled out while a screen reader reads the tree.
     let value = if a11y::active(&resp.ctx) { paint_name(paint) } else { String::new() };
@@ -1224,8 +1224,8 @@ pub fn swatch_named(ui: &mut Ui, paint: &figcraft_color::Paint, size: f32, label
 }
 
 /// A paint as a screen reader says it: "#FF0000", "#FF0000 50%", "Gradient", "Image", "Pattern".
-pub fn paint_name(paint: &figcraft_color::Paint) -> String {
-    use figcraft_color::PaintKind;
+pub fn paint_name(paint: &figiran_color::Paint) -> String {
+    use figiran_color::PaintKind;
     match &paint.kind {
         PaintKind::Solid { color } => {
             let hex = color.to_hex();
@@ -1238,9 +1238,9 @@ pub fn paint_name(paint: &figcraft_color::Paint) -> String {
     }
 }
 
-pub fn paint_swatch(painter: &egui::Painter, rect: Rect, paint: &figcraft_color::Paint) {
+pub fn paint_swatch(painter: &egui::Painter, rect: Rect, paint: &figiran_color::Paint) {
     let t = Tokens::get(painter.ctx());
-    use figcraft_color::PaintKind;
+    use figiran_color::PaintKind;
     let clip = painter.with_clip_rect(rect);
     checker(&clip, rect, rect.width() / 4.0);
     match &paint.kind {

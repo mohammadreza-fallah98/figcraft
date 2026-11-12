@@ -4,7 +4,7 @@ use serde_json::{Value, json};
 
 use crate::Session;
 use crate::params::id_of;
-use figcraft_doc::{NodeId, StrokeCap};
+use figiran_doc::{NodeId, StrokeCap};
 
 /// A 200-long vector with a dashed 10 px black stroke.
 fn line(s: &mut Session) -> NodeId {
@@ -43,13 +43,13 @@ fn node_set_takes_the_three_caps_and_null_clears_it() {
 fn it_saves_only_when_set_and_older_files_open_unset() {
     let mut s = Session::new();
     let l = line(&mut s);
-    let bytes = |s: &Session| figcraft_format::save_bytes(s.doc().unwrap(), None).unwrap();
-    let unset = figcraft_format::to_json(s.doc().unwrap()).unwrap().to_string();
+    let bytes = |s: &Session| figiran_format::save_bytes(s.doc().unwrap(), None).unwrap();
+    let unset = figiran_format::to_json(s.doc().unwrap()).unwrap().to_string();
     assert!(!unset.contains("dash_cap") && !unset.contains("dashCap"), "not written when unset");
-    let (open, _) = figcraft_format::load_bytes(&bytes(&s)).unwrap();
+    let (open, _) = figiran_format::load_bytes(&bytes(&s)).unwrap();
     assert_eq!(open.node(l).unwrap().stroke.dash_cap, None);
     set(&mut s, l, json!("round")).unwrap();
-    let (open, _) = figcraft_format::load_bytes(&bytes(&s)).unwrap();
+    let (open, _) = figiran_format::load_bytes(&bytes(&s)).unwrap();
     assert_eq!(open.node(l).unwrap().stroke.dash_cap, Some(StrokeCap::Round));
 }
 

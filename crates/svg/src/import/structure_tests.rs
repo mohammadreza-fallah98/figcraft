@@ -1,8 +1,8 @@
 //! The layer tree an import makes: wrappers merged, names kept, masks and effects in the right
 //! order, files on disk never read.
 
-use figcraft_color::BlendMode;
-use figcraft_doc::{Document, MaskType, Node, NodeId, StrokeAlign};
+use figiran_color::BlendMode;
+use figiran_doc::{Document, MaskType, Node, NodeId, StrokeAlign};
 
 use super::import_svg_with_notes;
 
@@ -131,7 +131,7 @@ fn strokes_scale_with_their_layer() {
 
 /// `stroke-dashoffset` is how far into the pattern the stroke starts. A closed outline runs the
 /// pattern from its start, so the offset rotates the pattern; an open line starts half a dash in by
-/// itself (see `figcraft_pathops::width::line_dashes`), so an offset of half the first dash is
+/// itself (see `figiran_pathops::width::line_dashes`), so an offset of half the first dash is
 /// already there and only that one is left out.
 #[test]
 fn a_closed_outline_keeps_a_dash_offset_of_half_a_dash() {
@@ -183,7 +183,7 @@ fn a_filled_and_stroked_open_path_splits_and_its_stroke_layer_is_open() {
 /// A text stroke runs along glyph contours, which close, so its offset is applied as on a shape.
 #[test]
 fn a_text_stroke_keeps_a_dash_offset_of_half_a_dash() {
-    if figcraft_text::fontdb::find_face("Inter", "Regular").is_none() {
+    if figiran_text::fontdb::find_face("Inter", "Regular").is_none() {
         return;
     }
     let (d, f) = import(
@@ -198,14 +198,14 @@ fn a_text_stroke_keeps_a_dash_offset_of_half_a_dash() {
 /// middle of the picture instead.
 #[test]
 fn an_image_stretched_into_its_box_stays_stretched() {
-    use figcraft_color::{ImageScaleMode, PaintKind};
+    use figiran_color::{ImageScaleMode, PaintKind};
     let (d, f) =
         import(&format!(r##"<image id="pic" x="10" y="20" width="40" height="40" preserveAspectRatio="none" href="data:image/png;base64,{PNG}"/>"##));
     let n = node(&d, f, "pic");
     assert_eq!((n.width, n.height), (40.0, 40.0));
     let Some(PaintKind::Image(ip)) = n.fills.first().map(|p| &p.kind) else { panic!("{:?}", n.fills) };
     // The 4 × 2 picture's pixels map onto the whole 40 × 40 box: 10 across, 20 down.
-    let m = figcraft_render::paint::image_transform(ip, 4.0, 2.0, n.width, n.height);
+    let m = figiran_render::paint::image_transform(ip, 4.0, 2.0, n.width, n.height);
     assert_eq!((m.sx, m.ky, m.kx, m.sy, m.tx, m.ty), (10.0, 0.0, 0.0, 20.0, 0.0, 0.0), "{ip:?}");
     // With the aspect kept (the default) the box is the picture's own shape and a Fill is exact.
     let (d, f) = import(&format!(r##"<image id="pic" x="10" y="20" width="40" height="40" href="data:image/png;base64,{PNG}"/>"##));
@@ -216,7 +216,7 @@ fn an_image_stretched_into_its_box_stays_stretched() {
 
 #[test]
 fn linked_files_are_never_read() {
-    let dir = std::env::temp_dir().join(format!("figcraft-svg-linked-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("figiran-svg-linked-{}", std::process::id()));
     // `create_dir` refuses a directory or link someone else planted at this name.
     std::fs::create_dir(&dir).unwrap();
     let png = dir.join("secret.png");
@@ -242,7 +242,7 @@ fn an_svg_image_is_imported_as_layers() {
 
 #[test]
 fn text_layers_are_named_by_their_text_or_id() {
-    if figcraft_text::fontdb::find_face("Inter", "Regular").is_none() {
+    if figiran_text::fontdb::find_face("Inter", "Regular").is_none() {
         return;
     }
     let (d, f) = import(r##"<text x="10" y="20">Hello there</text><text id="Caption_x20_1" x="10" y="60">Small</text>"##);
@@ -251,7 +251,7 @@ fn text_layers_are_named_by_their_text_or_id() {
     let (d, f) = import(r##"<text x="10" y="20">Ab<tspan y="40">C</tspan>d</text>"##);
     assert_eq!(tree(&d, f), [t(0, "TEXT", "Ab"), t(0, "TEXT", "Cd")]);
     let x = |name: &str| d.world_transform(d.subtree(f).into_iter().find(|i| d.node(*i).is_some_and(|n| n.name == name)).unwrap()).translation().x;
-    let advance = figcraft_text::layout(node(&d, f, "Ab").kind.text().unwrap(), None, None).width;
+    let advance = figiran_text::layout(node(&d, f, "Ab").kind.text().unwrap(), None, None).width;
     assert!((x("Cd") - (10.0 + advance)).abs() < 1e-6, "{} vs {}", x("Cd"), 10.0 + advance);
     // A scaled text keeps its look in the font size.
     let (d, f) = import(r##"<text transform="scale(2)" x="10" y="20" font-size="10">Big</text>"##);

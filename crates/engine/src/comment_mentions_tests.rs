@@ -37,11 +37,11 @@ fn a_message_lists_the_names_it_mentions_and_not_an_email_address() {
 #[test]
 fn the_mention_rule_matches_the_highlighting_rule() {
     let people = ["Sam", "Sam Lee"];
-    let found = figcraft_doc::mentions("@Sam Lee, @sam, x@Sam, @Zoe!", &people);
+    let found = figiran_doc::mentions("@Sam Lee, @sam, x@Sam, @Zoe!", &people);
     let names: Vec<_> = found.iter().map(|(r, who)| (r.clone(), *who)).collect();
     assert_eq!(names, vec![(0..8, Some("Sam Lee")), (10..14, Some("Sam")), (23..27, None)]);
-    assert_eq!(figcraft_doc::mention_ranges("@Sam Lee, @sam, x@Sam, @Zoe!", &people), vec![0..8, 10..14]);
-    assert!(figcraft_doc::mentions("@ and a@b.com", &people).is_empty());
+    assert_eq!(figiran_doc::mention_ranges("@Sam Lee, @sam, x@Sam, @Zoe!", &people), vec![0..8, 10..14]);
+    assert!(figiran_doc::mentions("@ and a@b.com", &people).is_empty());
 }
 
 /// The ids of the threads `comment.list` returns for `p`.

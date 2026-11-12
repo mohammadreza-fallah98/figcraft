@@ -1,7 +1,7 @@
 use super::*;
 use crate::xml::path_data;
-use figcraft_doc::BoolOp;
-use figcraft_geom::Affine;
+use figiran_doc::BoolOp;
+use figiran_geom::Affine;
 
 #[test]
 fn a_rectangle_is_a_drawable_its_size_in_dp() {
@@ -65,7 +65,7 @@ fn shapes_are_their_render_outlines_with_the_transform_baked_in() {
     let origin = Affine::translate((0.0, 0.0));
     for (id, el) in ids.iter().zip(&paths) {
         let n = d.node(*id).unwrap();
-        let (mut outline, _) = figcraft_render::node_outline(&d, n).unwrap();
+        let (mut outline, _) = figiran_render::node_outline(&d, n).unwrap();
         outline.apply_affine(origin * d.world_transform(*id));
         assert_eq!(el.get("pathData").unwrap(), path_data(&outline));
     }
@@ -77,11 +77,11 @@ fn nested_groups_rotations_and_flips_are_baked() {
     let g = d.create(p, NodeKind::Group, "G", 0.0, 0.0, 100.0, 100.0).unwrap();
     let r = rect(&mut d, g, "R", 10.0, 10.0, 40.0, 20.0, "000000");
     d.get_mut(g).unwrap().transform = Affine::translate((50.0, 50.0)) * Affine::rotate(0.5) * Affine::scale_non_uniform(-1.0, 2.0);
-    let area = figcraft_render::export_bounds(&d, g).unwrap();
+    let area = figiran_render::export_bounds(&d, g).unwrap();
     let out = export(&d, &[g], Compat::BestEffort);
     let data = paths_of(&out.xml)[0].get("pathData").unwrap().to_string();
     let n = d.node(r).unwrap();
-    let (mut outline, _) = figcraft_render::node_outline(&d, n).unwrap();
+    let (mut outline, _) = figiran_render::node_outline(&d, n).unwrap();
     outline.apply_affine(Affine::translate((-area.x0, -area.y0)) * d.world_transform(r));
     assert_eq!(data, path_data(&outline));
     assert!(!out.xml.contains("<group"), "no group needed:\n{}", out.xml);
@@ -140,7 +140,7 @@ fn a_vector_mask_clips_the_layers_above_it_and_isnt_drawn() {
     {
         let n = d.get_mut(m).unwrap();
         n.is_mask = true;
-        n.mask_type = figcraft_doc::MaskType::Vector;
+        n.mask_type = figiran_doc::MaskType::Vector;
         n.fills = vec![Paint::solid(hex("00FF00"))];
     }
     rect(&mut d, g, "Content", 0.0, 0.0, 100.0, 100.0, "2255FF");
@@ -154,8 +154,8 @@ fn a_vector_mask_clips_the_layers_above_it_and_isnt_drawn() {
 
 #[test]
 fn text_is_glyph_outlines_one_path_per_styled_run() {
-    use figcraft_doc::{StyleRun, TextData};
-    figcraft_text::scan_system_fonts();
+    use figiran_doc::{StyleRun, TextData};
+    figiran_text::scan_system_fonts();
     let (mut d, p) = doc();
     let mut text = TextData::new("ab");
     text.style.font_size = 24.0;
@@ -175,7 +175,7 @@ fn nothing_to_export_is_an_error() {
     let (mut d, p) = doc();
     assert_eq!(try_export(&d, &[], &VdOptions::default()), Err(crate::VdError::Empty));
     let r = rect(&mut d, p, "R", 0.0, 0.0, 10.0, 10.0, "000000");
-    let flat = VdOptions { bounds: Some(figcraft_geom::Rect::new(5.0, 5.0, 5.0, 20.0)), ..Default::default() };
+    let flat = VdOptions { bounds: Some(figiran_geom::Rect::new(5.0, 5.0, 5.0, 20.0)), ..Default::default() };
     assert_eq!(try_export(&d, &[r], &flat), Err(crate::VdError::Empty));
 }
 
@@ -183,7 +183,7 @@ fn nothing_to_export_is_an_error() {
 fn an_area_shifts_the_viewport_origin() {
     let (mut d, p) = doc();
     let r = rect(&mut d, p, "R", 10.0, 10.0, 10.0, 10.0, "000000");
-    let opts = VdOptions { bounds: Some(figcraft_geom::Rect::new(0.0, 0.0, 50.0, 25.0)), ..Default::default() };
+    let opts = VdOptions { bounds: Some(figiran_geom::Rect::new(0.0, 0.0, 50.0, 25.0)), ..Default::default() };
     let out = export_with(&d, &[r], opts);
     let els = elements(&out.xml);
     assert_eq!(els[0].get("width"), Some("50dp"));
@@ -192,7 +192,7 @@ fn an_area_shifts_the_viewport_origin() {
 
 #[test]
 fn depth_past_the_limit_is_refused_and_at_the_limit_kept() {
-    use figcraft_render::{ExportDepthError, MAX_EXPORT_DEPTH};
+    use figiran_render::{ExportDepthError, MAX_EXPORT_DEPTH};
     let nested = |depth: usize| {
         let (mut d, p) = doc();
         let root = d.create(p, NodeKind::Frame, "root", 0.0, 0.0, 32.0, 32.0).unwrap();

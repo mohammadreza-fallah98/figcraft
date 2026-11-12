@@ -3,9 +3,9 @@
 //! next shape on that side joined by a connector and starts typing in it; one undo takes both away.
 
 use egui::{Event, Id, LayerId, Modifiers, Order, PointerButton, Pos2, Rect, pos2};
-use figcraft_doc::{BoardItem, NodeId};
-use figcraft_engine::Session;
-use figcraft_engine::tools::ToolId;
+use figiran_doc::{BoardItem, NodeId};
+use figiran_engine::Session;
+use figiran_engine::tools::ToolId;
 use serde_json::{Value, json};
 
 use crate::board_connect::REACH;
@@ -103,7 +103,7 @@ fn clicking_a_handle_adds_the_next_shape_joined_and_typing() {
     assert!(screen_box(&u, next).min.y > screen_box(&u, a).max.y, "below it");
     assert!(matches!(&doc.node(line).unwrap().board, Some(BoardItem::Connector(c)) if c.from.node() == Some(a) && c.to.node() == Some(next)));
     assert!(u.app.session.ds().unwrap().text_edit.is_some(), "typing in the new shape");
-    figcraft_engine::textedit::end(&mut u.app.session).unwrap();
+    figiran_engine::textedit::end(&mut u.app.session).unwrap();
     u.app.session.execute("edit.undo", &json!({})).unwrap();
     assert_eq!(u.app.session.doc().unwrap().ids().count(), before, "undo takes the shape and its connector away");
 }
@@ -170,7 +170,7 @@ fn dragging_a_handle_drops_the_next_shape_where_it_is_let_go() {
     assert!((centre - to).length() < 1.0, "centred where it was let go: {centre:?}, not {to:?}");
     assert!(matches!(&doc.node(line).unwrap().board, Some(BoardItem::Connector(c)) if c.from.node() == Some(a) && c.to.node() == Some(next)));
     assert!(u.app.session.ds().unwrap().text_edit.is_some(), "typing in the new shape");
-    figcraft_engine::textedit::end(&mut u.app.session).unwrap();
+    figiran_engine::textedit::end(&mut u.app.session).unwrap();
     u.app.session.execute("edit.undo", &json!({})).unwrap();
     assert_eq!(u.app.session.doc().unwrap().ids().count(), before, "undo takes the shape and its connector away");
 }
@@ -304,7 +304,7 @@ fn the_bar_stays_away_while_a_handle_is_dragged() {
     assert!((centre - to).length() < 1.0, "centred where the bar was: {centre:?}, not {to:?}");
     assert!(matches!(&doc.node(line).unwrap().board, Some(BoardItem::Connector(c)) if c.from.node() == Some(a) && c.to.node() == Some(next)));
     // Typing in the new one keeps the bar away, as before; done typing, it is back.
-    figcraft_engine::textedit::end(&mut u.app.session).unwrap();
+    figiran_engine::textedit::end(&mut u.app.session).unwrap();
     u.frame(vec![]);
     u.frame(vec![]);
     assert!(bar(&u).is_some(), "the bar is back for the new selection");

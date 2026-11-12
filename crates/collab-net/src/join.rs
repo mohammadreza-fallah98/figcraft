@@ -5,9 +5,9 @@
 use std::sync::Mutex;
 use std::time::Duration;
 
-use figcraft_collab::Client;
-use figcraft_collab::message::{self, ClientMsg, PROTOCOL, Peer, Resolve, ResolveTeam, Resume, ServerMsg};
-use figcraft_engine::live::{Event, MAX_PEERS, Role, SessionInfo, Status, TOO_LARGE_TO_JOIN};
+use figiran_collab::Client;
+use figiran_collab::message::{self, ClientMsg, PROTOCOL, Peer, Resolve, ResolveTeam, Resume, ServerMsg};
+use figiran_engine::live::{Event, MAX_PEERS, Role, SessionInfo, Status, TOO_LARGE_TO_JOIN};
 
 use crate::inbox::Inbox;
 use crate::invite::{Invite, Lookup};
@@ -242,7 +242,7 @@ pub(crate) fn take(mut m: ServerMsg, cfg: &GuestConfig, inbox: &Inbox, seen: &mu
     // A compressed document is read here, within the size the welcome could have had unpacked.
     match message::unpack(&mut m, cfg.limits.max_server_message) {
         Ok(()) => {}
-        Err(figcraft_collab::Error::TooLarge(_)) => return Taken::End(too_large(&cfg.limits)),
+        Err(figiran_collab::Error::TooLarge(_)) => return Taken::End(too_large(&cfg.limits)),
         Err(e) => return Taken::End(Outcome::Refused(format!("the host sent a document this version can't read ({e})"))),
     }
     match m {

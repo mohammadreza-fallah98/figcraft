@@ -1,22 +1,22 @@
-//! Penpot prototype interactions and flows, mapped to FigCraft's native prototype model.
+//! Penpot prototype interactions and flows, mapped to FigIran's native prototype model.
 //!
 //! Penpot stores an interaction on the shape that fires it: an event type (`click`,
 //! `mouse-press`, `mouse-over`, `mouse-enter`, `mouse-leave`, `after-delay`), an action
 //! type (`navigate`, `open-overlay`, `toggle-overlay`, `close-overlay`, `prev-screen`,
-//! `open-url`), the destination shape and an optional animation. FigCraft models the same
+//! `open-url`), the destination shape and an optional animation. FigIran models the same
 //! idea as an [`Interaction`] (a trigger plus a list of actions) and a [`Flow`] (a named
 //! starting frame on a page).
 //!
-//! A destination is a Penpot shape id, but a FigCraft action points at a node id. The
+//! A destination is a Penpot shape id, but a FigIran action points at a node id. The
 //! importer therefore keeps the Penpot source of every interaction in the layer's metadata
 //! and reads it back once every page is in the document, when the Penpot ids can be
 //! resolved to node ids (see [`resolve_destinations`]).
 
 use std::collections::BTreeMap;
 
-use figcraft_doc::color::Color;
-use figcraft_doc::proto::{Action, Direction, Easing, Flow, Interaction, OverlayPosition, Transition, Trigger};
-use figcraft_doc::{Document, NodeId};
+use figiran_doc::color::Color;
+use figiran_doc::proto::{Action, Direction, Easing, Flow, Interaction, OverlayPosition, Transition, Trigger};
+use figiran_doc::{Document, NodeId};
 use serde_json::Value;
 
 use super::warn;
@@ -32,11 +32,11 @@ const MAX_FLOWS: usize = 8;
 /// Longest stored interaction source for one shape, in bytes.
 const MAX_INTERACTION_SOURCE: usize = 64 * 1024;
 
-/// Penpot's `event-type` names, mapped to FigCraft's triggers.
+/// Penpot's `event-type` names, mapped to FigIran's triggers.
 fn penpot_trigger(event: Option<&str>, delay_ms: Option<u32>) -> Option<Trigger> {
     match event? {
         "click" => Some(Trigger::OnClick),
-        // "mouse-press" fires while the pointer is held: FigCraft's "while pressing".
+        // "mouse-press" fires while the pointer is held: FigIran's "while pressing".
         "mouse-press" => Some(Trigger::OnPress),
         // "mouse-over" fires while the pointer is over the shape.
         "mouse-over" => Some(Trigger::OnHover),
@@ -48,7 +48,7 @@ fn penpot_trigger(event: Option<&str>, delay_ms: Option<u32>) -> Option<Trigger>
     }
 }
 
-/// Penpot's `overlay-pos-type` names, mapped to FigCraft's overlay positions.
+/// Penpot's `overlay-pos-type` names, mapped to FigIran's overlay positions.
 fn penpot_overlay_position(position: Option<&str>) -> Option<OverlayPosition> {
     Some(match position? {
         "manual" => OverlayPosition::Manual,
@@ -91,9 +91,9 @@ fn is_overlay(kind: &PenpotActionKind) -> bool {
     matches!(kind, PenpotActionKind::OpenOverlay | PenpotActionKind::ToggleOverlay)
 }
 
-/// Penpot's animation kinds, mapped to FigCraft's transitions.
+/// Penpot's animation kinds, mapped to FigIran's transitions.
 ///
-/// Penpot animates a navigation with `dissolve`, `slide` or `push`; FigCraft's `SlideIn`
+/// Penpot animates a navigation with `dissolve`, `slide` or `push`; FigIran's `SlideIn`
 /// and `SlideOut` are the closest to Penpot's `slide`, whose `way` says whether the new
 /// screen comes in or the old one goes out.
 fn penpot_transition(animation: Option<&Value>, overlay: bool) -> (Transition, u32, Easing) {
@@ -113,7 +113,7 @@ fn penpot_transition(animation: Option<&Value>, overlay: bool) -> (Transition, u
         Some("ease-in-out") => Easing::EaseInOut,
         _ => Easing::Linear,
     };
-    // Penpot's direction names the way the screen moves, as FigCraft's does.
+    // Penpot's direction names the way the screen moves, as FigIran's does.
     let direction = match animation.get("direction").and_then(Value::as_str) {
         Some("right") => Direction::Right,
         Some("up") => Direction::Top,
@@ -160,7 +160,7 @@ fn penpot_action(item: &Value, kind: &PenpotActionKind) -> Option<(Action, Optio
         PenpotActionKind::OpenOverlay => {
             let position = penpot_overlay_position(item.get("overlayPosType").and_then(Value::as_str))?;
             // A manual overlay sits at an explicit offset from the layer it was opened
-            // from. FigCraft measures that offset from the top-left of the opening layer.
+            // from. FigIran measures that offset from the top-left of the opening layer.
             let offset = match (position, item.get("overlayPosition")) {
                 (OverlayPosition::Manual, Some(p)) => {
                     let x = p.get("x").and_then(Value::as_f64).unwrap_or(0.0);
@@ -198,19 +198,19 @@ pub(super) fn shape_interactions(items: &[Value], warnings: &mut Vec<String>) ->
     for item in items.iter().take(MAX_INTERACTIONS) {
         let event = item.get("eventType").and_then(Value::as_str);
         let Some(trigger) = penpot_trigger(event, item.get("delay").and_then(Value::as_u64).map(|d| d.min(u64::from(MAX_DELAY_MS)) as u32)) else {
-            warnings.push(format!("Penpot interaction with event type '{}' has no FigCraft equivalent and was skipped", event.unwrap_or("unknown")));
+            warnings.push(format!("Penpot interaction with event type '{}' has no FigIran equivalent and was skipped", event.unwrap_or("unknown")));
             continue;
         };
         let Some(kind) = penpot_action_kind(item.get("actionType").and_then(Value::as_str)) else {
             warnings.push(format!(
-                "Penpot interaction with action type '{}' has no FigCraft equivalent and was skipped",
+                "Penpot interaction with action type '{}' has no FigIran equivalent and was skipped",
                 item.get("actionType").and_then(Value::as_str).unwrap_or("unknown")
             ));
             continue;
         };
         let Some((action, destination)) = penpot_action(item, &kind) else {
             warnings.push(format!(
-                "Penpot interaction with action type '{}' has no FigCraft equivalent and was skipped",
+                "Penpot interaction with action type '{}' has no FigIran equivalent and was skipped",
                 item.get("actionType").and_then(Value::as_str).unwrap_or("unknown")
             ));
             continue;
@@ -227,7 +227,7 @@ pub(super) fn shape_interactions(items: &[Value], warnings: &mut Vec<String>) ->
 
 /// Keep a shape's interaction source in its metadata, so the destinations can be resolved
 /// once every page is in the document.
-pub(super) fn keep_interaction_source(node: &mut figcraft_doc::Node, source: &Value, warnings: &mut Vec<String>) {
+pub(super) fn keep_interaction_source(node: &mut figiran_doc::Node, source: &Value, warnings: &mut Vec<String>) {
     let Some(items) = source.get("interactions").and_then(Value::as_array) else { return };
     if items.is_empty() {
         return;
@@ -241,7 +241,7 @@ pub(super) fn keep_interaction_source(node: &mut figcraft_doc::Node, source: &Va
 }
 
 /// The interactions a shape's kept source holds.
-fn stored_interactions(node: &figcraft_doc::Node) -> Option<Vec<Value>> {
+fn stored_interactions(node: &figiran_doc::Node) -> Option<Vec<Value>> {
     let raw = node.plugin_data.get("penpot.interactions")?;
     serde_json::from_str::<Value>(raw).ok()?.as_array().cloned()
 }
@@ -250,7 +250,7 @@ fn stored_interactions(node: &figcraft_doc::Node) -> Option<Vec<Value>> {
 /// the document.
 ///
 /// The importer keeps each shape's Penpot interactions in its metadata. Once the document
-/// is complete the Penpot ids are replaced by the FigCraft node ids they name, so the
+/// is complete the Penpot ids are replaced by the FigIran node ids they name, so the
 /// prototype player can follow them. A destination that names no layer is dropped, and an
 /// interaction left with no action is removed.
 pub(super) fn resolve_destinations(doc: &mut Document, by_penpot_id: &BTreeMap<String, NodeId>, warnings: &mut Vec<String>) {
@@ -302,7 +302,7 @@ pub(super) fn resolve_destinations(doc: &mut Document, by_penpot_id: &BTreeMap<S
         }
     }
     if mapped > 0 {
-        warnings.push(format!("Imported {mapped} Penpot prototype connection(s) as working FigCraft interactions"));
+        warnings.push(format!("Imported {mapped} Penpot prototype connection(s) as working FigIran interactions"));
     }
     if missing > 0 {
         warnings.push(format!("{missing} Penpot prototype destination(s) named no layer in the file; those connections were skipped"));
@@ -323,9 +323,9 @@ fn replace_dest(action: Action, dest: NodeId) -> Action {
     }
 }
 
-/// Read a page's Penpot `flows` and turn them into FigCraft flows.
+/// Read a page's Penpot `flows` and turn them into FigIran flows.
 ///
-/// A Penpot flow names the frame the prototype starts at. FigCraft's flow needs a node id,
+/// A Penpot flow names the frame the prototype starts at. FigIran's flow needs a node id,
 /// so the Penpot frame id is resolved through `by_penpot_id`.
 pub(super) fn page_flows(doc: &Document, flows: &Value, by_penpot_id: &BTreeMap<String, NodeId>, warnings: &mut Vec<String>) -> Vec<Flow> {
     let mut out = Vec::new();

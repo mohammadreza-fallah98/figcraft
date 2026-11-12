@@ -20,7 +20,7 @@
 
 use egui::accesskit::{self, Role, Toggled};
 use egui::{Context, CornerRadius, Event, FocusDirection, Id, Key, LayerId, Modifiers, Order, Pos2, Rect, Response, Stroke, StrokeKind, Ui};
-use figcraft_engine::keymap;
+use figiran_engine::keymap;
 
 use crate::FigApp;
 use crate::i18n::tr;
@@ -240,7 +240,7 @@ pub fn scroll_focus(nav: &mut Nav, ui: &Ui) {
 struct Shared {
     canvas: Option<Id>,
     /// The root `Ui::scope_id` of the frame. A resizable panel's real `__resize` widget is
-    /// `root_scope.with(<panel salt>).with("__resize")`; FigCraft's panels are fixed, so its own
+    /// `root_scope.with(<panel salt>).with("__resize")`; FigIran's panels are fixed, so its own
     /// `panel_edge` and `pages_edge` IDs are the ones to exclude today.
     root_scope: Option<Id>,
     keyboard: bool,
@@ -254,9 +254,9 @@ struct Shared {
 }
 
 /// Run `f` on the per-context temporary `Shared` accessibility state keyed by
-/// `figcraft_a11y`.
+/// `figiran_a11y`.
 fn shared<R>(ctx: &Context, f: impl FnOnce(&mut Shared) -> R) -> R {
-    ctx.data_mut(|d| f(d.get_temp_mut_or_default::<Shared>(Id::unique("figcraft_a11y"))))
+    ctx.data_mut(|d| f(d.get_temp_mut_or_default::<Shared>(Id::unique("figiran_a11y"))))
 }
 
 /// Whether a widget other than the canvas has the keyboard (a field, a focused button): the
@@ -654,7 +654,7 @@ fn step_within(app: &mut FigApp, ctx: &Context, region: Region, step: i32) {
 /// them, are left out).
 fn focusables(ctx: &Context, nav: &Nav, region: Region) -> Vec<(Id, Rect)> {
     let canvas = nav.last.canvas;
-    // Both the real resize widgets (should a panel ever become resizable) and FigCraft's own
+    // Both the real resize widgets (should a panel ever become resizable) and FigIran's own
     // custom panel and pages-list edges, which must never enter the F6/Tab order.
     let mut edges = vec![Id::unique(("panel_edge", "left")), Id::unique(("panel_edge", "right")), Id::unique("pages_edge")];
     if let Some(root) = shared(ctx, |s| s.root_scope) {

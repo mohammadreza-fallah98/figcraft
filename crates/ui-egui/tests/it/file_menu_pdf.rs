@@ -3,8 +3,8 @@
 
 use std::path::PathBuf;
 
-use figcraft_engine::Session;
-use figcraft_ui_egui::{DialogFuture, FigApp, Services, menus};
+use figiran_engine::Session;
+use figiran_ui_egui::{DialogFuture, FigApp, Services, menus};
 use serde_json::json;
 
 /// Services whose save dialog always returns the given path.
@@ -27,7 +27,7 @@ fn invoke(app: &mut FigApp, id: &str) {
 }
 
 fn out_path(name: &str) -> PathBuf {
-    let p = std::env::temp_dir().join(format!("figcraft-{}-{name}.pdf", std::process::id()));
+    let p = std::env::temp_dir().join(format!("figiran-{}-{name}.pdf", std::process::id()));
     let _ = std::fs::remove_file(&p);
     p
 }

@@ -49,7 +49,7 @@ fn store_dir() -> Option<PathBuf> {
     }
     // This crate's tests never touch the user's store.
     if cfg!(test) {
-        return Some(std::env::temp_dir().join(format!("figcraft-font-store-tests-{}", std::process::id())));
+        return Some(std::env::temp_dir().join(format!("figiran-font-store-tests-{}", std::process::id())));
     }
     font_store_dir(&FontEnv::from_process())
 }
@@ -107,7 +107,7 @@ fn download(s: &mut Session, p: &Value) -> Result<Value> {
         return Ok(state_json(&family, running));
     }
     // Installed: even when no scan sees it (system fonts opted out), it isn't downloaded again.
-    if state == Some(Download::Installed) || figcraft_text::has_family(&family) {
+    if state == Some(Download::Installed) || figiran_text::has_family(&family) {
         jobs().remove(&key);
         let refitted = crate::fonts::refit_open(s, None, Some(std::slice::from_ref(&family)));
         return Ok(json!({"family": family, "state": "installed", "refitted": refitted}));
@@ -122,12 +122,12 @@ fn download(s: &mut Session, p: &Value) -> Result<Value> {
     let source = index.source_of(found).map(|src| src.name.clone());
     jobs().insert(key, (found.family.clone(), Download::Running { done: 0, total }));
     let name = found.family.clone();
-    let spawned = std::thread::Builder::new().name("figcraft-font-download".into()).spawn(move || {
+    let spawned = std::thread::Builder::new().name("figiran-font-download".into()).spawn(move || {
         let result = store.install_family(index, found, &Cancel::new(), &mut |p| set(&name, Download::Running { done: p.done, total: p.total }));
         match result {
             Ok(_) => {
                 // The new files are scanned here, off the interface's thread.
-                figcraft_text::rescan_system_fonts();
+                figiran_text::rescan_system_fonts();
                 set(&name, Download::Installed);
             }
             Err(e) => set(&name, Download::Failed(e.to_string())),

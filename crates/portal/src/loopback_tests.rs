@@ -56,7 +56,7 @@ fn a_valid_callback_delivers_the_code_once_and_closes() {
     ] {
         assert!(reply.contains(h), "{h}");
     }
-    assert!(reply.contains("<title>FigCraft</title>") && reply.contains("Signed in. You can close this tab and return to FigCraft."));
+    assert!(reply.contains("<title>FigIran</title>") && reply.contains("Signed in. You can close this tab and return to FigIran."));
     assert_eq!(rx.recv_timeout(Duration::from_secs(5)).unwrap(), "abc");
     assert!(closed(port));
     assert!(rx.try_recv().is_err());

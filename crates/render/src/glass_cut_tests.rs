@@ -1,9 +1,9 @@
 //! Glass renders the same however a render is cut: a band or a canvas patch whose edge runs
 //! through a pane shows exactly the pixels of the whole render.
 
-use figcraft_color::{Color, Paint};
-use figcraft_doc::{Document, Effect, EffectKind, Glass, NodeId, NodeKind};
-use figcraft_geom::Affine;
+use figiran_color::{Color, Paint};
+use figiran_doc::{Document, Effect, EffectKind, Glass, NodeId, NodeKind};
+use figiran_geom::Affine;
 use tiny_skia::Pixmap;
 
 use crate::{Options, View, render_view_single};
@@ -87,7 +87,7 @@ fn the_light_is_a_line_on_the_bevel() {
 }
 
 /// Digests of glass renders over a spread of settings, scales and corners: compare two builds'
-/// output with `cargo test --release -p figcraft-render --lib glass_digests -- --ignored --nocapture`.
+/// output with `cargo test --release -p figiran-render --lib glass_digests -- --ignored --nocapture`.
 #[test]
 #[ignore = "prints digests to compare builds"]
 fn glass_digests() {

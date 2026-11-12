@@ -1,6 +1,6 @@
 //! Glass render timings: a 600 × 360 rounded glass pane over coloured stripes, 2400 × 1600 device
 //! pixels. Run in release:
-//! `cargo test --release -p figcraft-render --lib glass_render_timings -- --ignored --nocapture`.
+//! `cargo test --release -p figiran-render --lib glass_render_timings -- --ignored --nocapture`.
 //!
 //! "export" rows render the whole view with `render_view` (exports, thumbnails, the first canvas
 //! frame); "canvas" rows go through `Retained`, which re-renders only what changed, as the canvas
@@ -9,9 +9,9 @@
 use std::sync::Arc;
 use std::time::Instant;
 
-use figcraft_color::{Color, Paint};
-use figcraft_doc::{Document, Effect, EffectKind, Glass, NodeId, NodeKind};
-use figcraft_geom::Affine;
+use figiran_color::{Color, Paint};
+use figiran_doc::{Document, Effect, EffectKind, Glass, NodeId, NodeKind};
+use figiran_geom::Affine;
 
 use crate::{Options, Retained, View, Work, render_view, render_view_single};
 
@@ -81,11 +81,11 @@ fn set_glass(d: &mut Document, pane: NodeId, g: Glass) {
 }
 
 /// Writes the bench scene's render (rendered twice, so a kept shape is read) to the PNG named by
-/// `FIGCRAFT_GLASS_PNG`, to compare builds by eye.
+/// `FIGIRAN_GLASS_PNG`, to compare builds by eye.
 #[test]
-#[ignore = "writes a PNG: FIGCRAFT_GLASS_PNG=<path>"]
+#[ignore = "writes a PNG: FIGIRAN_GLASS_PNG=<path>"]
 fn glass_bench_png() {
-    let Ok(path) = std::env::var("FIGCRAFT_GLASS_PNG") else { return };
+    let Ok(path) = std::env::var("FIGIRAN_GLASS_PNG") else { return };
     let (d, p, _, _) = scene();
     let _ = render_view(&d, p, &view((0.0, 0.0), 2.0), &Options::default());
     let pix = render_view(&d, p, &view((0.0, 0.0), 2.0), &Options::default()).unwrap();

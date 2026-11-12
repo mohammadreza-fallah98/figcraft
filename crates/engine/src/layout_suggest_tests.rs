@@ -5,7 +5,7 @@ use serde_json::{Value, json};
 
 use crate::Session;
 use crate::params::id_of;
-use figcraft_doc::{LayoutMode, NodeId, NodeKind, Sizing};
+use figiran_doc::{LayoutMode, NodeId, NodeKind, Sizing};
 
 fn id(v: &Value) -> NodeId {
     id_of(&v["id"]).unwrap()

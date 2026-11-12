@@ -2,7 +2,7 @@
 //! data such as styles, variables and comments) with properties; a [`Change`] creates, writes or
 //! deletes one of them, and a batch of changes is one user action.
 
-use figcraft_doc::{Node, NodeId};
+use figiran_doc::{Node, NodeId};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::Error;
@@ -58,7 +58,7 @@ impl<'de> Deserialize<'de> for Json {
 #[serde(rename_all = "camelCase")]
 pub enum Change {
     /// A new node (or one brought back, e.g. by undo): its type (the JSON of
-    /// [`NodeKind`](figcraft_doc::NodeKind)), place in the tree (pages have no parent) and every
+    /// [`NodeKind`](figiran_doc::NodeKind)), place in the tree (pages have no parent) and every
     /// property that differs from a new node of that type.
     Create { id: NodeId, kind: Json, parent: Option<NodeId>, position: String, props: Vec<(Prop, Json)> },
     /// Property `prop` of node `id` is now `value`.
@@ -235,21 +235,21 @@ pub enum DocProp {
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum Entry {
-    /// A style (value: [`Style`](figcraft_doc::Style)).
+    /// A style (value: [`Style`](figiran_doc::Style)).
     Style(String),
-    /// A comment thread (value: [`Comment`](figcraft_doc::Comment)).
+    /// A comment thread (value: [`Comment`](figiran_doc::Comment)).
     Comment(u64),
-    /// A variable collection (value: [`Collection`](figcraft_doc::Collection)).
+    /// A variable collection (value: [`Collection`](figiran_doc::Collection)).
     Collection(String),
-    /// A variable (value: [`Variable`](figcraft_doc::Variable)).
+    /// A variable (value: [`Variable`](figiran_doc::Variable)).
     Variable(String),
     /// What a ready-for-dev layer looked like when marked (value:
-    /// [`DevSnapshot`](figcraft_doc::DevSnapshot)).
+    /// [`DevSnapshot`](figiran_doc::DevSnapshot)).
     DevSnapshot(NodeId),
     /// An image by content hash (value: `{width, height, bytes}` with the encoded bytes in base64).
     /// A key with the shape of a content hash (64 hex chars) must be exactly the lowercase sha256
-    /// hex `figcraft_format::image_hash` produces for the bytes; every key must be a plain
-    /// archive member name ([`figcraft_doc::ImageData::is_valid_key`]), and dimensions and byte
+    /// hex `figiran_format::image_hash` produces for the bytes; every key must be a plain
+    /// archive member name ([`figiran_doc::ImageData::is_valid_key`]), and dimensions and byte
     /// size are bounded as the entry applies (`image_of` in `docprops.rs`).
     Image(String),
     /// A voter's ballot in a board's vote (value: the layer ids voted on).
@@ -344,12 +344,12 @@ impl Entry {
         }
     }
 
-    /// The client id space the entry's id lies in ([`figcraft_doc::ids`]): ids made during a live
+    /// The client id space the entry's id lies in ([`figiran_doc::ids`]): ids made during a live
     /// session carry their creator's client id, ids from before and ids of other forms are in
     /// space 0. `None` for entries keyed by something else (dev snapshots by layer, images by
     /// content).
     pub fn id_space(&self) -> Option<u32> {
-        use figcraft_doc::ids::{COLLECTION_ID_PREFIX, STYLE_ID_PREFIX, VARIABLE_ID_PREFIX, id_space, space_of};
+        use figiran_doc::ids::{COLLECTION_ID_PREFIX, STYLE_ID_PREFIX, VARIABLE_ID_PREFIX, id_space, space_of};
         match self {
             Entry::Style(id) => Some(id_space(id, STYLE_ID_PREFIX)),
             Entry::Variable(id) => Some(id_space(id, VARIABLE_ID_PREFIX)),

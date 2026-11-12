@@ -92,7 +92,7 @@ impl ViewState {
         self.zoom = z;
     }
     /// Fit a page rectangle into the viewport with margin.
-    pub fn fit(&mut self, r: figcraft_geom::Rect, max_zoom: f64) {
+    pub fn fit(&mut self, r: figiran_geom::Rect, max_zoom: f64) {
         if !(r.width() > 0.0 || r.height() > 0.0) || !r.x0.is_finite() {
             self.cx = r.center().x;
             self.cy = r.center().y;

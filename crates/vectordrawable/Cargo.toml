@@ -1,20 +1,20 @@
 [package]
-name = "figcraft-vectordrawable"
+name = "figiran-vectordrawable"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "FigCraft Android Vector Drawable export (shapes, strokes, gradients, clips and vector masks as a <vector> XML drawable)"
+description = "FigIran Android Vector Drawable export (shapes, strokes, gradients, clips and vector masks as a <vector> XML drawable)"
 
 [lints]
 workspace = true
 
 [dependencies]
-figcraft-geom = { workspace = true }
-figcraft-color = { workspace = true }
-figcraft-doc = { workspace = true }
-figcraft-text = { workspace = true }
-figcraft-render = { workspace = true }
-figcraft-pathops = { workspace = true }
+figiran-geom = { workspace = true }
+figiran-color = { workspace = true }
+figiran-doc = { workspace = true }
+figiran-text = { workspace = true }
+figiran-render = { workspace = true }
+figiran-pathops = { workspace = true }
 thiserror = { workspace = true }
 
 [dev-dependencies]

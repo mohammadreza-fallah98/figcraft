@@ -51,9 +51,9 @@ Dependencies and assets use SPDX identifiers. An expression is allowed when ever
 `LicenseRef-Storyteller-Trademark` is not in this list. It covers Storyteller brand marks only, where a repository already says so.
 <!-- craft-house-rules:end -->
 
-# FigCraft — instructions for agents
+# FigIran — instructions for agents
 
-FigCraft is a clean-room, open-source, pure-Rust (egui) reimplementation of the Figma design workflow:
+FigIran is a clean-room, open-source, pure-Rust (egui) reimplementation of the Figma design workflow:
 interface design, auto layout, components and variants, styles and variables, prototyping and
 inspection. It runs natively on macOS, Windows, Linux and FreeBSD, and in the browser via WASM.
 Siblings: `../vectorcraft` (Illustrator-class), `../photocraft` (Photoshop-class), `../designcraft`
@@ -86,14 +86,14 @@ Do not ask for it, and do not stop when it is absent.
   other product, or from any source whose licence doesn't allow it.** This includes "lookalike"
   redraws of their icons. Breaking this rule is the worst thing you can do in this repo.
 - Every image, icon, font or other asset must be one of:
-  - original work created for FigCraft by a contributor (licensed MIT OR Apache-2.0);
+  - original work created for FigIran by a contributor (licensed MIT OR Apache-2.0);
   - OSI open source;
   - public domain / CC0;
   - Creative Commons with redistribution allowed.
 - **Every asset file must have a row in [`ATTRIBUTION.md`](ATTRIBUTION.md)** (path, author, source,
   licence, notes). `cargo xtask assets` (part of `cargo xtask ci`) fails on any unlisted file under
-  `assets/`, `docs/brand/` or `docs/images/`.
-- FigCraft's UI icons are drawn in code (`crates/ui-egui/src/icons.rs`) from simple primitives and
+  `assets/` or `docs/images/`.
+- FigIran's UI icons are drawn in code (`crates/ui-egui/src/icons.rs`) from simple primitives and
   are original. Keep it that way: new icons are new code, designed from scratch.
 - The app icon is the owner's final brand mark, a rounded F (`assets/app-icon/README.md`); the PNGs, `.ico` and
   SVG wrappers there are derived from that artwork (do not run `cargo xtask icon`: it expects the old vector master).
@@ -102,9 +102,7 @@ Do not ask for it, and do not stop when it is absent.
   (`.cargo/config.toml` points it at `../craft-fonts` for local builds; `crates/text/build.rs`
   embeds it). Everything must build, test and run without it (system fonts are scanned at runtime).
 - Demo and test content is synthetic or public domain; never personal photos or data.
-- Code and original assets are MIT OR Apache-2.0 (`LICENSE-MIT`, `LICENSE-APACHE`, `NOTICE`). The
-  ArtCraft logos in `docs/brand/` are trademarks, not open source, under
-  `docs/brand/LICENSE-brand.txt`: never modify them or use them outside FigCraft.
+- Code and original assets are MIT OR Apache-2.0.
 - If the provenance of an asset is unclear, don't add it.
 
 ### Never crash
@@ -114,7 +112,7 @@ Do not ask for it, and do not stop when it is absent.
 - New workspace crates include `[lints] workspace = true` in `Cargo.toml`. Production crate roots
   declare the crate-level lint attributes before modules or other crate items; crate-level `//!`
   documentation may precede them.
-- `figcraft_engine::guard` turns a panicking command into `EngineError::Internal` and the document
+- `figiran_engine::guard` turns a panicking command into `EngineError::Internal` and the document
   is rolled back; the desktop app also guards each UI frame and writes recovery copies. These are
   safety nets, not substitutes for `Result`.
 - `unsafe_code = "forbid"` workspace-wide.
@@ -140,7 +138,7 @@ Do not ask for it, and do not stop when it is absent.
 milestone id in the message (`M2.1: auto layout wrap`). Commit after every landed arc of work.
 
 ## Running and looking at the app
-- `cargo run -p figcraft -- --control <port> [file.figcraft|file.svg|image]`. Pick a free port
+- `cargo run -p figiran -- --control <port> [file.figiran|file.svg|image]`. Pick a free port
   (`python3 -c 'import socket;s=socket.socket();s.bind(("127.0.0.1",0));print(s.getsockname()[1])'`);
   sibling apps use the control channel too.
 - Drive it with JSON lines, e.g.
@@ -149,7 +147,7 @@ milestone id in the message (`M2.1: auto layout wrap`). Commit after every lande
   in `crates/ui-egui/src/control.rs` and `docs/control-protocol.md`.
 - **For UI work, look at the result** (take a screenshot and read the PNG). Compare with the
   incumbent side by side where the owner allows (`plan/figma/`).
-- Headless: `figcraft-cli` (`info`, `export`, `run`, `commands`, `mcp`). MCP: `figcraft-cli mcp`
+- Headless: `figiran-cli` (`info`, `export`, `run`, `commands`, `mcp`). MCP: `figiran-cli mcp`
   (see `docs/mcp.md`).
 - Parallel agents: separate `CARGO_TARGET_DIR` per agent, edit only the crates/files you own,
   write manifests atomically, delete your target dir when done (disk is limited).

@@ -183,13 +183,13 @@ fn a_handle_and_a_point_are_compared_on_the_page() {
     {
         let node = s.doc_mut().unwrap().get_mut(id).unwrap();
         let mut n = VectorNetwork::default();
-        n.vertices.push(figcraft_doc::Vertex::new(0.0, 0.0));
-        n.vertices.push(figcraft_doc::Vertex::new(5.0, 0.0));
-        let mut seg = figcraft_doc::Segment::line(0, 1);
+        n.vertices.push(figiran_doc::Vertex::new(0.0, 0.0));
+        n.vertices.push(figiran_doc::Vertex::new(5.0, 0.0));
+        let mut seg = figiran_doc::Segment::line(0, 1);
         seg.ta = (0.5, -0.9);
         n.segments.push(seg);
-        node.kind = figcraft_doc::NodeKind::Vector { network: n };
-        node.transform = figcraft_geom::Affine::scale_non_uniform(10.0, 1.0);
+        node.kind = figiran_doc::NodeKind::Vector { network: n };
+        node.transform = figiran_geom::Affine::scale_non_uniform(10.0, 1.0);
     }
     ex(&mut s, "vector.edit.begin", json!({"id": id}));
     ex(&mut s, "vector.edit.select", json!({"vertices": [0]}));
@@ -210,13 +210,13 @@ fn a_handle_on_another_point_is_still_the_handles() {
     {
         let node = s.doc_mut().unwrap().get_mut(id).unwrap();
         let mut n = VectorNetwork::default();
-        n.vertices.push(figcraft_doc::Vertex::new(0.0, 0.0));
-        n.vertices.push(figcraft_doc::Vertex::new(10.0, 0.0));
-        let mut seg = figcraft_doc::Segment::line(0, 1);
+        n.vertices.push(figiran_doc::Vertex::new(0.0, 0.0));
+        n.vertices.push(figiran_doc::Vertex::new(10.0, 0.0));
+        let mut seg = figiran_doc::Segment::line(0, 1);
         seg.ta = (10.0, 0.0);
         n.segments.push(seg);
-        node.kind = figcraft_doc::NodeKind::Vector { network: n };
-        node.transform = figcraft_geom::Affine::IDENTITY;
+        node.kind = figiran_doc::NodeKind::Vector { network: n };
+        node.transform = figiran_geom::Affine::IDENTITY;
     }
     ex(&mut s, "vector.edit.begin", json!({"id": id}));
     ex(&mut s, "vector.edit.select", json!({"vertices": [0]}));
@@ -619,7 +619,7 @@ fn a_rounded_chamfer_cut_in_the_editor_fills_along_its_arcs() {
         fill_traces_stroke(&s, id, &format!("top first {top_first}"));
         // A region with a fill of its own is drawn through the region path and the planar normaliser.
         if let NodeKind::Vector { network } = &mut s.doc_mut().unwrap().get_mut(id).unwrap().kind {
-            network.regions[0].fills = Some(vec![figcraft_color::Paint::solid(figcraft_color::Color::BLACK)]);
+            network.regions[0].fills = Some(vec![figiran_color::Paint::solid(figiran_color::Color::BLACK)]);
         }
         fill_traces_stroke(&s, id, &format!("top first {top_first}, region fill"));
     }
@@ -663,13 +663,13 @@ fn a_rounded_chamfer_made_other_ways_fills_along_its_arcs() {
 /// corner cut off between (50, 0) and (100, 50)): one region with every segment in its loop, and a
 /// fill that keeps off every sharp point and traces the same outline as the stroke.
 fn fill_traces_stroke(s: &Session, id: NodeId, why: &str) {
-    use figcraft_geom::BezPath;
-    use figcraft_geom::kurbo::{ParamCurveArclen, ParamCurveNearest};
+    use figiran_geom::BezPath;
+    use figiran_geom::kurbo::{ParamCurveArclen, ParamCurveNearest};
     let n = net(s, id);
     assert_eq!(n.regions.len(), 1, "{why}: one region, {:?}", n.regions);
     assert_eq!(n.regions[0].loops[0].len(), n.segments.len(), "{why}: every segment in the loop, {:?}", n.regions[0].loops);
     let doc = s.doc().unwrap();
-    let (fill, _) = figcraft_render::node_outline(doc, doc.node(id).unwrap()).unwrap();
+    let (fill, _) = figiran_render::node_outline(doc, doc.node(id).unwrap()).unwrap();
     let stroke = n.stroke_path();
     let keeps_off = |path: &BezPath, p: Point| path.segments().map(|s| s.nearest(p, 1e-9).distance_sq.sqrt()).fold(f64::INFINITY, f64::min);
     let length = |path: &BezPath| path.segments().map(|s| s.arclen(1e-9)).sum::<f64>();

@@ -8,7 +8,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{Duration, Instant};
 
 use egui::{Event, Pos2, RawInput, Rect, ViewportId, vec2};
-use figcraft_engine::Session;
+use figiran_engine::Session;
 use serde_json::{Value, json};
 
 use crate::present_tests::id;
@@ -29,7 +29,7 @@ impl Harness {
         // The one system font scan bumps the layout generation, which makes the canvas render
         // again: scanned here, before the first frame, rather than by whichever test happens to
         // run first while this one waits for idle (#333).
-        figcraft_text::scan_system_fonts();
+        figiran_text::scan_system_fonts();
         Self { ctx: egui::Context::default(), app: FigApp::new(s, Box::new(NoServices)), time: 0.0 }
     }
 
@@ -229,7 +229,7 @@ fn a_finished_background_render_wakes_the_ui() {
     worker.submit(crate::render_worker::Job {
         doc: ds.doc.clone(),
         page: ds.page,
-        view: figcraft_render::View { origin: (0.0, 0.0), scale: 1.0, width: 120, height: 120 },
+        view: figiran_render::View { origin: (0.0, 0.0), scale: 1.0, width: 120, height: 120 },
         outline: false,
         outline_extras: Default::default(),
         outlined: vec![],
@@ -268,7 +268,7 @@ fn control_requests_and_screenshots_wake_an_idle_ui() {
     assert!(rx.try_recv().unwrap().result.is_ok());
     h.assert_idle("after a control request");
     // A screenshot keeps frames coming until the window delivers it, then the UI rests again.
-    let path = std::env::temp_dir().join(format!("figcraft-idle-shot-{}.png", std::process::id()));
+    let path = std::env::temp_dir().join(format!("figiran-idle-shot-{}.png", std::process::id()));
     let params = json!({"path": path.to_string_lossy()});
     h.app.control_queue.push(ControlRequest { id: json!(2), method: "ui.screenshot".into(), params, reply: tx, state: Default::default() });
     for _ in 0..5 {
@@ -359,7 +359,7 @@ fn a_request_the_transport_gave_up_on_is_never_applied() {
         reply: tx.clone(),
         state: Default::default(),
     };
-    let node = figcraft_doc::NodeId(text.as_u64().unwrap());
+    let node = figiran_doc::NodeId(text.as_u64().unwrap());
     let name = |h: &Harness| h.app.session.doc().unwrap().node(node).unwrap().name.clone();
     let before = name(&h);
     let mut hidden = RawInput::default();
@@ -392,9 +392,9 @@ fn a_hidden_window_answers_at_once() {
     // #269, #720: minimised or covered, the window draws no frames, but the app's logic still runs:
     // it answers edits, inspection, saves and the interface's state; what needs a frame (a capture
     // of the window) queues for a forced hidden paint and otherwise expires at its deadline.
-    let dir = std::env::temp_dir().join(format!("figcraft-hidden-save-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("figiran-hidden-save-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
-    let path = dir.join("hidden.figcraft");
+    let path = dir.join("hidden.figiran");
     let (mut h, _) = document();
     h.settle();
     // Exercise admission well after startup, independently of settling speed.
@@ -453,7 +453,7 @@ fn a_window_that_stopped_drawing_answers_from_its_logic_passes() {
         reply: tx.clone(),
         state: Default::default(),
     };
-    let node = figcraft_doc::NodeId(text.as_u64().unwrap());
+    let node = figiran_doc::NodeId(text.as_u64().unwrap());
     let name = |h: &Harness| h.app.session.doc().unwrap().node(node).unwrap().name.clone();
     // What Wayland reports for a minimised window: nothing about its visibility.
     let unknown = RawInput::default();
@@ -483,9 +483,9 @@ fn a_window_that_stopped_drawing_answers_from_its_logic_passes() {
 
 #[test]
 fn auto_save_writes_a_changed_file_then_rests() {
-    let dir = std::env::temp_dir().join(format!("figcraft-auto-save-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("figiran-auto-save-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
-    let path = dir.join("auto.figcraft").to_string_lossy().to_string();
+    let path = dir.join("auto.figiran").to_string_lossy().to_string();
     let (mut h, _) = document();
     h.run("file.save", json!({"path": path}));
     h.run("pref.autoSave", json!({"on": true}));

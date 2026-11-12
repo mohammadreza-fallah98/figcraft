@@ -5,12 +5,12 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use figcraft_color::{Color, Paint};
-use figcraft_doc::{
+use figiran_color::{Color, Paint};
+use figiran_doc::{
     AutoLayout, BoardItem, Connector, Document, End, LetterSpacing, LineHeight, MIND_GAP_X, MIND_GAP_Y, MIND_MAX_DEPTH, MIND_MAX_NODES, MindBox,
     NodeId, NodeKind, Routing, Side, Sizing, StrokeCap, TextAlignH, TextAutoResize, mind_layout,
 };
-use figcraft_geom::{Affine, Point, Rect};
+use figiran_geom::{Affine, Point, Rect};
 use serde_json::{Value, json};
 
 use super::connectors::make;

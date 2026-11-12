@@ -7,7 +7,7 @@
 //! own, and once it's installed the file's text fits the real font and the family leaves the list.
 
 use egui::RichText;
-use figcraft_engine::fonts::{Download, Missing, allow_downloads, downloads, downloads_allowed, missing};
+use figiran_engine::fonts::{Download, Missing, allow_downloads, downloads, downloads_allowed, missing};
 use serde_json::{Value, json};
 
 use crate::FigApp;
@@ -64,7 +64,7 @@ fn list(app: &mut FigApp, uid: u64) -> Option<Vec<Missing>> {
 /// Text ▸ Missing fonts (`dialog.missingFonts`): the window for the file in front.
 pub fn request(app: &mut FigApp) {
     let Ok(uid) = app.session.ds().map(|d| d.uid) else { return };
-    if figcraft_text::installed_fonts_known() {
+    if figiran_text::installed_fonts_known() {
         list(app, uid);
     } else {
         app.ui.missing_fonts = Some(Shown::new(uid, Vec::new(), true));
@@ -91,7 +91,7 @@ pub fn show(app: &mut FigApp, ctx: &egui::Context) {
 fn list_when_known(app: &mut FigApp) {
     // Whether the installed fonts are indexed is asked only while a list waits for it.
     let waiting = app.ui.missing_fonts.as_ref().filter(|m| m.indexing).map(|m| m.uid);
-    if (waiting.is_some() || !app.ui.font_checks.is_empty()) && figcraft_text::installed_fonts_known() {
+    if (waiting.is_some() || !app.ui.font_checks.is_empty()) && figiran_text::installed_fonts_known() {
         if let Some(uid) = waiting {
             list(app, uid);
         }

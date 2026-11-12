@@ -1,6 +1,6 @@
 # Contributors in the About window
 
-**About ▸ Contributors** credits everyone who contributed to FigCraft, and **About ▸ Models** credits
+**About ▸ Contributors** credits everyone who contributed to FigIran, and **About ▸ Models** credits
 the AI models named in `Co-Authored-By` trailers.
 
 ## Decision

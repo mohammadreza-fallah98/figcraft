@@ -3,11 +3,11 @@
 use std::sync::Arc;
 
 use base64::Engine as _;
-use figcraft_doc::{
+use figiran_doc::{
     BOARD_PAGE, Document, ExportColorProfile, ExportFormat, ExportSetting, ExportSize, FileKind, LineHeight, Node, NodeId, NodeKind, PrintSettings,
     StyleKind, TextStyle, VdCompat,
 };
-use figcraft_format::Version;
+use figiran_format::Version;
 use serde_json::{Value, json};
 
 use super::{CommandSpec, ok};
@@ -78,7 +78,7 @@ pub fn specs() -> Vec<CommandSpec> {
         spec!(
             "file.open",
             "Open",
-            "{path | data (base64) + name (tells the format; opens as a new unsaved document), variables? (REST: the local variables JSON as an object, JSON text or a path; default `<name>.variables.json` or `variables.json` next to the file), reload? (a file already open: read it again into its tab, which must have no unsaved changes)} (.figcraft, .json: FigCraft or REST API file JSON, .fig (best effort), .penpot, .sketch (Sketch 48 or newer, best effort), .svg, .png, .jpg …); REST, .fig, .penpot and .sketch imports return `warnings`; a file opened anew returns `summary` {name, pages, layers, images} (one that was already open returns its `index`, with `stale: true` when the file changed on disk since the tab read or saved it, or `reloaded: true` after `reload`)",
+            "{path | data (base64) + name (tells the format; opens as a new unsaved document), variables? (REST: the local variables JSON as an object, JSON text or a path; default `<name>.variables.json` or `variables.json` next to the file), reload? (a file already open: read it again into its tab, which must have no unsaved changes)} (.figiran, .json: FigIran or REST API file JSON, .fig (best effort), .penpot, .sketch (Sketch 48 or newer, best effort), .svg, .png, .jpg …); REST, .fig, .penpot and .sketch imports return `warnings`; a file opened anew returns `summary` {name, pages, layers, images} (one that was already open returns its `index`, with `stale: true` when the file changed on disk since the tab read or saved it, or `reloaded: true` after `reload`)",
             false,
             open
         ),
@@ -106,7 +106,7 @@ pub fn specs() -> Vec<CommandSpec> {
         spec!(
             "file.saveAs",
             "Save as",
-            "{path | data: true (no path: returns the file as base64 `data` with its `name`, for a download)} (no extension adds .figcraft); a .fig path writes an experimental export copy of the shown document with `warnings`, keeping the native path, unsaved changes and version preview",
+            "{path | data: true (no path: returns the file as base64 `data` with its `name`, for a download)} (no extension adds .figiran); a .fig path writes an experimental export copy of the shown document with `warnings`, keeping the native path, unsaved changes and version preview",
             false,
             save_as
         ),
@@ -154,7 +154,7 @@ pub fn specs() -> Vec<CommandSpec> {
         spec!(
             "file.import",
             "Import",
-            "{path | data (base64) + name, x?, y?, center? (SVG: centre it on x, y), variables? (REST: the local variables JSON as an object, JSON text or a path)}  SVG becomes an editable frame (shapes, text, gradients, masks, effects; with `warnings` for what it left out), images become image layers, .figcraft, .penpot, REST API file JSON, .fig and .sketch pages are appended with their variables and flows (REST, .fig, .penpot and .sketch: with `warnings`; those return `summary` {name, pages, layers, images} of the file read)",
+            "{path | data (base64) + name, x?, y?, center? (SVG: centre it on x, y), variables? (REST: the local variables JSON as an object, JSON text or a path)}  SVG becomes an editable frame (shapes, text, gradients, masks, effects; with `warnings` for what it left out), images become image layers, .figiran, .penpot, REST API file JSON, .fig and .sketch pages are appended with their variables and flows (REST, .fig, .penpot and .sketch: with `warnings`; those return `summary` {name, pages, layers, images} of the file read)",
             true,
             import
         ),
@@ -257,11 +257,11 @@ pub fn specs() -> Vec<CommandSpec> {
             let i = version_index(CMD, ds, p)?;
             let description = string(p, "description");
             let v = ds.versions_mut().get_mut(i).ok_or_else(|| bad(CMD, "no such version"))?;
-            v.name = figcraft_format::clip(name.trim(), figcraft_format::MAX_VERSION_NAME);
+            v.name = figiran_format::clip(name.trim(), figiran_format::MAX_VERSION_NAME);
             // A titled autosave is a named version (never dropped to make room).
             v.auto = false;
             if let Some(d) = description {
-                v.description = figcraft_format::clip(d.trim(), figcraft_format::MAX_VERSION_DESCRIPTION);
+                v.description = figiran_format::clip(d.trim(), figiran_format::MAX_VERSION_DESCRIPTION);
             }
             Ok(version_json(i, v))
         }),
@@ -364,7 +364,7 @@ pub fn export_file(doc: &Document, ids: &[NodeId], setting: &ExportSetting, scal
     }
     let drawn = drawn_layers(doc, ids, setting);
     if setting.format.is_vector() {
-        figcraft_render::check_export_depth(doc, &drawn).map_err(|e| EngineError::Other(e.to_string()))?;
+        figiran_render::check_export_depth(doc, &drawn).map_err(|e| EngineError::Other(e.to_string()))?;
     }
     let area = export_area(doc, ids, setting).ok_or_else(nothing)?;
     // The layers' own area unless an option or a slice says otherwise.
@@ -374,14 +374,14 @@ pub fn export_file(doc: &Document, ids: &[NodeId], setting: &ExportSetting, scal
     match setting.format {
         // SVG and PDF colours are sRGB: a Display P3 file exports converted (out-of-gamut colours clip).
         ExportFormat::Svg => {
-            let opts = figcraft_svg::SvgOptions {
+            let opts = figiran_svg::SvgOptions {
                 include_ids: setting.svg_id_attribute,
                 outline_text: setting.svg_outline_text,
                 simplify_stroke: setting.svg_simplify_stroke,
                 bounds: Some(area),
             };
-            let svg = figcraft_svg::try_export_svg(&doc.in_srgb(), &drawn, &opts).map_err(|e| match e {
-                figcraft_svg::SvgError::Empty => nothing(),
+            let svg = figiran_svg::try_export_svg(&doc.in_srgb(), &drawn, &opts).map_err(|e| match e {
+                figiran_svg::SvgError::Empty => nothing(),
                 other => EngineError::Other(other.to_string()),
             })?;
             Ok((svg.into_bytes(), Vec::new()))
@@ -389,13 +389,13 @@ pub fn export_file(doc: &Document, ids: &[NodeId], setting: &ExportSetting, scal
         // Android colours are sRGB too.
         ExportFormat::VectorDrawable => {
             let compat = match setting.vd_compat {
-                VdCompat::BestEffort => figcraft_vectordrawable::Compat::BestEffort,
-                VdCompat::Exact => figcraft_vectordrawable::Compat::Exact,
-                VdCompat::Ignore => figcraft_vectordrawable::Compat::Ignore,
+                VdCompat::BestEffort => figiran_vectordrawable::Compat::BestEffort,
+                VdCompat::Exact => figiran_vectordrawable::Compat::Exact,
+                VdCompat::Ignore => figiran_vectordrawable::Compat::Ignore,
             };
-            let opts = figcraft_vectordrawable::VdOptions { bounds: Some(area), include_names: setting.svg_id_attribute, compat };
-            let out = figcraft_vectordrawable::try_export(&doc.in_srgb(), &drawn, &opts).map_err(|e| match e {
-                figcraft_vectordrawable::VdError::Empty => nothing(),
+            let opts = figiran_vectordrawable::VdOptions { bounds: Some(area), include_names: setting.svg_id_attribute, compat };
+            let out = figiran_vectordrawable::try_export(&doc.in_srgb(), &drawn, &opts).map_err(|e| match e {
+                figiran_vectordrawable::VdError::Empty => nothing(),
                 other => EngineError::Other(other.to_string()),
             })?;
             Ok((out.xml.into_bytes(), out.warnings))
@@ -408,7 +408,7 @@ pub fn export_file(doc: &Document, ids: &[NodeId], setting: &ExportSetting, scal
             Ok((pdf_bytes(doc, &groups, &setting.print, (!own_area).then_some(area))?, Vec::new()))
         }
         _ => {
-            let mut pix = figcraft_render::render_area(doc, &drawn, area, scale)
+            let mut pix = figiran_render::render_area(doc, &drawn, area, scale)
                 .ok_or_else(|| EngineError::Other("render failed (empty or too large)".into()))?;
             // The render is in the document's profile; the setting's profile converts the pixels
             // (out-of-gamut colors clip) and tags the file.
@@ -426,7 +426,7 @@ pub fn export_file(doc: &Document, ids: &[NodeId], setting: &ExportSetting, scal
                 }
             }
             conversion.apply_pixels(pix.data_mut());
-            let bytes = figcraft_render::encode_export_with(&pix, setting.format, profile, setting.quality());
+            let bytes = figiran_render::encode_export_with(&pix, setting.format, profile, setting.quality());
             Ok((bytes.map_err(EngineError::Other)?, Vec::new()))
         }
     }

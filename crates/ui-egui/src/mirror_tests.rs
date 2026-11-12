@@ -4,7 +4,7 @@
 //! bars, submenus) mirrors with it, and an English window is as it was.
 
 use egui::pos2;
-use figcraft_engine::Session;
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::layers_drag_tests::Ui;

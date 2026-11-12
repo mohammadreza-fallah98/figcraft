@@ -7,7 +7,7 @@
 
 use std::fmt::Write as _;
 
-use figcraft_doc::{Comment, Document, Message, Node, NodeId, NodeKind, geom, mentions};
+use figiran_doc::{Comment, Document, Message, Node, NodeId, NodeKind, geom, mentions};
 use serde_json::{Value, json};
 
 use super::{CommandSpec, ok};
@@ -23,8 +23,8 @@ pub const DEFAULT_AGENT: &str = "AI agent";
 /// Most characters of an agent's own name in its comments.
 const MAX_AGENT_NAME: usize = 64;
 
-/// Links to a thread: `figcraft://comment/<id>`.
-const LINK_PREFIX: &str = "figcraft://comment/";
+/// Links to a thread: `figiran://comment/<id>`.
+const LINK_PREFIX: &str = "figiran://comment/";
 
 /// Most threads one `comment.prompt` brief carries, the most bytes it takes, and the most
 /// characters of one message (comments can be long).
@@ -338,7 +338,7 @@ fn mentionable<'a>(people: &'a [String], user: &'a str) -> Vec<&'a str> {
 }
 
 /// The names `text` @mentions by the rule the thread view highlights them with
-/// ([`figcraft_doc::mentions`]), and whether each is one of `people` (else it is the letters and
+/// ([`figiran_doc::mentions`]), and whether each is one of `people` (else it is the letters and
 /// digits after the `@`).
 fn mentioned<'a>(text: &'a str, people: &[&'a str]) -> impl Iterator<Item = (&'a str, bool)> {
     mentions(text, people).into_iter().map(move |(r, who)| (who.or_else(|| text.get(r.start + 1..r.end)).unwrap_or_default(), who.is_some()))
@@ -604,7 +604,7 @@ fn prompt_text(doc: &Document, path: Option<&str>, comments: &[&Comment]) -> (St
     let name = single_line(&raw_name);
     let path_text = single_line(&raw_path);
     let mut out = String::new();
-    let _ = writeln!(out, "# FigCraft feedback\n");
+    let _ = writeln!(out, "# FigIran feedback\n");
     let _ = writeln!(out, "Document: {name}");
     let _ = writeln!(out, "Path: {path_text}");
     let _ = writeln!(out, "Threads: {}\n", comments.len());
@@ -615,7 +615,7 @@ fn prompt_text(doc: &Document, path: Option<&str>, comments: &[&Comment]) -> (St
         }
         return (out, header_truncated);
     }
-    let _ = writeln!(out, "Fix these comments in the FigCraft document. For each thread:");
+    let _ = writeln!(out, "Fix these comments in the FigIran document. For each thread:");
     let _ = writeln!(out, "1. Inspect the anchored layer with get_node and the frame with screenshot.");
     let _ = writeln!(out, "2. Make the smallest change that answers the comment; put one thread's edits in one batch.");
     let _ = writeln!(
@@ -1006,10 +1006,10 @@ mod tests {
     #[test]
     fn parse_link_rejects_sign() {
         assert_eq!(super::parse_link("+5"), None);
-        assert_eq!(super::parse_link("figcraft://comment/+5"), None);
+        assert_eq!(super::parse_link("figiran://comment/+5"), None);
         assert_eq!(super::parse_link(""), None);
         assert_eq!(super::parse_link("5"), Some(5));
-        assert_eq!(super::parse_link("figcraft://comment/5/"), Some(5));
+        assert_eq!(super::parse_link("figiran://comment/5/"), Some(5));
     }
 
     #[test]

@@ -6,8 +6,8 @@ use serde_json::{Value, json};
 
 use crate::Session;
 use crate::params::id_of;
-use figcraft_color::ColorProfile;
-use figcraft_doc::{ExportSetting, NodeId};
+use figiran_color::ColorProfile;
+use figiran_doc::{ExportSetting, NodeId};
 
 /// A rectangle with a gradient, so the quality shows in the file's size.
 fn gradient_rect(s: &mut Session) -> NodeId {
@@ -83,7 +83,7 @@ fn a_bad_quality_is_refused_whatever_the_format() {
     let mut s = Session::new();
     let r = gradient_rect(&mut s);
     assert!(s.execute("file.export", &json!({"ids": [r], "format": "png", "vdCompat": "junk"})).is_err());
-    let png = std::env::temp_dir().join(format!("figcraft-bad-quality-{}.png", std::process::id()));
+    let png = std::env::temp_dir().join(format!("figiran-bad-quality-{}.png", std::process::id()));
     for mut p in [json!({"format": "png"}), json!({"format": "webp"}), json!({"format": "svg"}), json!({"path": png.to_string_lossy()})] {
         p["ids"] = json!([r]);
         p["quality"] = json!(0);

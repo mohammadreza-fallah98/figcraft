@@ -2,9 +2,9 @@
 //! preview: no edit, no undo step, and the layer is back as it was when the pointer leaves.
 
 use egui::{Event, Pos2, RawInput, Rect, pos2, vec2};
-use figcraft_color::BlendMode;
-use figcraft_doc::NodeId;
-use figcraft_engine::Session;
+use figiran_color::BlendMode;
+use figiran_doc::NodeId;
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::layers_drag_tests::Ui;
@@ -52,12 +52,12 @@ fn a_hovered_layer_blend_shows_on_the_canvas_and_leaves_no_trace() {
     let steps = u.app.session.undo_labels(100).len();
     crate::right::preview_blend(&mut u.app, &ctx, &[a], BlendMode::Multiply);
     assert_eq!(u.app.session.doc().unwrap().node(a).unwrap().blend, BlendMode::Multiply, "the canvas shows the hovered mode");
-    assert!(figcraft_engine::textpreview::active(&u.app.session), "as a preview");
+    assert!(figiran_engine::textpreview::active(&u.app.session), "as a preview");
     // Nothing asks for it on the next frame: the layer is back as it was.
     u.frame(vec![]);
     u.frame(vec![]);
     assert_eq!(u.app.session.doc().unwrap().node(a).unwrap().blend, BlendMode::Normal, "the preview ended");
-    assert!(!figcraft_engine::textpreview::active(&u.app.session));
+    assert!(!figiran_engine::textpreview::active(&u.app.session));
     assert_eq!(u.app.session.undo_labels(100).len(), steps, "a preview is no undo step");
 }
 
@@ -69,7 +69,7 @@ fn picking_after_a_preview_is_one_step_back_to_the_original() {
     // The click lands while the hovered mode shows: the pick applies to the document, not the preview.
     u.app.set_props(&[a], json!({"blend": BlendMode::Screen.label()}));
     assert_eq!(u.app.session.doc().unwrap().node(a).unwrap().blend, BlendMode::Screen);
-    assert!(!figcraft_engine::textpreview::active(&u.app.session), "the pick ended the preview");
+    assert!(!figiran_engine::textpreview::active(&u.app.session), "the pick ended the preview");
     assert_eq!(u.app.session.undo_labels(100).len(), steps + 1, "one undo step");
     u.app.session.undo().unwrap();
     assert_eq!(u.app.session.doc().unwrap().node(a).unwrap().blend, BlendMode::Normal, "undo goes back to the original, not the hovered mode");

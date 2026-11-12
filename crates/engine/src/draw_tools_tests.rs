@@ -5,14 +5,14 @@ use serde_json::{Value, json};
 
 use crate::Session;
 use crate::params::id_of;
-use figcraft_color::PaintKind;
-use figcraft_doc::{NodeId, NodeKind};
+use figiran_color::PaintKind;
+use figiran_doc::{NodeId, NodeKind};
 
 fn id(v: Value) -> NodeId {
     id_of(&v["id"]).unwrap()
 }
 
-fn text_path(s: &Session, t: NodeId) -> Option<figcraft_doc::TextPath> {
+fn text_path(s: &Session, t: NodeId) -> Option<figiran_doc::TextPath> {
     match &s.doc().unwrap().node(t)?.kind {
         NodeKind::Text(td) => td.path.as_deref().cloned(),
         _ => None,
@@ -21,7 +21,7 @@ fn text_path(s: &Session, t: NodeId) -> Option<figcraft_doc::TextPath> {
 
 /// The RGBA of `node` rendered at 1x, at (`x`, `y`) of its box.
 fn pixel(s: &Session, node: NodeId, x: u32, y: u32) -> [u8; 4] {
-    let pix = figcraft_render::render_node(s.doc().unwrap(), node, 1.0).unwrap();
+    let pix = figiran_render::render_node(s.doc().unwrap(), node, 1.0).unwrap();
     let i = ((y * pix.width() + x) * 4) as usize;
     let d = pix.data();
     [d[i], d[i + 1], d[i + 2], d[i + 3]]
@@ -50,7 +50,7 @@ fn text_goes_onto_a_path_and_off_again() {
     // Resizing scales the path with the box.
     let w = s.doc().unwrap().node(t).unwrap().width;
     s.execute("transform.resize", &json!({"ids": [t], "width": w * 2.0})).unwrap();
-    let bb = figcraft_geom::Shape::bounding_box(&text_path(&s, t).unwrap().path());
+    let bb = figiran_geom::Shape::bounding_box(&text_path(&s, t).unwrap().path());
     assert!((bb.width() - w * 2.0).abs() < 1.0, "{bb:?}");
     s.execute("text.removeFromPath", &json!({"ids": [t]})).unwrap();
     assert!(text_path(&s, t).is_none());
@@ -122,7 +122,7 @@ fn a_path_scaled_more_one_way_is_reached_where_it_shows() {
     let mut s = Session::new();
     let v = id(s.execute("vector.create", &json!({"path": "M0 0 L100 100", "x": 0, "y": 0})).unwrap());
     // Ten times wider than tall: on the page the line runs from (0, 0) to (1000, 100).
-    s.doc_mut().unwrap().get_mut(v).unwrap().transform = figcraft_geom::Affine::scale_non_uniform(10.0, 1.0);
+    s.doc_mut().unwrap().get_mut(v).unwrap().transform = figiran_geom::Affine::scale_non_uniform(10.0, 1.0);
     s.set_tool(crate::tools::ToolId::TextOnPath);
     // 5 below the line on the page, halfway along it.
     click(&mut s, 500.0, 55.0);
@@ -132,7 +132,7 @@ fn a_path_scaled_more_one_way_is_reached_where_it_shows() {
     // A layer shown at a tenth of its size: its outline is still reached 5 screen pixels away.
     let mut s = Session::new();
     let r = id(s.execute("shape.rectangle", &json!({"x": 0, "y": 0, "width": 1000, "height": 1000})).unwrap());
-    s.doc_mut().unwrap().get_mut(r).unwrap().transform = figcraft_geom::Affine::scale(0.1);
+    s.doc_mut().unwrap().get_mut(r).unwrap().transform = figiran_geom::Affine::scale(0.1);
     s.set_tool(crate::tools::ToolId::TextOnPath);
     click(&mut s, 105.0, 50.0);
     assert!(editing(&s).is_some() && s.doc().unwrap().node(r).is_none(), "typing starts on the small square's path");
@@ -149,7 +149,7 @@ fn paths_a_mask_or_a_turned_clipping_frame_hides_take_no_text() {
     let f = id(s.execute("frame.create", &json!({"x": 300, "y": 0, "width": 100, "height": 100, "props": {"clip": true}})).unwrap());
     let l = id(s.execute("vector.create", &json!({"path": "M0 0 L40 0", "x": -60, "y": 50, "parent": f})).unwrap());
     s.execute("node.set", &json!({"id": f, "props": {"rotation": 45}})).unwrap();
-    let hidden = s.doc().unwrap().world_transform(l) * figcraft_geom::Point::new(20.0, 0.0);
+    let hidden = s.doc().unwrap().world_transform(l) * figiran_geom::Point::new(20.0, 0.0);
     let frame_box = s.doc().unwrap().world_bounds(f).unwrap();
     assert!(frame_box.contains(hidden), "the line's middle is inside the frame's bounding box");
     s.set_tool(crate::tools::ToolId::TextOnPath);
@@ -209,16 +209,16 @@ fn scaling_text_scales_its_path() {
     let t = id(s.execute("text.create", &json!({"text": "Around", "x": 0, "y": 0})).unwrap());
     let v = id(s.execute("vector.create", &json!({"path": "M0 0 C50 -50 150 -50 200 0", "x": 40, "y": 100})).unwrap());
     s.execute("text.onPath", &json!({"ids": [t, v]})).unwrap();
-    let w0 = figcraft_geom::Shape::bounding_box(&text_path(&s, t).unwrap().path()).width();
+    let w0 = figiran_geom::Shape::bounding_box(&text_path(&s, t).unwrap().path()).width();
     s.execute("transform.scale", &json!({"ids": [t], "factor": 2.0})).unwrap();
-    let w1 = figcraft_geom::Shape::bounding_box(&text_path(&s, t).unwrap().path()).width();
+    let w1 = figiran_geom::Shape::bounding_box(&text_path(&s, t).unwrap().path()).width();
     assert!((w1 - w0 * 2.0).abs() < 1.0, "path width {w0} -> {w1}");
 }
 
 #[test]
 fn svg_text_paths_import_as_text_on_a_path() {
     // SVG text is parsed with Inter standing in for every family (CI has no fonts).
-    if figcraft_text::find_face("Inter", "Regular").is_none() {
+    if figiran_text::find_face("Inter", "Regular").is_none() {
         eprintln!("no Inter; skipping");
         return;
     }
@@ -226,12 +226,12 @@ fn svg_text_paths_import_as_text_on_a_path() {
     let svg = br##"<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100"><path id="p" d="M10 80 Q100 0 190 80" fill="none"/><text font-size="12"><textPath href="#p" startOffset="50%" text-anchor="middle">Curved words</textPath></text></svg>"##;
     let doc = s.doc_mut().unwrap();
     let page = doc.current_page.unwrap();
-    figcraft_svg::import_svg(doc, svg, page, 0.0, 0.0, "curve").unwrap();
+    figiran_svg::import_svg(doc, svg, page, 0.0, 0.0, "curve").unwrap();
     let texts: Vec<_> = s.doc().unwrap().nodes().filter_map(|n| n.kind.text().cloned()).collect();
     let t = texts.iter().find(|t| t.characters == "Curved words").expect("a text layer");
     let tp = t.path.as_ref().expect("on a path");
     assert!((tp.start - 0.5).abs() < 0.01, "{}", tp.start);
-    assert_eq!(t.align_h, figcraft_doc::TextAlignH::Center);
+    assert_eq!(t.align_h, figiran_doc::TextAlignH::Center);
 }
 
 /// A text layer with its own green fill bound to `ink` and a layer blur, and a curve; the
@@ -347,9 +347,9 @@ fn pattern_fills_tile_their_source_live() {
     assert_eq!(sources.len(), 2);
     assert_ne!(sources[0], sources[1], "each copy tiles its own source");
     // Exports: SVG as a <pattern> of vectors, PDF without failing.
-    let svg = figcraft_svg::export_svg(doc, &[r], &figcraft_svg::SvgOptions::default()).unwrap();
+    let svg = figiran_svg::export_svg(doc, &[r], &figiran_svg::SvgOptions::default()).unwrap();
     assert!(svg.contains("<pattern") && svg.contains("fill=\"url(#pattern"), "{svg}");
-    assert!(figcraft_pdf::export_nodes_pdf(doc, &[r]).is_ok());
+    assert!(figiran_pdf::export_nodes_pdf(doc, &[r]).is_ok());
 }
 
 #[test]
@@ -359,9 +359,9 @@ fn a_pattern_of_itself_draws_nothing_instead_of_recursing() {
     // Hand-written (the command refuses this): the layer tiles itself.
     s.execute("fill.set", &json!({"ids": [r], "paint": {"type": "pattern", "source": r.0, "scale": 0.25}})).unwrap();
     let doc = s.doc().unwrap();
-    assert!(figcraft_render::render_node(doc, r, 1.0).is_some());
-    assert!(figcraft_svg::export_svg(doc, &[r], &figcraft_svg::SvgOptions::default()).is_some());
-    assert!(figcraft_pdf::export_nodes_pdf(doc, &[r]).is_ok());
+    assert!(figiran_render::render_node(doc, r, 1.0).is_some());
+    assert!(figiran_svg::export_svg(doc, &[r], &figiran_svg::SvgOptions::default()).is_some());
+    assert!(figiran_pdf::export_nodes_pdf(doc, &[r]).is_ok());
 }
 
 #[test]

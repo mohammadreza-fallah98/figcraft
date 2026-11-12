@@ -11,9 +11,9 @@
 //!   (preferred ones first), select it, reset it to the main's default content.
 
 use egui::{Id, Sense, Ui, vec2};
-use figcraft_doc::{Document, Node, NodeId, NodeKind, PropDef, VariableType};
-use figcraft_engine::cmd::component::{can_add_variant, can_combine_variants};
-use figcraft_engine::components::{
+use figiran_doc::{Document, Node, NodeId, NodeKind, PropDef, VariableType};
+use figiran_engine::cmd::component::{can_add_variant, can_combine_variants};
+use figiran_engine::components::{
     PROP_BINDING, default_variant, inside_instance, owning_component, owning_instance, prop_list, slot_def, slot_edited, slots_of, variant_conflicts,
     variant_options, variant_props, variant_set,
 };
@@ -559,7 +559,7 @@ fn slot_name_row(app: &mut FigApp, ui: &mut Ui, n: &Node) {
 /// Overridden property groups of a layer inside an instance, each with a reset button.
 fn overrides_ui(app: &mut FigApp, ui: &mut Ui, n: &Node) {
     let t = Tokens::get(ui.ctx());
-    let groups: Vec<String> = n.overrides.iter().filter(|g| figcraft_engine::components::OVERRIDE_GROUPS.contains(&g.as_str())).cloned().collect();
+    let groups: Vec<String> = n.overrides.iter().filter(|g| figiran_engine::components::OVERRIDE_GROUPS.contains(&g.as_str())).cloned().collect();
     if groups.is_empty() {
         return;
     }
@@ -701,7 +701,7 @@ fn instance_ui(app: &mut FigApp, ui: &mut Ui, doc: &Document, n: &Node) {
     instance_props(app, ui, doc, n, &comps);
     // Exposed nested instances: their properties, under their names.
     if !nested {
-        for c in figcraft_engine::components::exposed_copies(doc, id) {
+        for c in figiran_engine::components::exposed_copies(doc, id) {
             let Some(cn) = doc.node(c) else { continue };
             row(ui, 28.0, |ui| {
                 let (r, _) = ui.allocate_exact_size(vec2(14.0, 14.0), Sense::hover());
@@ -715,7 +715,7 @@ fn instance_ui(app: &mut FigApp, ui: &mut Ui, doc: &Document, n: &Node) {
 
 /// An instance placed inside a main component (not inside another instance).
 fn nested_in_main(doc: &Document, id: NodeId) -> bool {
-    !inside_instance(doc, id) && figcraft_engine::components::owning_component(doc, id).is_some_and(|c| c != id)
+    !inside_instance(doc, id) && figiran_engine::components::owning_component(doc, id).is_some_and(|c| c != id)
 }
 
 /// Variant and component property controls for instance `n`.
@@ -749,7 +749,7 @@ fn instance_props(app: &mut FigApp, ui: &mut Ui, doc: &Document, n: &Node, comps
     }
     // Boolean, text and instance-swap properties.
     for (k, d) in prop_list(doc, *component) {
-        let v = props.get(&k).cloned().unwrap_or_else(|| figcraft_engine::components::prop_default_value(&d));
+        let v = props.get(&k).cloned().unwrap_or_else(|| figiran_engine::components::prop_default_value(&d));
         row(ui, 32.0, |ui| {
             prop_label(ui, &k, type_icon(&d));
             let w = ui.available_width().max(60.0);
@@ -775,7 +775,7 @@ fn instance_props(app: &mut FigApp, ui: &mut Ui, doc: &Document, n: &Node, comps
                     });
                 }
                 PropDef::InstanceSwap { preferred, .. } => {
-                    if let Some(c) = swap_dropdown(ui, doc, figcraft_engine::params::id_of(&v), &preferred, comps, w, &k).1 {
+                    if let Some(c) = swap_dropdown(ui, doc, figiran_engine::params::id_of(&v), &preferred, comps, w, &k).1 {
                         app.run("instance.setProperties", json!({"ids": [id], "properties": {k.clone(): c.0}}));
                     }
                 }

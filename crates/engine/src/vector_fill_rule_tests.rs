@@ -4,8 +4,8 @@
 //! zero (so a hole is a loop running against its outer loop), even-odd where it is odd (so the
 //! direction of a loop doesn't matter).
 
-use figcraft_doc::{NodeId, NodeKind, Region, Segment, VectorNetwork, Vertex, WindingRule};
-use figcraft_geom::{BezPath, Point};
+use figiran_doc::{NodeId, NodeKind, Region, Segment, VectorNetwork, Vertex, WindingRule};
+use figiran_geom::{BezPath, Point};
 use serde_json::{Value, json};
 
 use crate::Session;

@@ -4,9 +4,9 @@
 use std::path::Path;
 
 use egui::{Align2, Context, CornerRadius, RichText, Sense, Stroke, vec2};
-use figcraft_color::ColorProfile;
-use figcraft_doc::{ExportFormat, ExportSetting, ExportSize, NodeId};
-use figcraft_engine::cmd::file::{export_jobs, exportable_layers};
+use figiran_color::ColorProfile;
+use figiran_doc::{ExportFormat, ExportSetting, ExportSize, NodeId};
+use figiran_engine::cmd::file::{export_jobs, exportable_layers};
 use serde_json::{Value, json};
 
 use crate::FigApp;
@@ -41,7 +41,7 @@ pub mod variables_panel;
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Where a report goes.
-const ISSUES: &str = "https://github.com/storytold/figcraft/issues";
+const ISSUES: &str = "https://github.com/mohammadreza-fallah98/figiran/issues";
 
 /// What the desktop app says when its window couldn't open with `error` (no frame was drawn: the
 /// language is the one [`i18n::set`] picked from the preferences). `backend_set`: `WGPU_BACKEND`
@@ -50,11 +50,11 @@ const ISSUES: &str = "https://github.com/storytold/figcraft/issues";
 pub fn window_failed(error: &str, backend_set: bool, tried: Option<&str>) -> String {
     let hint = if let Some(apis) = tried {
         trf(
-            "FigCraft tried {apis}, then again with lower requirements on the power-saving GPU. Updating the graphics driver often helps.",
+            "FigIran tried {apis}, then again with lower requirements on the power-saving GPU. Updating the graphics driver often helps.",
             &[("apis", &apis)],
         )
     } else if backend_set {
-        tr("WGPU_BACKEND is set and names the graphics API to use; unsetting it lets FigCraft choose.").to_string()
+        tr("WGPU_BACKEND is set and names the graphics API to use; unsetting it lets FigIran choose.").to_string()
     } else if cfg!(windows) {
         // Direct3D 12 and OpenGL are both offered, but wgpu keeps the Direct3D 12 adapter it picked
         // even when its device then fails, so naming OpenGL alone can still help.
@@ -62,8 +62,8 @@ pub fn window_failed(error: &str, backend_set: bool, tried: Option<&str>) -> Str
             "{}
 
 set WGPU_BACKEND=gl
-figcraft.exe",
-            tr("Updating the graphics driver often helps. To use OpenGL only, start FigCraft from a Command Prompt with:")
+figiran.exe",
+            tr("Updating the graphics driver often helps. To use OpenGL only, start FigIran from a Command Prompt with:")
         )
     } else {
         tr("Updating the graphics driver often helps. WGPU_BACKEND (vulkan, gl, metal) names another graphics API to try.").to_string()
@@ -74,7 +74,7 @@ figcraft.exe",
 {hint}
 
 {}",
-        trf("FigCraft couldn't open its window: {error}", &[("error", &error)]),
+        trf("FigIran couldn't open its window: {error}", &[("error", &error)]),
         trf("If it keeps happening, please report it at {link} with this message.", &[("link", &ISSUES)])
     )
 }
@@ -152,14 +152,14 @@ fn about_body(ui: &mut egui::Ui, t: &Tokens) {
     });
     ui.add_space(12.0);
     ui.label(tr(
-        "Interface design and prototyping. A free, open-source, clean-room design tool written from scratch in Rust, part of the ArtCraft Crafting Apps.",
+        "Interface design and prototyping. A free, open-source, clean-room design tool written from scratch in Rust, part of the FigIran Crafting Apps.",
     ));
     ui.add_space(8.0);
-    ui.hyperlink_to("getartcraft.com/apps/figcraft", "https://getartcraft.com/apps/figcraft");
-    ui.hyperlink_to(tr("Join us on Discord"), "https://discord.gg/artcraft");
+    ui.hyperlink_to("getfigiran.com/apps/figiran", "https://getfigiran.com/apps/figiran");
+    ui.hyperlink_to(tr("Join us on Discord"), "https://discord.gg/figiran");
     ui.add_space(8.0);
     ui.label(
-        RichText::new(tr("Dual-licensed MIT OR Apache-2.0. Made by the ArtCraft team and community.")).color(t.text_secondary).font(regular(11.0)),
+        RichText::new(tr("Dual-licensed MIT OR Apache-2.0. Made by the FigIran team and community.")).color(t.text_secondary).font(regular(11.0)),
     );
 }
 
@@ -219,7 +219,7 @@ pub fn show(app: &mut FigApp, ctx: &Context) {
     let t = Tokens::get(ctx);
     if app.ui.about {
         let mut open = true;
-        window(tr("About FigCraft"), ctx).open(&mut open).show(ctx, |ui| {
+        window(tr("About FigIran"), ctx).open(&mut open).show(ctx, |ui| {
             ui.set_width(ABOUT_WIDTH);
             tab_strip(ui, &t, &AboutTab::ALL, AboutTab::label, &mut app.ui.about_tab);
             ui.add_space(12.0);
@@ -267,14 +267,10 @@ pub fn show(app: &mut FigApp, ctx: &Context) {
             }
             // Where the app registers itself as the opener of invite links (Windows).
             if let Some(on) = app.session.invite_links_on() {
-                if crate::widgets::checkbox(ui, on, tr("Open invite links in FigCraft")) {
+                if crate::widgets::checkbox(ui, on, tr("Open invite links in FigIran")) {
                     app.run("collab.registerLinks", json!({"on": !on}));
                 }
-                crate::widgets::label(
-                    ui,
-                    tr("figcraft:// links from a browser, chat or email open this app and join the session."),
-                    t.text_secondary,
-                );
+                crate::widgets::label(ui, tr("figiran:// links from a browser, chat or email open this app and join the session."), t.text_secondary);
             }
             ui.add_space(8.0);
             ui.horizontal(|ui| {
@@ -290,8 +286,8 @@ pub fn show(app: &mut FigApp, ctx: &Context) {
                 if let Some(url) = crate::widgets::text_field_named(ui, egui::Id::unique("pref_publish_server"), &prefs.publish_server, 220.0, name) {
                     app.run("pref.publishServer", json!({"url": url}));
                 }
-                let usual = prefs.publish_server == figcraft_engine::live::DEFAULT_SERVER;
-                if crate::widgets::button(ui, tr("Reset"), false, !usual).on_hover_text(tr("Back to the FigCraft server")).clicked() {
+                let usual = prefs.publish_server == figiran_engine::live::DEFAULT_SERVER;
+                if crate::widgets::button(ui, tr("Reset"), false, !usual).on_hover_text(tr("Back to the FigIran server")).clicked() {
                     app.run("pref.publishServer", json!({}));
                 }
             });

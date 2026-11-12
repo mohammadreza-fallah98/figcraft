@@ -2,7 +2,7 @@
 //!
 //! The person presses Log in; the app makes a random verifier, opens the portal's login page in the
 //! browser with the verifier's hash (the challenge), and the portal sends the browser back to
-//! `figcraft://auth?code=…` with a one-time code. The app exchanges the code and the verifier for
+//! `figiran://auth?code=…` with a one-time code. The app exchanges the code and the verifier for
 //! an access token and a refresh token ([`session::Portal`]), keeps the refresh token in the OS
 //! credential store ([`secret`]) and never writes a token to a file. The access token lists the
 //! person's projects and asks for the join link of one.

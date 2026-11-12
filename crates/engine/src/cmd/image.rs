@@ -1,7 +1,7 @@
 //! Image paints: adjustment presets, built in and saved in the file, and Crop image.
 
-use figcraft_color::{ImageFilters, ImageScaleMode, Paint, PaintKind};
-use figcraft_doc::{Document, ImagePreset, Node};
+use figiran_color::{ImageFilters, ImageScaleMode, Paint, PaintKind};
+use figiran_doc::{Document, ImagePreset, Node};
 use serde_json::{Value, json};
 
 use super::{CommandSpec, ok};

@@ -102,7 +102,7 @@ fn imported(layer: Kv<'static>) -> (Document, Vec<String>) {
 fn generated_stickies_and_shapes_keep_their_background_text_and_author() {
     for ty in ["STICKY", "SHAPE_WITH_TEXT"] {
         let (doc, warnings) = imported(board_node(ty));
-        assert_eq!(doc.kind, figcraft_doc::FileKind::Design, "the same layers in a .fig stay a design file");
+        assert_eq!(doc.kind, figiran_doc::FileKind::Design, "the same layers in a .fig stay a design file");
         let frame = named(&doc, "Board object");
         assert!(matches!(frame.kind, NodeKind::Frame));
         assert_eq!(frame.opacity, 0.5);
@@ -117,14 +117,14 @@ fn generated_stickies_and_shapes_keep_their_background_text_and_author() {
         assert_eq!(t.style.font_size, 24.0);
         assert_eq!(t.style.font_family, "Synthetic Sans");
         assert_eq!(note.fills[0].solid_color().unwrap().to_rgba8(), [0, 0, 0, 255]);
-        assert_eq!(note.transform.translation(), figcraft_doc::geom::Vec2::new(20.0, 20.0));
+        assert_eq!(note.transform.translation(), figiran_doc::geom::Vec2::new(20.0, 20.0));
         assert_eq!((note.width, note.height), (200.0, 160.0));
         assert!(t.runs.iter().any(|r| r.style.font_size == 18.0), "inline styles survive");
         if ty == "STICKY" {
             let author = doc.node(frame.children[2]).unwrap();
             assert_eq!(author.kind.text().unwrap().characters, "Test Author");
             assert_eq!(author.kind.text().unwrap().style.font_size, 12.0);
-            assert_eq!(author.transform.translation(), figcraft_doc::geom::Vec2::new(20.0, 204.0));
+            assert_eq!(author.transform.translation(), figiran_doc::geom::Vec2::new(20.0, 204.0));
         }
         assert!(!warnings.iter().any(|w| w.contains("skipped")), "{warnings:?}");
     }
@@ -444,7 +444,7 @@ fn a_jam_file_imports_like_a_fig() {
     for bytes in [jam.clone(), zip_file(&jam)] {
         assert!(is_fig(&bytes), "read as the same archive");
         let (doc, warnings) = import(&bytes, "Synthetic board").unwrap();
-        assert_eq!(doc.kind, figcraft_doc::FileKind::Board, "a FigJam whiteboard opens as a board");
+        assert_eq!(doc.kind, figiran_doc::FileKind::Board, "a FigJam whiteboard opens as a board");
         let note = named(&doc, "Board object");
         assert!(matches!(note.kind, NodeKind::Frame) && note.children.len() == 3, "the sticky with its background, note and author");
         assert!(matches!(named(&doc, "Synthetic table").kind, NodeKind::Frame));

@@ -1,17 +1,18 @@
-//! The FigCraft egui frontend.
+//! The FigIran egui frontend.
 //!
-//! A thin shell over [`figcraft_engine::Session`]: panels read engine state and act by running
+//! A thin shell over [`figiran_engine::Session`]: panels read engine state and act by running
 //! commands; the canvas forwards pointer events to the engine's tools and draws overlays. Nothing
 //! below this crate knows about egui, so the frontend can be replaced.
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 
-/// FigCraft as craft-update knows it, with its 128 px icon and accent colour: the update
+/// FigIran as craft-update knows it, with its 128 px icon and accent colour: the update
 /// prompt shows both, and an AppImage's menu entry gets the icon.
 #[cfg(not(target_arch = "wasm32"))]
 pub const UPDATE_APP: craft_update::app::App = craft_update::app::App {
-    icon_png: Some(include_bytes!("../../../assets/app-icon/hicolor/128x128/apps/ai.storyteller.figcraft.png")),
+    icon_png: Some(include_bytes!("../../../assets/app-icon/hicolor/128x128/apps/ai.figiran.app.png")),
     accent: Some([0x02, 0xda, 0x96]),
-    ..craft_update::suite::FIGCRAFT
+    developer: "FigIran",
+    ..craft_update::app::App::new("figiran", "FigIran", "Interface design and prototyping", "mohammadreza-fallah98/figiran")
 };
 
 pub mod a11y;
@@ -361,8 +362,8 @@ use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context as TaskContext, Poll, Wake, Waker};
 
-use figcraft_doc::NodeId;
-use figcraft_engine::Session;
+use figiran_doc::NodeId;
+use figiran_engine::Session;
 use serde_json::{Value, json};
 
 pub use control::{ControlReply, ControlRequest, RequestGate, RequestState};
@@ -468,7 +469,7 @@ pub struct UiState {
     pub ui_scale: ui_scale::Plan,
     pub shortcuts_panel: bool,
     /// The Keyboard shortcuts panel's tab and search text.
-    pub shortcuts_tab: figcraft_engine::keymap::Group,
+    pub shortcuts_tab: figiran_engine::keymap::Group,
     pub shortcuts_query: String,
     /// An opacity digit just typed and when (a second one soon after makes an exact percentage).
     pub opacity_digit: Option<(u32, f64)>,
@@ -551,9 +552,9 @@ pub struct UiState {
     /// The Export dialog is open.
     pub export_preview: bool,
     /// The Export dialog's PDF print options (bleed, marks, CMYK).
-    pub pdf_print: figcraft_doc::PrintSettings,
+    pub pdf_print: figiran_doc::PrintSettings,
     /// The Color profile dialog is open, with this profile chosen.
-    pub color_profile: Option<figcraft_color::ColorProfile>,
+    pub color_profile: Option<figiran_color::ColorProfile>,
     /// The open style picker.
     pub style_picker: Option<style_picker::Picker>,
     /// The style picker's popover while it is open (its place survives a drag).
@@ -588,7 +589,7 @@ pub struct UiState {
     /// Dev Mode: annotations on the canvas and the ready-for-dev list.
     pub dev: dev_mode::DevUi,
 
-    /// What FigCraft last put on the system clipboard: when the clipboard still holds it, a paste
+    /// What FigIran last put on the system clipboard: when the clipboard still holds it, a paste
     /// uses our copied layers; anything else there (an image, SVG, text) came from another app.
     /// `None` also means a programmatic copy changed the engine clipboard without writing the OS
     /// clipboard, so the system text is no longer known to be ours.
@@ -673,7 +674,7 @@ impl Default for UiState {
             rename_file: false,
             ui_scale: ui_scale::plan(1.0, None, None),
             shortcuts_panel: false,
-            shortcuts_tab: figcraft_engine::keymap::Group::Essential,
+            shortcuts_tab: figiran_engine::keymap::Group::Essential,
             shortcuts_query: String::new(),
             opacity_digit: None,
             home: false,
@@ -718,7 +719,7 @@ impl Default for UiState {
             render_ms: 0.0,
             quit: false,
             export_preview: false,
-            pdf_print: figcraft_doc::PrintSettings::default(),
+            pdf_print: figiran_doc::PrintSettings::default(),
             color_profile: None,
             style_picker: None,
             style_picker_popover: None,
@@ -770,7 +771,7 @@ pub(crate) struct PendingAck {
     pub(crate) reply: ControlReply,
 }
 
-/// The whole FigCraft UI.
+/// The whole FigIran UI.
 pub struct FigApp {
     pub session: Session,
     pub ui: UiState,
@@ -782,7 +783,7 @@ pub struct FigApp {
     /// faces for these CJK scripts ([`cjk`]) in this UI language's order.
     script_fonts: Option<(u8, &'static str)>,
     /// The tab (uid) and document version whose names were last checked for CJK scripts.
-    cjk_checked: Option<(u64, Arc<figcraft_doc::Document>)>,
+    cjk_checked: Option<(u64, Arc<figiran_doc::Document>)>,
     /// The language preference the UI strings follow (applied when it changes).
     language: Option<String>,
     /// A field had the keyboard when the last frame ended.
@@ -801,7 +802,7 @@ pub struct FigApp {
     /// The other windows (desktop app).
     pub windows: windows::Windows,
     /// `window.new` / `window.focus` asked for by commands, for the end of the frame.
-    window_requests: Vec<figcraft_engine::UiRequest>,
+    window_requests: Vec<figiran_engine::UiRequest>,
     /// Commands waiting for a server ([`FigApp::run_background`]) and what to do with their results.
     waiting: Vec<(String, Done)>,
     /// Native dialogs complete asynchronously so their modal event loop never re-enters winit.
@@ -810,7 +811,7 @@ pub struct FigApp {
     ui_context: Option<egui::Context>,
     /// The automation roots the app was started with: every frame and control request runs
     /// confined to them ([`windows::guard`]).
-    pub automation_roots: Option<Arc<figcraft_engine::file_access::Roots>>,
+    pub automation_roots: Option<Arc<figiran_engine::file_access::Roots>>,
     /// The active-document id when synthetic input was queued: a batch is dropped when the file
     /// changed before a UI pass applied it.
     pub(crate) control_input_doc: Option<u64>,

@@ -33,7 +33,7 @@ fn a_panic_while_normalising_rolls_the_command_back() {
     assert_eq!(s.undo_depth(), undo, "no undo step for the failed command");
     // The next command runs as usual.
     s.execute("node.set", &json!({"ids": [r], "props": {"name": "Renamed"}})).unwrap();
-    assert_eq!(s.doc().unwrap().node(figcraft_doc::NodeId(r)).unwrap().name, "Renamed");
+    assert_eq!(s.doc().unwrap().node(figiran_doc::NodeId(r)).unwrap().name, "Renamed");
     assert_eq!(s.undo_depth().0, undo.0 + 1);
 }
 

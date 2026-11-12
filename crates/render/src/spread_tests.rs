@@ -2,8 +2,8 @@
 //! stay sharp and reach out along their tips, inner shadows shrink the outline the same way. The
 //! renderer and the PDF export share the shadow code (`shadow`), so they agree.
 
-use figcraft_color::{Color, Paint};
-use figcraft_doc::{Document, Effect, EffectKind, NodeId, NodeKind, Shadow};
+use figiran_color::{Color, Paint};
+use figiran_doc::{Document, Effect, EffectKind, NodeId, NodeKind, Shadow};
 
 use super::*;
 
@@ -170,7 +170,7 @@ fn arc_spread_mitres_are_not_cut_off() {
 /// grows from there: a thin slice with both keeps its whole shadow.
 #[test]
 fn arc_stroke_mitres_are_not_cut_off() {
-    use figcraft_doc::{StrokeAlign, StrokeJoin};
+    use figiran_doc::{StrokeAlign, StrokeJoin};
     let kind = NodeKind::Ellipse { start: std::f64::consts::FRAC_PI_2 - 0.015, sweep: 0.03, inner: 0.0 };
     for align in [StrokeAlign::Center, StrokeAlign::Outside] {
         let make = |effects: Vec<EffectKind>| {
@@ -198,7 +198,7 @@ fn arc_stroke_mitres_are_not_cut_off() {
 /// mitres out at their corners, past the box grown by the spread, and keeps its whole shadow.
 #[test]
 fn stroke_corners_spread_mitres_are_not_cut_off() {
-    use figcraft_doc::{Brush, Node, StrokeAlign, StrokeCap, WidthProfile};
+    use figiran_doc::{Brush, Node, StrokeAlign, StrokeCap, WidthProfile};
     type Style = fn(&mut Node);
     let strokes: [(&str, Style); 4] = [
         ("dashed", |n| n.stroke.dashes = vec![30.0, 30.0]),
@@ -236,7 +236,7 @@ fn stroke_corners_spread_mitres_are_not_cut_off() {
 /// goes by stay the box grown by the stroke.
 #[test]
 fn a_dashed_stroke_without_a_spread_keeps_its_bounds() {
-    use figcraft_doc::StrokeAlign;
+    use figiran_doc::StrokeAlign;
     for kind in [NodeKind::Rectangle, NodeKind::Ellipse { start: 0.0, sweep: std::f64::consts::TAU, inner: 0.0 }] {
         let (mut d, n) = shape(kind.clone(), vec![]);
         let node = d.get_mut(n).unwrap();

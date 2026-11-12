@@ -60,12 +60,12 @@ impl Presenter {
         let mut d = self.design.clone();
         if let Some(d) = d.as_mut() {
             if let Some(size) = self.fit {
-                figcraft_engine::cmd::proto::respond(d, self.current, size);
+                figiran_engine::cmd::proto::respond(d, self.current, size);
             }
-            figcraft_engine::proto_run::play_interactions(d);
+            figiran_engine::proto_run::play_interactions(d);
             raise_fixed(d);
         }
-        self.uses_pads = d.as_ref().is_some_and(figcraft_doc::proto::uses_gamepad);
+        self.uses_pads = d.as_ref().is_some_and(figiran_doc::proto::uses_gamepad);
         self.doc = d;
         self.rev += 1;
     }
@@ -75,7 +75,7 @@ impl Presenter {
     /// [`relayout`](Self::relayout).
     pub(super) fn settle(&mut self, before: &Document) {
         if let Some(d) = self.design.as_mut() {
-            figcraft_engine::normalize(d, before);
+            figiran_engine::normalize(d, before);
         }
         self.relayout();
     }
@@ -166,7 +166,7 @@ impl Presenter {
 
     fn arrive(&mut self, now: f64) {
         if let Some(doc) = self.doc.as_ref() {
-            figcraft_engine::proto_run::remember_sections(doc, self.current, &mut self.sections);
+            figiran_engine::proto_run::remember_sections(doc, self.current, &mut self.sections);
         }
         self.arrived = now;
         self.delays_fired.clear();

@@ -1,4 +1,4 @@
-use figcraft_engine::Session;
+use figiran_engine::Session;
 use serde_json::{Value, json};
 
 /// Variable A is renamed to variable B's id; returns (session, B's id).

@@ -2,12 +2,12 @@
 //! for them, so the UI adds a face per script it needs: the UI language's, the scripts in the open file's names
 //! and comments, the language picker's and typed text. Desktop finds them among the installed
 //! fonts (the system font scan), only once one is needed, so English users load none; the web
-//! build has only the CJK faces built in from craft-fonts (`FIGCRAFT_EMBED_CJK`), else none (no
+//! build has only the CJK faces built in from craft-fonts (`FIGIRAN_EMBED_CJK`), else none (no
 //! Bengali or Thai face is built in, so the web leaves them out).
 
 use std::sync::Arc;
 
-use figcraft_text::Face;
+use figiran_text::Face;
 
 pub const KANA: u8 = 1;
 pub const HANGUL: u8 = 2;
@@ -124,15 +124,15 @@ fn shows(code: &str, web: bool) -> bool {
         return true;
     }
     if code.split('-').next() == Some("ka") {
-        return figcraft_text::face_with_char('ა', &["Noto Sans Georgian"]).is_some();
+        return figiran_text::face_with_char('ა', &["Noto Sans Georgian"]).is_some();
     }
     if matches!(code.split('-').next(), Some("ar" | "fa")) {
         // Web cannot borrow the desktop's Arabic faces. Its current font budget excludes
         // Arabic; keep the catalog out until an embedded Arabic fallback is supplied.
-        return figcraft_text::face_with_char('ع', &["Noto Sans Arabic"]).is_some();
+        return figiran_text::face_with_char('ع', &["Noto Sans Arabic"]).is_some();
     }
     let need = language(code);
-    need == 0 || samples(need, 0, traditional(code)).iter().all(|(c, families)| figcraft_text::face_with_char(*c, families).is_some())
+    need == 0 || samples(need, 0, traditional(code)).iter().all(|(c, families)| figiran_text::face_with_char(*c, families).is_some())
 }
 
 /// A character standing for each script in `need`, with the families to look for it in, the UI
@@ -177,7 +177,7 @@ pub fn faces(need: u8, lang: &str, have: &dyn Fn(char) -> bool) -> Vec<Arc<Face>
         if have(c) || out.iter().any(|f| f.has_char(c)) {
             continue;
         }
-        if let Some(face) = figcraft_text::face_with_char(c, &families) {
+        if let Some(face) = figiran_text::face_with_char(c, &families) {
             out.push(face);
         }
     }
@@ -214,7 +214,7 @@ mod tests {
     #[test]
     fn the_web_offers_georgian_only_with_its_face() {
         assert!(shows("ka", false), "desktop always lists Georgian");
-        let face = figcraft_text::face_with_char('ა', &["Noto Sans Georgian"]).is_some();
+        let face = figiran_text::face_with_char('ა', &["Noto Sans Georgian"]).is_some();
         assert_eq!(shows("ka", true), face);
         assert_eq!(shows("ka-GE", true), face);
         assert!(shows("en", true) && shows("tr", true));
@@ -223,7 +223,7 @@ mod tests {
     #[test]
     fn the_web_offers_arabic_only_with_its_face() {
         assert!(shows("ar", false));
-        let face = figcraft_text::face_with_char('ع', &["Noto Sans Arabic"]).is_some();
+        let face = figiran_text::face_with_char('ع', &["Noto Sans Arabic"]).is_some();
         assert_eq!(shows("ar", true), face);
         assert_eq!(shows("ar-SA", true), face);
     }

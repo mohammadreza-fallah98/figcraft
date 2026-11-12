@@ -1,4 +1,4 @@
-use figcraft_doc::ordered_props;
+use figiran_doc::ordered_props;
 
 use super::instance::preferred_arg;
 use super::variants::{fit_set, wrap_in_set};
@@ -487,7 +487,7 @@ pub(super) fn edit_prop(s: &mut Session, p: &Value) -> Result<Value> {
                 for (c, (x, y)) in [(f, dp), (d, fp)] {
                     let n = doc.get_mut(c)?;
                     let [a, b, cc, dd, ..] = n.transform.as_coeffs();
-                    n.transform = figcraft_geom::Affine::new([a, b, cc, dd, x, y]);
+                    n.transform = figiran_geom::Affine::new([a, b, cc, dd, x, y]);
                 }
                 fit_set(doc, set);
             }

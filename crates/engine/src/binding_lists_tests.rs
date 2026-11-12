@@ -2,8 +2,8 @@
 //! effect bindings follow their effects when the list is reordered or shrinks, and removing the
 //! first fill takes its binding with it.
 
-use figcraft_color::{Color, PaintKind};
-use figcraft_doc::{EffectKind, NodeId};
+use figiran_color::{Color, PaintKind};
+use figiran_doc::{EffectKind, NodeId};
 use serde_json::json;
 
 use crate::Session;
@@ -98,7 +98,7 @@ fn effect_moves_and_removals_reject_junk() {
     assert_eq!(s.doc().unwrap().node(r).unwrap().effects.len(), 1);
 }
 
-fn glass(s: &Session, r: NodeId) -> figcraft_doc::Glass {
+fn glass(s: &Session, r: NodeId) -> figiran_doc::Glass {
     match s.doc().unwrap().node(r).unwrap().effects.first().map(|e| &e.kind) {
         Some(EffectKind::Glass(g)) => g.clone(),
         k => panic!("{k:?}"),
@@ -119,7 +119,7 @@ fn glass_fields_take_number_variables() {
     ex(&mut s, "variable.set", json!({"variable": "small", "value": 150}));
     ex(&mut s, "variable.set", json!({"variable": "large", "value": 75}));
     let g = glass(&s, r);
-    assert_eq!((g.splay, g.frost, g.depth), (0.75, figcraft_doc::Glass::MAX_FROST, 75.0));
+    assert_eq!((g.splay, g.frost, g.depth), (0.75, figiran_doc::Glass::MAX_FROST, 75.0));
     // A colour variable doesn't fit a glass field.
     assert!(s.execute("variable.bind", &json!({"ids": [r], "field": "effects/0/refraction", "variable": "brand"})).is_err());
     // An effect style binds them too, and every layer using it follows.

@@ -31,7 +31,7 @@ fn font_menu(h: &mut Harness) -> Vec<egui::Shape> {
     let family = h.app.session.ds().ok().and_then(|ds| ds.selection.first().copied()).and_then(|t| {
         let doc = h.app.session.doc().ok()?;
         match &doc.node(t)?.kind {
-            figcraft_doc::NodeKind::Text(td) => Some(td.style.font_family.clone()),
+            figiran_doc::NodeKind::Text(td) => Some(td.style.font_family.clone()),
             _ => None,
         }
     });

@@ -512,7 +512,7 @@ impl Session {
                 let len = v.hypot();
                 let world = Affine::translate(a.to_vec2()) * Affine::rotate(v.atan2());
                 doc.set_world_transform(id, world)?;
-                figcraft_layout::set_size(doc, id, len, 0.0);
+                figiran_layout::set_size(doc, id, len, 0.0);
                 Ok(())
             })?;
             self.tool.overlay.guides = guides;
@@ -578,7 +578,7 @@ impl Session {
                 if kept.is_empty() {
                     crate::cmd::props::resize_node(doc, *id, nw.max(0.01), nh.max(0.01))?;
                 } else {
-                    figcraft_layout::set_size(doc, *id, nw.max(0.01), nh.max(0.01));
+                    figiran_layout::set_size(doc, *id, nw.max(0.01), nh.max(0.01));
                     crate::cmd::props::restore_worlds(doc, &kept)?;
                 }
                 let n = doc.get_mut(*id)?;
@@ -606,7 +606,7 @@ impl Session {
             for (id, world, w, h) in &nodes {
                 let local = inv * *world;
                 let center = local * Point::new(w / 2.0, h / 2.0);
-                let (kw, kh) = figcraft_layout::axis_factors(local, sx, sy);
+                let (kw, kh) = figiran_layout::axis_factors(local, sx, sy);
                 let (w2, h2) = (w * kw, h * kh);
                 let lin = (mirror * local).with_translation(Vec2::ZERO);
                 let origin = Point::new(x0 + center.x * sx, y0 + center.y * sy) - lin * Point::new(w2 / 2.0, h2 / 2.0);

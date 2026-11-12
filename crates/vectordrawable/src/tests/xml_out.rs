@@ -81,7 +81,7 @@ fn an_empty_area_is_still_a_drawable_android_loads() {
     let (mut d, p) = doc();
     let r = rect(&mut d, p, "R", 0.0, 0.0, 10.0, 10.0, "FF0000");
     d.get_mut(r).unwrap().fills.clear();
-    let opts = VdOptions { bounds: Some(figcraft_geom::Rect::new(0.0, 0.0, 10.0, 10.0)), ..Default::default() };
+    let opts = VdOptions { bounds: Some(figiran_geom::Rect::new(0.0, 0.0, 10.0, 10.0)), ..Default::default() };
     let out = export_with(&d, &[r], opts);
     // Android throws "no path defined" for a <vector> without a <path>.
     assert!(out.xml.ends_with("android:viewportHeight=\"10\">\n  <path android:pathData=\"M0,0\" />\n</vector>\n"), "{}", out.xml);

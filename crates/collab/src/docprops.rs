@@ -5,7 +5,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
 use base64::Engine as _;
-use figcraft_doc::{Collection, Comment, DevSnapshot, Document, ImageData, Style, Variable};
+use figiran_doc::{Collection, Comment, DevSnapshot, Document, ImageData, Style, Variable};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest as _, Sha256};
@@ -254,7 +254,7 @@ struct ImageValue {
 /// couldn't probe (`image_data`).
 pub(crate) const MAX_IMAGE_SIDE: u32 = 65_535;
 
-/// Lowercase sha256 hex, the same form `figcraft_format::image_hash` produces.
+/// Lowercase sha256 hex, the same form `figiran_format::image_hash` produces.
 fn sha256_hex(bytes: &[u8]) -> String {
     Sha256::digest(bytes).iter().map(|b| format!("{b:02x}")).collect()
 }
@@ -282,7 +282,7 @@ fn image_json(img: &ImageData) -> Result<Json, Error> {
 /// [`MAX_IMAGE_SIDE`], decoded bytes within [`ImageData::MAX_BYTES`] (what the importers read;
 /// the encoded length is capped before decoding so hostile text can't force a large
 /// allocation), and a key that claims a content hash ([`ImageData::claims_content_hash`]) must
-/// be exactly the lowercase sha256 of these bytes, the form `figcraft_format::image_hash`
+/// be exactly the lowercase sha256 of these bytes, the form `figiran_format::image_hash`
 /// writes — a poisoned content-addressed store would show the wrong image everywhere at once
 /// (#1086). Other keys (the svg importer's FNV-128 keys, the REST importer's placeholders)
 /// claim no content address, so only the name and size rules apply to them.
@@ -455,7 +455,7 @@ pub(crate) fn apply_indexed(doc: &mut Document, change: &Change, index: &mut Ind
                 }
                 // An image a layer or style shows stays: removing it would let other bytes go
                 // under its key, swapping the picture that layer shows ([`image_for`]).
-                if figcraft_doc::used_images(doc).contains(k) {
+                if figiran_doc::used_images(doc).contains(k) {
                     return Err(Error::Invalid(format!("image: {k} is still in use")));
                 }
                 doc.images.remove(k);

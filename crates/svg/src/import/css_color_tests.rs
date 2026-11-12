@@ -1,8 +1,8 @@
-//! `color()` and `color-mix()` colours (#1550): read where they map to a FigCraft colour, a note
+//! `color()` and `color-mix()` colours (#1550): read where they map to a FigIran colour, a note
 //! and a grey (never a silent black) where they don't, and no panic on garbage.
 
-use figcraft_color::{Color, ColorProfile, Paint};
-use figcraft_doc::{Document, Node};
+use figiran_color::{Color, ColorProfile, Paint};
+use figiran_doc::{Document, Node};
 
 use super::css_color::resolve;
 use super::import_svg_with_notes;
@@ -111,7 +111,7 @@ fn strokes_stops_and_style_sheets_read_too() {
     assert_eq!(rgba8(rect.fills.first().and_then(Paint::solid_color)), Some([255, 0, 0, 255]));
     assert_eq!(rgba8(rect.strokes.first().and_then(Paint::solid_color)), Some([128, 0, 128, 255]));
     let stops = match nodes.get(2).and_then(|n| n.fills.first()).map(|p| &p.kind) {
-        Some(figcraft_color::PaintKind::Gradient(g)) => g.stops.clone(),
+        Some(figiran_color::PaintKind::Gradient(g)) => g.stops.clone(),
         k => panic!("{k:?}"),
     };
     assert_eq!(stops.first().map(|s| s.color.to_rgba8()), Some([0, 255, 0, 255]));

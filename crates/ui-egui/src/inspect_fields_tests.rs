@@ -1,6 +1,6 @@
 //! Attached control replies build compact layer trees before they leave the app.
 
-use figcraft_engine::Session;
+use figiran_engine::Session;
 use serde_json::{Value, json};
 
 use crate::layers_drag_tests::Ui;
@@ -68,7 +68,7 @@ fn control_key_arrows_pan_with_nothing_selected() {
     u.app.run("select.set", json!({"ids": [r]}));
     call(&mut u, "ui.key", json!({"key": "ArrowRight"})).unwrap();
     assert_eq!(view(&u), (10.0, -100.0), "with a selection the view stays");
-    let id = figcraft_engine::params::id_of(&r).unwrap();
+    let id = figiran_engine::params::id_of(&r).unwrap();
     assert_eq!(u.app.session.doc().unwrap().world_bounds(id).unwrap().x0, 1.0, "the selection moved instead");
     // With a shape tool chosen and nothing selected the arrows move the placement crosshair
     // first (#1869), and the view stays.

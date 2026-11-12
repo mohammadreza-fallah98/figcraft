@@ -59,8 +59,8 @@ fn a_typographic_name_finds_a_family_installed_per_weight() {
     assert_eq!(resolved(&db, "Synthetic Serif", "Bold"), pair("synthetic serif", "Bold"), "a style the family has stays in it");
     // A weight number keeps the family and goes by weight.
     assert_eq!(resolved(&db, "Synthetic Serif", "600"), pair("synthetic serif", "600"));
-    assert_eq!(figcraft_doc::style_weight("600"), 600);
-    assert_eq!(figcraft_doc::style_weight("600 Italic"), 600);
+    assert_eq!(figiran_doc::style_weight("600"), 600);
+    assert_eq!(figiran_doc::style_weight("600 Italic"), 600);
     // Only some weights installed: the family is there all the same.
     let db = installed(&[("Synthetic Serif Medium", &["Regular"])]);
     assert!(db.has_family("Synthetic Serif"));

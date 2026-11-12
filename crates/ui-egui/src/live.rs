@@ -17,7 +17,7 @@ use std::borrow::Cow;
 use std::collections::BTreeMap;
 
 use egui::{Align2, Color32, CornerRadius, Pos2, Rect, Sense, Shape, Stroke, Ui, pos2, vec2};
-use figcraft_engine::live::{Access, PEOPLE, Role, SessionId, Share, Signal, Status, TOO_LARGE_TO_JOIN, Via, initials, parse_color, presence_page};
+use figiran_engine::live::{Access, PEOPLE, Role, SessionId, Share, Signal, Status, TOO_LARGE_TO_JOIN, Via, initials, parse_color, presence_page};
 use serde_json::{Value, json};
 
 use crate::FigApp;
@@ -32,7 +32,7 @@ pub mod agent;
 
 /// In the browser: what joining needs (a page can't host, and https pages can't reach `ws://`).
 const BROWSER_NOTE: &str = tr_noop(
-    "In the browser you can join sessions the desktop app hosts and files on a FigCraft server. A page opened over https reaches other computers only through wss:// links (a server behind TLS).",
+    "In the browser you can join sessions the desktop app hosts and files on a FigIran server. A page opened over https reaches other computers only through wss:// links (a server behind TLS).",
 );
 
 /// How undo works in a session (per person).
@@ -51,7 +51,7 @@ const LEVELS: [(Access, &str); 3] =
 
 /// What a published file's links are.
 const PUBLISHED_NOTE: &str = tr_noop(
-    "Anyone with the edit link can change the file; the view link only lets people look. The links carry their secrets: share them like passwords. `figcraft-server links` makes more and revokes them.",
+    "Anyone with the edit link can change the file; the view link only lets people look. The links carry their secrets: share them like passwords. `figiran-server links` makes more and revokes them.",
 );
 
 /// What the owner token is for (shown once, when a file is published without the server key).
@@ -193,7 +193,7 @@ pub fn avatar(painter: &egui::Painter, center: Pos2, r: f32, name: &str, fill: C
     painter.text(center, Align2::CENTER_CENTER, initials(name), semibold(r * 0.8), text_on(fill));
 }
 
-/// FigCraft's remote pointer: a notched dart pointing up-left from `tip`, filled with the
+/// FigIran's remote pointer: a notched dart pointing up-left from `tip`, filled with the
 /// person's colour and edged in white so it shows on any canvas.
 pub fn pointer(painter: &egui::Painter, tip: Pos2, fill: Color32) {
     let at = |x: f32, y: f32| tip + vec2(x, y);
@@ -548,7 +548,7 @@ pub fn people_bar(app: &mut FigApp, ui: &mut Ui, area: Rect) {
     let peers: Vec<(u32, String, Color32)> = live.peers.values().map(|p| (p.client_id, p.name.clone(), color(&p.color))).collect();
     let follow = live.follow;
     let (in_session, spotlighting) = (live.status == Status::Live, live.spotlighting);
-    let can_remove = figcraft_engine::live::can_remove_people(&app.session);
+    let can_remove = figiran_engine::live::can_remove_people(&app.session);
     let mut remove = None;
     let agent = agent::shown(app, ui.ctx()).map(|p| p.name.clone());
     // Room for the avatars after yours (and the agent's) and the chevron.
@@ -1019,7 +1019,7 @@ fn name_row(app: &mut FigApp, ui: &mut Ui, t: &Tokens, id: egui::Id) {
 /// see you as in live sessions: empty while it is the default. A new name is kept at once (the
 /// browser has no quitting to keep it at).
 pub fn name_field(app: &mut FigApp, ui: &mut Ui, id: egui::Id, width: f32) {
-    let shown = figcraft_engine::live::display_name(&app.session.prefs);
+    let shown = figiran_engine::live::display_name(&app.session.prefs);
     if let Some(name) = widgets::text_field(ui, id, &shown, width, tr("Your name")) {
         app.run("pref.userName", json!({"name": name}));
         app.services.save_prefs(&app.session.prefs);
@@ -1063,7 +1063,7 @@ fn private_ui(app: &mut FigApp, ui: &mut Ui, t: &Tokens, share: &Share) {
     // recorded with their online files): they can remove it.
     let removable = app.session.live().published.clone().map(|p| (share.server.clone(), p.file)).filter(|(server, file)| {
         app.session.live().published.as_ref().is_some_and(|p| p.owner.is_some())
-            || app.session.prefs.online_files.iter().any(|f| f.file == *file && figcraft_engine::online::same_server(&f.server, server))
+            || app.session.prefs.online_files.iter().any(|f| f.file == *file && figiran_engine::online::same_server(&f.server, server))
     });
     join_and_advanced(app, ui, t, |app, ui, t| {
         if widgets::button(ui, tr("Leave session"), false, true).on_hover_text(tr("Your copy stays open; the file stays on the server")).clicked() {
@@ -1143,7 +1143,7 @@ fn share_ui(app: &mut FigApp, ui: &mut Ui, t: &Tokens, share: &Share) {
                     app.clipboard_set_text(&code);
                     app.toast(tr("Join code copied"));
                 }
-                if widgets::button(ui, tr("Copy link"), false, true).on_hover_text(tr("An invite link that opens FigCraft and joins")).clicked() {
+                if widgets::button(ui, tr("Copy link"), false, true).on_hover_text(tr("An invite link that opens FigIran and joins")).clicked() {
                     app.clipboard_set_text(&link);
                     app.toast(tr("Invite link copied"));
                 }
@@ -1256,7 +1256,7 @@ fn host_line(ui: &mut Ui, t: &Tokens, operator: &str, terms: &str) {
 /// When the server deletes the file unless someone opens it.
 fn expiry_line(ui: &mut Ui, t: &Tokens, expires: Option<u64>) {
     if let Some(e) = expires {
-        let date = figcraft_engine::live::utc_date(e);
+        let date = figiran_engine::live::utc_date(e);
         widgets::label(ui, &trf("The server deletes this file if nobody opens it before {date}.", &[("date", &date)]), t.text_secondary);
     }
 }
@@ -1275,7 +1275,7 @@ fn report_ui(app: &mut FigApp, ui: &mut Ui, t: &Tokens) {
     let resp = ui.add(
         egui::TextEdit::singleline(&mut reason)
             .hint_text(tr("Spam, stolen work, abuse…"))
-            .char_limit(figcraft_engine::live::MAX_REPORT)
+            .char_limit(figiran_engine::live::MAX_REPORT)
             .desired_width(ui.available_width())
             .id(egui::Id::unique("live_report_reason")),
     );
@@ -1325,10 +1325,10 @@ pub fn open_join(app: &mut FigApp, link: &str) {
     app.ui.live.focus_join = true;
 }
 
-/// An invite link the app was opened with (`figcraft figcraft://join?…`): the Join dialog opens
+/// An invite link the app was opened with (`figiran figiran://join?…`): the Join dialog opens
 /// with the link filled in, so joining is the person's own choice.
 ///
-/// The system hands the app any `figcraft://` link that is followed, which may be a page, a
+/// The system hands the app any `figiran://` link that is followed, which may be a page, a
 /// message or a document rather than something the person meant to act on, so the link is shown
 /// and confirmed rather than acted on.
 pub fn open_invite(app: &mut FigApp, link: &str) {
@@ -1439,7 +1439,7 @@ pub fn publish_dialog(app: &mut FigApp, ctx: &egui::Context) {
         ui.set_width(380.0);
         widgets::label(
             ui,
-            tr("Uploads this file to a FigCraft server and keeps this tab in sync with it. You get a link to edit and a link to view."),
+            tr("Uploads this file to a FigIran server and keeps this tab in sync with it. You get a link to edit and a link to view."),
             t.text,
         );
         widgets::label(ui, tr("Server address"), t.text_secondary);
@@ -1469,12 +1469,12 @@ pub fn publish_dialog(app: &mut FigApp, ctx: &egui::Context) {
             }
             Some(_) => widgets::label(
                 ui,
-                tr("This server needs its key: add ?key=… to the address (`figcraft-server key` prints it on the server's machine)."),
+                tr("This server needs its key: add ?key=… to the address (`figiran-server key` prints it on the server's machine)."),
                 t.danger,
             ),
             None => widgets::label(
                 ui,
-                tr("Give the address of a server open to the public, or a server's address with its key (`figcraft-server key` prints it)."),
+                tr("Give the address of a server open to the public, or a server's address with its key (`figiran-server key` prints it)."),
                 t.text_secondary,
             ),
         }

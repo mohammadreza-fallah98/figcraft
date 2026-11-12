@@ -1,5 +1,5 @@
 //! The browser client (step 4 of `docs/collab-protocol.md`): the web build joins a session a
-//! desktop app hosts, or a file on a `figcraft-server` (also over `wss://` behind a TLS reverse
+//! desktop app hosts, or a file on a `figiran-server` (also over `wss://` behind a TLS reverse
 //! proxy), and publishes files to a server, through the browser's WebSocket API (`web-sys`), with
 //! the same messages as the native guest. The connection logic is the [`Driver`]'s; this file
 //! feeds it the socket's events and wakes it with a timer. Hosting a session needs the desktop
@@ -18,8 +18,8 @@ use std::cell::{Cell, RefCell};
 use std::collections::BTreeMap;
 use std::rc::Rc;
 
-use figcraft_collab::message::{ClientMsg, Presence};
-use figcraft_engine::live::{Event, HostOptions, LiveLink, NO_SESSION, NetRequest, PublishOptions, SessionId, SessionInfo};
+use figiran_collab::message::{ClientMsg, Presence};
+use figiran_engine::live::{Event, HostOptions, LiveLink, NO_SESSION, NetRequest, PublishOptions, SessionId, SessionInfo};
 use wasm_bindgen::JsCast as _;
 use wasm_bindgen::closure::Closure;
 use web_sys::{BinaryType, CloseEvent, MessageEvent, WebSocket};
@@ -142,7 +142,7 @@ fn js_error(e: &wasm_bindgen::JsValue) -> String {
 fn reachable(server: &Endpoint) -> Result<(), String> {
     let secure_page = web_sys::window().and_then(|w| w.location().protocol().ok()).is_some_and(|p| p == "https:");
     if secure_page && !server.secure && !server.loopback() {
-        return Err("this page was loaded over https, and browsers block unencrypted ws:// connections; use a wss:// address (a server behind TLS), open FigCraft from an http:// address (like http://localhost:8767), or use the desktop app".into());
+        return Err("this page was loaded over https, and browsers block unencrypted ws:// connections; use a wss:// address (a server behind TLS), open FigIran from an http:// address (like http://localhost:8767), or use the desktop app".into());
     }
     Ok(())
 }

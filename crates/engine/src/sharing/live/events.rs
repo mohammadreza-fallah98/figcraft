@@ -1,6 +1,6 @@
 use super::host::{clean_hosting, clean_shared};
-use figcraft_collab::Change;
-use figcraft_collab::merge::{self, Side};
+use figiran_collab::Change;
+use figiran_collab::merge::{self, Side};
 
 use super::types::{Event, MAX_PEERS, PageInfo, Role, SessionId, SessionInfo, Status};
 use super::{

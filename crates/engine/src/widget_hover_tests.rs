@@ -9,8 +9,8 @@ use crate::plugins_tests::{install, undo_len};
 use crate::tools::{PointerEvent, PointerKind};
 use crate::widgets_tests::{W, widget_manifest};
 use crate::{Session, textpreview};
-use figcraft_doc::NodeId;
-use figcraft_geom::Point;
+use figiran_doc::NodeId;
+use figiran_geom::Point;
 
 const BLUE: &str = "0D99FF";
 const DARK: &str = "0B7FD6";
@@ -113,7 +113,7 @@ fn widget_hover_is_a_command_any_other_command_ends() {
     assert_eq!(ex(&mut s, "widget.hover", json!({}))["hovering"], false);
     // A hover style damaged in a file is ignored.
     let doc = s.ds_mut().unwrap().doc_mut();
-    doc.get_mut(btn).unwrap().plugin_data.insert("figcraft.widget.hover".into(), "{\"fill\": \"not a colour\"}".into());
+    doc.get_mut(btn).unwrap().plugin_data.insert("figiran.widget.hover".into(), "{\"fill\": \"not a colour\"}".into());
     assert_eq!(ex(&mut s, "widget.hover", json!({"ids": [btn]}))["hovering"], false);
 }
 

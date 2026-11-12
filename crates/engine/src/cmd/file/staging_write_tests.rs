@@ -1,7 +1,7 @@
 use super::*;
 
 fn dir(name: &str) -> std::path::PathBuf {
-    let d = std::env::temp_dir().join(format!("figcraft-engine-staging-{name}-{}", std::process::id()));
+    let d = std::env::temp_dir().join(format!("figiran-engine-staging-{name}-{}", std::process::id()));
     std::fs::create_dir_all(&d).unwrap();
     d
 }
@@ -23,7 +23,7 @@ fn an_existing_staging_file_is_never_written_through() {
     let path = d.join("shot.svg");
     // The old deterministic staging name, held by an unrelated file: the write must pick its
     // own staging name instead of truncating this one.
-    let old = d.join("shot.svg.tmp-figcraft");
+    let old = d.join("shot.svg.tmp-figiran");
     std::fs::write(&old, b"not yours").unwrap();
     write(&path.to_string_lossy(), b"<svg/>").unwrap();
     assert_eq!(std::fs::read(&path).unwrap(), b"<svg/>");
@@ -39,7 +39,7 @@ fn a_staging_symlink_is_never_followed() {
     let path = d.join("shot.svg");
     let victim = d.join("victim.txt");
     std::fs::write(&victim, b"innocent").unwrap();
-    let old = d.join("shot.svg.tmp-figcraft");
+    let old = d.join("shot.svg.tmp-figiran");
     if !symlink(&old, &victim) {
         return; // Making a symlink needs privileges on some Windows setups.
     }

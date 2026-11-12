@@ -8,7 +8,7 @@ use crate::cmd::lists::character_fills;
 use crate::params::id_of;
 
 /// The fill each character of `t` shows, as hex.
-fn fills_shown(s: &Session, t: figcraft_doc::NodeId) -> Vec<String> {
+fn fills_shown(s: &Session, t: figiran_doc::NodeId) -> Vec<String> {
     let n = s.doc().unwrap().node(t).unwrap().clone();
     let tx = n.kind.text().unwrap().clone();
     (0..tx.char_count())

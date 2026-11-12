@@ -1,20 +1,20 @@
 [package]
-name = "figcraft-render"
+name = "figiran-render"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "FigCraft renderer: the scene graph to pixels on tiny-skia (fills, gradients, images, aligned strokes, shadows, blurs, masks, blend modes, text)"
+description = "FigIran renderer: the scene graph to pixels on tiny-skia (fills, gradients, images, aligned strokes, shadows, blurs, masks, blend modes, text)"
 
 [lints]
 workspace = true
 
 [dependencies]
-figcraft-geom = { workspace = true }
-figcraft-color = { workspace = true }
-figcraft-doc = { workspace = true }
-figcraft-format = { workspace = true }
-figcraft-text = { workspace = true }
-figcraft-pathops = { workspace = true }
+figiran-geom = { workspace = true }
+figiran-color = { workspace = true }
+figiran-doc = { workspace = true }
+figiran-format = { workspace = true }
+figiran-text = { workspace = true }
+figiran-pathops = { workspace = true }
 tiny-skia = { workspace = true }
 image = { workspace = true }
 moxcms = { workspace = true }

@@ -91,7 +91,7 @@ fn aliases_follow_their_target_and_refuse_loops_and_other_types() {
     // Stored by id, resolved through the target.
     let sm = s.doc().unwrap().variables.get("space/sm").unwrap().id.clone();
     let md = s.doc().unwrap().variables.get("space/md").cloned().unwrap();
-    assert!(md.values.values().any(|v| *v == figcraft_doc::VariableValue::Alias(sm.clone())));
+    assert!(md.values.values().any(|v| *v == figiran_doc::VariableValue::Alias(sm.clone())));
     assert_eq!(s.doc().unwrap().node(f).unwrap().width, 8.0);
     ex(&mut s, "variable.set", json!({"variable": "space/sm", "value": 12}));
     assert_eq!(s.doc().unwrap().node(f).unwrap().width, 12.0);
@@ -174,7 +174,7 @@ fn stored_variable_ids_keep_collection_edits_on_the_resolved_collection() {
     let coll = doc.variables.collection_by_id(theme["id"].as_str().unwrap()).unwrap();
     let mode = coll.find_mode("Dark").unwrap().id.clone();
     let modes = std::collections::BTreeMap::from([(coll.id.clone(), mode)]);
-    assert_eq!(doc.variables.resolve(surface["id"].as_str().unwrap(), &modes), Some(figcraft_doc::VariableValue::Number(7.0)));
+    assert_eq!(doc.variables.resolve(surface["id"].as_str().unwrap(), &modes), Some(figiran_doc::VariableValue::Number(7.0)));
 
     // Mode commands resolve the user's collection argument before checking its stored id.
     let doc = s.doc_mut().unwrap();

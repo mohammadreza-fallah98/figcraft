@@ -2,11 +2,11 @@
 //! hex and RGB fields, gradient stops, image and pattern fills and document colours.
 
 use egui::{Align2, Color32, CornerRadius, Id, Mesh, Rect, Sense, Stroke, StrokeKind, Ui, pos2, vec2};
-use figcraft_color::{
+use figiran_color::{
     BlendMode, Color, ColorStop, Gradient, GradientKind, Hsb, ImageFilters, ImagePaint, ImageScaleMode, Paint, PaintKind, PatternAlign, PatternPaint,
     PatternTile,
 };
-use figcraft_doc::{NodeId, NodeKind};
+use figiran_doc::{NodeId, NodeKind};
 use serde_json::json;
 
 use crate::FigApp;
@@ -21,7 +21,7 @@ use crate::widgets;
 pub enum PickerTarget {
     PageBackground,
     SelectionColor {
-        targets: Vec<figcraft_engine::selection_colors::PaintTarget>,
+        targets: Vec<figiran_engine::selection_colors::PaintTarget>,
         selection: Vec<NodeId>,
         document: u64,
     },
@@ -62,15 +62,15 @@ pub enum PickerTarget {
 }
 
 /// The paints of colour style `id`.
-fn style_paints(doc: &figcraft_doc::Document, id: &str) -> Option<Vec<Paint>> {
+fn style_paints(doc: &figiran_doc::Document, id: &str) -> Option<Vec<Paint>> {
     match &doc.style(id)?.kind {
-        figcraft_doc::StyleKind::Paint { paints } => Some(paints.clone()),
+        figiran_doc::StyleKind::Paint { paints } => Some(paints.clone()),
         _ => None,
     }
 }
 
 /// The fills a text range paints with (its own, else the layer's).
-pub fn range_fills(doc: &figcraft_doc::Document, id: NodeId, start: usize) -> Option<Vec<Paint>> {
+pub fn range_fills(doc: &figiran_doc::Document, id: NodeId, start: usize) -> Option<Vec<Paint>> {
     let n = doc.node(id)?;
     let t = n.kind.text()?;
     Some(t.style_at(start).fills.clone().unwrap_or_else(|| n.fills.clone()))
@@ -95,18 +95,18 @@ fn current_paint(app: &FigApp, target: &PickerTarget) -> Option<Paint> {
             // Regions selected in vector edit mode: the picker edits their own fills (#1875).
             if *fills
                 && ids.len() == 1
-                && let Some(Some(list)) = figcraft_engine::vectoredit::selected_region_fills(&app.session, n.id)
+                && let Some(Some(list)) = figiran_engine::vectoredit::selected_region_fills(&app.session, n.id)
             {
                 return list.get(*index).cloned();
             }
             // A text's fills are its characters' (none to pick while they differ, #1856).
-            let list = if *fills { figcraft_engine::cmd::lists::character_fills(n)? } else { n.strokes.clone() };
+            let list = if *fills { figiran_engine::cmd::lists::character_fills(n)? } else { n.strokes.clone() };
             list.get(*index).cloned()
         }
         PickerTarget::Effect { ids, index, secondary } => doc.node(*ids.first()?)?.effects.get(*index)?.color(*secondary).map(Paint::solid),
         PickerTarget::TextRange { id, start, .. } => range_fills(doc, *id, *start)?.into_iter().next(),
         PickerTarget::Variable { id, mode } => match doc.variables.get_by_id(id)?.values.get(mode)? {
-            figcraft_doc::VariableValue::Color(c) => {
+            figiran_doc::VariableValue::Color(c) => {
                 let mut p = Paint::solid(c.with_alpha(1.0));
                 p.opacity = c.a;
                 Some(p)
@@ -247,12 +247,12 @@ fn page_colors(app: &FigApp, ui: &Ui) -> Vec<Color> {
     let Ok(ds) = app.session.ds() else { return vec![] };
     let key = (std::sync::Arc::as_ptr(&ds.doc) as usize, ds.page);
     let cache_id = Id::unique("cp_doc_colors");
-    if let Some((k, colors)) = ui.data(|d| d.get_temp::<((usize, figcraft_doc::NodeId), Vec<Color>)>(cache_id))
+    if let Some((k, colors)) = ui.data(|d| d.get_temp::<((usize, figiran_doc::NodeId), Vec<Color>)>(cache_id))
         && k == key
     {
         return colors;
     }
-    let colors: Vec<Color> = figcraft_engine::cmd::styles::document_colors(&ds.doc, ds.page).into_iter().take(21).map(|(c, _)| c).collect();
+    let colors: Vec<Color> = figiran_engine::cmd::styles::document_colors(&ds.doc, ds.page).into_iter().take(21).map(|(c, _)| c).collect();
     ui.data_mut(|d| d.insert_temp(cache_id, (key, colors.clone())));
     colors
 }
@@ -422,7 +422,7 @@ impl Polar {
     fn values(self, c: Color) -> [f64; 3] {
         let v = match self {
             Self::Hsl => {
-                let x = figcraft_color::Hsl::from_color(c);
+                let x = figiran_color::Hsl::from_color(c);
                 [x.h, x.s * 100.0, x.l * 100.0]
             }
             Self::Hsb => {
@@ -430,11 +430,11 @@ impl Polar {
                 [x.h, x.s * 100.0, x.b * 100.0]
             }
             Self::Lch => {
-                let x = figcraft_color::Lch::from_color(c);
+                let x = figiran_color::Lch::from_color(c);
                 [x.l, x.c, x.h]
             }
             Self::Oklch => {
-                let x = figcraft_color::Oklch::from_color(c);
+                let x = figiran_color::Oklch::from_color(c);
                 [x.l * 100.0, x.c, x.h]
             }
         };
@@ -445,10 +445,10 @@ impl Polar {
     fn color(self, v: [f64; 3]) -> Color {
         let [a, b, d] = v.map(|v| v as f32);
         match self {
-            Self::Hsl => figcraft_color::Hsl { h: a, s: b / 100.0, l: d / 100.0 }.to_color(),
+            Self::Hsl => figiran_color::Hsl { h: a, s: b / 100.0, l: d / 100.0 }.to_color(),
             Self::Hsb => Hsb { h: a, s: b / 100.0, b: d / 100.0 }.to_color(),
-            Self::Lch => figcraft_color::Lch { l: a, c: b, h: d }.to_color(),
-            Self::Oklch => figcraft_color::Oklch { l: a / 100.0, c: b, h: d }.to_color(),
+            Self::Lch => figiran_color::Lch { l: a, c: b, h: d }.to_color(),
+            Self::Oklch => figiran_color::Oklch { l: a / 100.0, c: b, h: d }.to_color(),
         }
     }
 }
@@ -588,7 +588,7 @@ fn set_image_pending(ctx: &egui::Context, target: Option<&PickerTarget>) {
 fn region_backed(app: &FigApp, target: &PickerTarget) -> bool {
     match target {
         PickerTarget::Paint { fills: true, ids, .. } => {
-            matches!(ids.as_slice(), [id] if figcraft_engine::vectoredit::selected_region_fills(&app.session, *id).is_some())
+            matches!(ids.as_slice(), [id] if figiran_engine::vectoredit::selected_region_fills(&app.session, *id).is_some())
         }
         _ => false,
     }
@@ -620,7 +620,7 @@ pub(crate) fn image_drop_target(app: &FigApp, ctx: &egui::Context) -> Option<(Re
 fn picked_bytes(file: &serde_json::Value) -> Option<Vec<u8>> {
     use base64::Engine as _;
     match file["path"].as_str() {
-        Some(path) => figcraft_engine::file_access::read_capped(path, figcraft_doc::ImageData::MAX_BYTES).ok(),
+        Some(path) => figiran_engine::file_access::read_capped(path, figiran_doc::ImageData::MAX_BYTES).ok(),
         None => base64::engine::general_purpose::STANDARD.decode(file["data"].as_str()?).ok(),
     }
 }
@@ -642,7 +642,7 @@ fn upload_image(app: &mut FigApp, target: &PickerTarget) {
             return;
         }
         let Some(bytes) = picked_bytes(&file) else { return };
-        let Some(hash) = app.session.doc_mut().ok().and_then(|d| figcraft_format_add(d, bytes)) else { return };
+        let Some(hash) = app.session.doc_mut().ok().and_then(|d| figiran_format_add(d, bytes)) else { return };
         if let Some(mut paint) = current_paint(app, &target) {
             paint.kind = Paint::image(hash, ImageScaleMode::Fill).kind;
             write(app, &target, &paint, false);
@@ -657,7 +657,7 @@ fn image_texture(app: &FigApp, ctx: &egui::Context, hash: &str, side: f64) -> Op
         return Some(tex);
     }
     let doc = app.session.doc().ok()?;
-    let pix = figcraft_render::images::shown(hash, doc.images.get(hash), &ImageFilters::default(), doc.color_profile, side)?;
+    let pix = figiran_render::images::shown(hash, doc.images.get(hash), &ImageFilters::default(), doc.color_profile, side)?;
     let tex = ctx.load_texture("cp-image", crate::render_worker::screen_image(&pix, doc.color_profile), egui::TextureOptions::LINEAR);
     ctx.data_mut(|d| d.insert_temp(id, (hash.to_string(), tex.clone())));
     Some(tex)
@@ -787,7 +787,7 @@ fn image_controls(app: &mut FigApp, ui: &mut Ui, target: &PickerTarget, paint: &
         }
     });
     // The image's own colour profile (decoding converts it into the file's).
-    let source = app.session.doc().ok().and_then(|d| figcraft_render::images::profile_name(&img.image, d.images.get(&img.image)));
+    let source = app.session.doc().ok().and_then(|d| figiran_render::images::profile_name(&img.image, d.images.get(&img.image)));
     let source = match source.as_deref() {
         None => tr("Unknown — treated as sRGB"),
         Some("") => tr("Embedded profile"),
@@ -936,7 +936,7 @@ fn gradient_controls(
         let stop = g.stops.get(sel).map(|s| s.color);
         ui.horizontal(|ui| {
             ui.add_space(16.0);
-            crate::variable_ui::bindable(app, ui, ids, &field, figcraft_doc::VariableType::Color, 208.0, |_, ui| {
+            crate::variable_ui::bindable(app, ui, ids, &field, figiran_doc::VariableType::Color, 208.0, |_, ui| {
                 let (r, _) = ui.allocate_exact_size(vec2(208.0, widgets::FIELD_H), Sense::hover());
                 ui.painter().rect_filled(r, CornerRadius::same(5), t.field);
                 let sw = Rect::from_center_size(pos2(r.min.x + 13.0, r.center().y), vec2(14.0, 14.0));
@@ -1112,7 +1112,7 @@ pub fn show(app: &mut FigApp, ctx: &egui::Context) {
             }
             ui.data_mut(|d| d.insert_temp(Id::unique("cp_hsb"), (hsb.h, hsb.s, hsb.b, nc.to_rgba8())));
             // A Display P3 colour sRGB can't show: the canvas (sRGB) shows the nearest one.
-            if app.session.doc().is_ok_and(|d| d.color_profile.conversion_to(figcraft_color::ColorProfile::Srgb).clips(nc)) {
+            if app.session.doc().is_ok_and(|d| d.color_profile.conversion_to(figiran_color::ColorProfile::Srgb).clips(nc)) {
                 gamut_warning(ui, &t);
             }
             if changed {
@@ -1443,7 +1443,7 @@ fn image_presets(app: &mut FigApp, ui: &mut Ui, target: &PickerTarget, paint: &m
                 app.run("image.adjust", json!({"ids": ids, "target": if *fills { "fill" } else { "stroke" }, "index": index, "preset": name}));
             }
             _ => {
-                let preset = app.session.doc().ok().and_then(|d| figcraft_engine::cmd::image::find_preset(d, &name));
+                let preset = app.session.doc().ok().and_then(|d| figiran_engine::cmd::image::find_preset(d, &name));
                 if let (Some(f), PaintKind::Image(img)) = (preset, &mut paint.kind) {
                     img.filters = f;
                     write(app, target, paint, false);
@@ -1454,7 +1454,7 @@ fn image_presets(app: &mut FigApp, ui: &mut Ui, target: &PickerTarget, paint: &m
     }
 }
 
-fn figcraft_format_add(doc: &mut figcraft_doc::Document, bytes: Vec<u8>) -> Option<String> {
+fn figiran_format_add(doc: &mut figiran_doc::Document, bytes: Vec<u8>) -> Option<String> {
     // Images are keyed by content hash; the engine's image.place uses the same scheme.
     let (w, h) = image::ImageReader::new(std::io::Cursor::new(&bytes)).with_guessed_format().ok()?.into_dimensions().ok()?;
     let hash = {
@@ -1463,7 +1463,7 @@ fn figcraft_format_add(doc: &mut figcraft_doc::Document, bytes: Vec<u8>) -> Opti
         bytes.hash(&mut s);
         format!("img{:016x}{:08x}", s.finish(), bytes.len())
     };
-    doc.images.insert(hash.clone(), figcraft_doc::ImageData { bytes: std::sync::Arc::new(bytes), width: w, height: h });
+    doc.images.insert(hash.clone(), figiran_doc::ImageData { bytes: std::sync::Arc::new(bytes), width: w, height: h });
     Some(hash)
 }
 
@@ -1484,7 +1484,7 @@ impl WithStops for Gradient {
 mod selection_color_tests {
     use super::*;
     use crate::NoServices;
-    use figcraft_engine::{Session, selection_colors::collect};
+    use figiran_engine::{Session, selection_colors::collect};
 
     fn setup() -> (FigApp, NodeId, NodeId) {
         let mut s = Session::new();
@@ -1548,7 +1548,7 @@ mod selection_color_tests {
 mod tests {
     use super::*;
     use crate::layers_drag_tests::Ui;
-    use figcraft_engine::Session;
+    use figiran_engine::Session;
 
     #[test]
     fn dragging_records_only_the_final_colour_in_recent_colors() {

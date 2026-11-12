@@ -88,7 +88,7 @@ pub(crate) fn open(s: &mut Session, p: &Value) -> Result<Value> {
     let on_disk = crate::library::stat(&path).ok();
     let (loaded, rest) = load_path(&path, variables.as_ref())?;
     remember(s, &path);
-    let native = !rest && matches!(ext(&path).as_str(), "figcraft" | "json");
+    let native = !rest && matches!(ext(&path).as_str(), "figiran" | "json");
     let warnings = rest || matches!(ext(&path).as_str(), "svg" | "penpot");
     // A native file that lost something (a damaged image, say): the app says so, not only the result.
     if (native || warnings) && !loaded.issues.is_empty() {
@@ -137,7 +137,7 @@ fn open_data(s: &mut Session, data: &str, p: &Value, variables: Option<&Value>) 
     let name = req_string("file.open", p, "name")?;
     let data = data.split_once(',').map_or(data, |(_, b)| b);
     let bytes = base64::engine::general_purpose::STANDARD.decode(data.trim()).map_err(|e| bad("file.open", e.to_string()))?;
-    let (loaded, rest) = load_with(&bytes, &name, variables, &figcraft_format::rest::no_images)?;
+    let (loaded, rest) = load_with(&bytes, &name, variables, &figiran_format::rest::no_images)?;
     let warnings = rest || matches!(ext(&name).as_str(), "svg" | "penpot");
     let summary = import_summary(&loaded.doc);
     s.docs.push(DocState::new(loaded.doc, None).with_versions(loaded.versions).with_branches(loaded.branches));
@@ -169,13 +169,13 @@ pub(super) fn import(s: &mut Session, p: &Value) -> Result<Value> {
             let doc = s.doc_mut()?;
             let (x, y) = (x.unwrap_or(center.0), y.unwrap_or(center.1));
             let imported =
-                figcraft_svg::import_svg_with_notes(doc, &bytes, page, x, y, &file_stem(&name)).map_err(|e| EngineError::Other(e.to_string()))?;
+                figiran_svg::import_svg_with_notes(doc, &bytes, page, x, y, &file_stem(&name)).map_err(|e| EngineError::Other(e.to_string()))?;
             let id = imported.frame;
             // Centred on the point (a paste lands in the middle of the view).
             if boolean(p, "center").unwrap_or(false)
                 && let Some(n) = doc.node_mut(id)
             {
-                n.transform = figcraft_geom::Affine::translate(((x - n.width / 2.0).round(), (y - n.height / 2.0).round()));
+                n.transform = figiran_geom::Affine::translate(((x - n.width / 2.0).round(), (y - n.height / 2.0).round()));
             }
             s.set_selection(vec![id]);
             let mut out = json!({"id": id});
@@ -184,11 +184,11 @@ pub(super) fn import(s: &mut Session, p: &Value) -> Result<Value> {
             }
             Ok(out)
         }
-        "figcraft" | "json" | "fig" | "jam" | "sketch" | "penpot" => {
+        "figiran" | "json" | "fig" | "jam" | "sketch" | "penpot" => {
             let resolver = path.as_deref().map(rest_images);
-            let images: figcraft_format::rest::ImageResolver = match &resolver {
+            let images: figiran_format::rest::ImageResolver = match &resolver {
                 Some(r) => r,
-                None => &figcraft_format::rest::no_images,
+                None => &figiran_format::rest::no_images,
             };
             let sibling = if variables.is_none() { path.as_deref().and_then(sibling_variables) } else { None };
             let (other, rest) = load_with(&bytes, &name, variables.as_ref().or(sibling.as_ref()), images)?;

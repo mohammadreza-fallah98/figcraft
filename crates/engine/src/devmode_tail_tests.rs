@@ -2,7 +2,7 @@
 
 use crate::Session;
 use crate::components::tests::{ex, idv};
-use figcraft_doc::NodeId;
+use figiran_doc::NodeId;
 use serde_json::json;
 
 fn code(s: &mut Session, id: NodeId, lang: &str) -> String {

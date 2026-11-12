@@ -2,8 +2,8 @@
 //! and free points, connectors inside moving sections, styles and labels with their refusals, and
 //! the shape, stamp, highlighter and connector tools with double-clicks.
 
-use figcraft_doc::{BoardItem, BoardShape, End, NodeId, Side, Stamp, StrokeCap, board_color};
-use figcraft_geom::Point;
+use figiran_doc::{BoardItem, BoardShape, End, NodeId, Side, Stamp, StrokeCap, board_color};
+use figiran_geom::Point;
 use serde_json::json;
 
 use crate::Session;
@@ -12,7 +12,7 @@ use crate::board_tests::{board, connector, drawn, id, near, node};
 use crate::tools::{PointerEvent, PointerKind, ToolId};
 
 /// The connector among `ids`, if any.
-fn connector_in(s: &Session, ids: &[NodeId]) -> Option<figcraft_doc::Connector> {
+fn connector_in(s: &Session, ids: &[NodeId]) -> Option<figiran_doc::Connector> {
     let doc = s.doc().ok()?;
     ids.iter().find_map(|i| match &doc.node(*i)?.board {
         Some(BoardItem::Connector(k)) => Some(k.clone()),
@@ -96,8 +96,7 @@ fn routes_take_named_sides_and_free_points() {
     let a = id(&s.execute("board.shape", &json!({"x": 0, "y": 0, "width": 100, "height": 100})).unwrap(), "id");
     let b = id(&s.execute("board.shape", &json!({"x": 300, "y": 300, "width": 100, "height": 100})).unwrap(), "id");
     let doc = s.doc().unwrap();
-    let elbow =
-        |from, to| route(doc, &figcraft_doc::Connector { from, to, routing: figcraft_doc::Routing::Elbow, path: None, branch: false }).unwrap();
+    let elbow = |from, to| route(doc, &figiran_doc::Connector { from, to, routing: figiran_doc::Routing::Elbow, path: None, branch: false }).unwrap();
     let side = |n, side| End::Node { node: n, side, at: None };
     let p = |x, y| End::Point { x, y };
     let pt = Point::new;
@@ -112,13 +111,7 @@ fn routes_take_named_sides_and_free_points() {
     // An automatic side faces the other end.
     let straight = route(
         doc,
-        &figcraft_doc::Connector {
-            from: side(a, Side::Auto),
-            to: p(50.0, 500.0),
-            routing: figcraft_doc::Routing::Straight,
-            path: None,
-            branch: false,
-        },
+        &figiran_doc::Connector { from: side(a, Side::Auto), to: p(50.0, 500.0), routing: figiran_doc::Routing::Straight, path: None, branch: false },
     );
     assert_eq!(straight.unwrap(), vec![pt(50.0, 104.0), pt(50.0, 500.0)]);
     assert_eq!(Side::from_id("TOP"), Some(Side::Top));
@@ -305,7 +298,7 @@ fn a_connector_joined_to_a_moving_layer_or_its_section_is_no_snap_target() {
     // A box whose left edge is 1 past a line snaps back by 1 when the line is a target.
     let pull = |s: &Session, moving: &[NodeId], x: f64| {
         let t = crate::snap::Targets::gather(s.doc().unwrap(), page, moving);
-        t.snap_rect(figcraft_geom::Rect::new(x + 1.0, 600.0, x + 9.0, 610.0), 4.0).0
+        t.snap_rect(figiran_geom::Rect::new(x + 1.0, 600.0, x + 9.0, 610.0), 4.0).0
     };
     assert_eq!((pull(&s, &[d], start), pull(&s, &[d], lx)), (-1.0, -1.0), "for an unrelated layer, the connector and its label snap");
     assert_eq!(pull(&s, &[b], start), 0.0, "not for the layer it arrives at");

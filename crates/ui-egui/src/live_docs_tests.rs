@@ -5,8 +5,8 @@
 
 use std::sync::{Arc, Mutex};
 
-use figcraft_engine::figcraft_collab::message::ClientMsg;
-use figcraft_engine::live::{Access, Event as LiveEvent, HostOptions, LiveLink, Peer, Presence, Role, SessionInfo};
+use figiran_engine::figiran_collab::message::ClientMsg;
+use figiran_engine::live::{Access, Event as LiveEvent, HostOptions, LiveLink, Peer, Presence, Role, SessionInfo};
 use serde_json::{Value, json};
 
 use crate::live_tests::{Harness, has_text, text_center};
@@ -27,7 +27,7 @@ impl LiveLink for Hosting {
             color: "#14AE5C".into(),
             file_name: "Shared".into(),
             pages: vec![],
-            link: format!("figcraft://join?host={address}&file=f&token=t"),
+            link: format!("figiran://join?host={address}&file=f&token=t"),
             url: format!("ws://{address}/?file=f&token=t"),
             address,
             network: false,

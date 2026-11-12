@@ -1,6 +1,6 @@
 //! A prototype's Open link action carries a URL from the document and fires from whatever trigger
 //! the prototype sets, including a delay, so the player hands the opener only a web link
-//! ([`figcraft_engine::doc_urls`]). Without that, a saved document opens `javascript:` in the web
+//! ([`figiran_engine::doc_urls`]). Without that, a saved document opens `javascript:` in the web
 //! build's own origin (stored XSS) and `smb:`/`ms-…:` through the desktop's handlers. Every
 //! openable link waits behind a notice that it leaves the prototype — to a website or to the
 //! mail app (#1096). Skipping the notice opens at once only a link the viewer's own click, press,
@@ -11,7 +11,7 @@
 
 use std::sync::{Arc, Mutex};
 
-use figcraft_engine::Session;
+use figiran_engine::Session;
 use serde_json::{Value, json};
 
 use crate::Services;
@@ -19,7 +19,7 @@ use crate::present_tests::{Ui as Harness, id};
 
 /// Records every URL the player asks the platform to open, and every save of the preferences.
 #[derive(Default)]
-struct Opened(Arc<Mutex<Vec<String>>>, Arc<Mutex<Vec<figcraft_engine::Prefs>>>);
+struct Opened(Arc<Mutex<Vec<String>>>, Arc<Mutex<Vec<figiran_engine::Prefs>>>);
 
 impl Services for Opened {
     fn open_url(&mut self, url: &str) {
@@ -35,7 +35,7 @@ impl Services for Opened {
         }
     }
 
-    fn save_prefs(&mut self, prefs: &figcraft_engine::Prefs) {
+    fn save_prefs(&mut self, prefs: &figiran_engine::Prefs) {
         if let Ok(mut v) = self.1.lock() {
             v.push(prefs.clone());
         }
@@ -62,7 +62,7 @@ fn playing(cmd: &str, skip_notice: bool, interaction: Value, urls: &[&str]) -> (
 }
 
 /// `s` presented by `cmd` from frame `start`, with the opener and the preferences recorded.
-fn present(cmd: &str, s: Session, start: figcraft_doc::NodeId) -> (Harness, Opened) {
+fn present(cmd: &str, s: Session, start: figiran_doc::NodeId) -> (Harness, Opened) {
     let seen = Opened::default();
     let mut u = Harness::new(s);
     u.app.services = Box::new(Opened(seen.0.clone(), seen.1.clone()));
@@ -395,7 +395,7 @@ fn a_prototype_cannot_open_a_script_or_handler_url() {
         "smb://attacker.example/share/x",
         // Handed to an application handler by the desktop.
         "ms-msdt:/id PCWDiagnostic",
-        "figcraft://join?host=127.0.0.1:47900&file=f&token=t",
+        "figiran://join?host=127.0.0.1:47900&file=f&token=t",
     ] {
         assert!(opens_on_a_click(url).is_empty(), "{url:?} must never reach the opener");
     }
@@ -532,6 +532,6 @@ fn the_editor_turns_open_in_new_tab_off_and_on() {
         u.frames(2, Vec::new);
         let doc = u.app.session.doc().unwrap();
         let url = "https://example.com/a".to_string();
-        assert_eq!(doc.node(f).unwrap().interactions[0].actions, [figcraft_doc::proto::Action::OpenUrl { url, new_tab }]);
+        assert_eq!(doc.node(f).unwrap().interactions[0].actions, [figiran_doc::proto::Action::OpenUrl { url, new_tab }]);
     }
 }

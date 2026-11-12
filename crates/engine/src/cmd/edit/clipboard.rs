@@ -30,7 +30,7 @@ pub fn copy_to_clipboard(s: &mut Session, cmd: &str, ids: &[NodeId]) -> Result<(
     Ok(())
 }
 
-type Copied = (Vec<(NodeId, Vec<Node>)>, BTreeMap<String, ImageData>, Option<figcraft_geom::Rect>);
+type Copied = (Vec<(NodeId, Vec<Node>)>, BTreeMap<String, ImageData>, Option<figiran_geom::Rect>);
 
 fn copied(doc: &Document, ids: &[NodeId]) -> Copied {
     let ids = z_sorted(doc, &roots(doc, ids));
@@ -45,7 +45,7 @@ fn copied(doc: &Document, ids: &[NodeId]) -> Copied {
         }
         for n in &sub {
             for p in n.fills.iter().chain(n.strokes.iter()) {
-                if let figcraft_color::PaintKind::Image(img) = &p.kind
+                if let figiran_color::PaintKind::Image(img) = &p.kind
                     && let Some(d) = doc.images.get(&img.image)
                 {
                     images.insert(img.image.clone(), d.clone());
@@ -86,7 +86,7 @@ pub fn design_clipboard_buffer(html: &str) -> Option<Vec<u8>> {
     let start = html.find(CLIP_OPEN)? + CLIP_OPEN.len();
     let len = html.get(start..)?.find(CLIP_CLOSE)?;
     let bytes = clip_base64(html.get(start..start + len)?)?;
-    figcraft_format::fig::is_fig(&bytes).then_some(bytes)
+    figiran_format::fig::is_fig(&bytes).then_some(bytes)
 }
 
 /// Paste design layers from clipboard HTML or base64 `data`: decode and reject missing,
@@ -150,9 +150,9 @@ const MAX_MISSING_NAMED: usize = 20;
 
 /// The names of the layers under `ids` with an image fill or stroke whose image the paste didn't
 /// carry (#1646): it shows the importer's missing-image placeholder, or nothing at all.
-fn layers_missing_images(doc: &figcraft_doc::Document, ids: &[NodeId]) -> Vec<String> {
-    let missing = |p: &figcraft_color::Paint| match &p.kind {
-        figcraft_color::PaintKind::Image(img) => doc.images.get(&img.image).is_none_or(figcraft_format::rest::is_missing_image),
+fn layers_missing_images(doc: &figiran_doc::Document, ids: &[NodeId]) -> Vec<String> {
+    let missing = |p: &figiran_color::Paint| match &p.kind {
+        figiran_color::PaintKind::Image(img) => doc.images.get(&img.image).is_none_or(figiran_format::rest::is_missing_image),
         _ => false,
     };
     let mut names: Vec<String> = Vec::new();
@@ -227,7 +227,7 @@ pub fn paste_into(s: &mut Session, parent: NodeId, at: Option<(f64, f64)>) -> Re
         all.extend(map);
     }
     // Board connectors pasted with what they join join the pasted copies.
-    let originals: Vec<(NodeId, figcraft_doc::BoardItem)> =
+    let originals: Vec<(NodeId, figiran_doc::BoardItem)> =
         clip.nodes.iter().flat_map(|(_, nodes)| nodes).filter_map(|n| Some((*all.get(&n.id)?, n.board.clone()?))).collect();
     crate::board::rejoin(doc, &originals, &all, !copy_local);
     if let Some(src) = foreign {
@@ -262,7 +262,7 @@ pub(super) fn paste(s: &mut Session, p: &Value) -> Result<Value> {
                 (Some(t), Some(b)) => {
                     let tb = doc.world_bounds(t);
                     match tb {
-                        Some(tb) if tb.contains(b.origin()) && tb.contains(figcraft_geom::Point::new(b.x1, b.y1)) => None,
+                        Some(tb) if tb.contains(b.origin()) && tb.contains(figiran_geom::Point::new(b.x1, b.y1)) => None,
                         Some(tb) => Some((tb.center().x - b.width() / 2.0, tb.center().y - b.height() / 2.0)),
                         None => None,
                     }
@@ -271,7 +271,7 @@ pub(super) fn paste(s: &mut Session, p: &Value) -> Result<Value> {
                     // Off-screen originals paste at the viewport centre.
                     let v = &s.ds()?.view;
                     let (ox, oy) = v.origin();
-                    let vr = figcraft_geom::Rect::new(ox, oy, ox + v.vw / v.zoom.max(1e-9), oy + v.vh / v.zoom.max(1e-9));
+                    let vr = figiran_geom::Rect::new(ox, oy, ox + v.vw / v.zoom.max(1e-9), oy + v.vh / v.zoom.max(1e-9));
                     if vr.intersect(b).is_zero_area() { Some((v.cx - b.width() / 2.0, v.cy - b.height() / 2.0)) } else { None }
                 }
                 _ => None,

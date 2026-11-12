@@ -1,7 +1,7 @@
 //! Swapping a library: instances, styles and variables move to the other library's assets of the
 //! same names (overrides kept), what has no match stays and is reported, one undo step.
 
-use figcraft_doc::*;
+use figiran_doc::*;
 use serde_json::{Value, json};
 
 use crate::Session;
@@ -60,9 +60,9 @@ fn main_of(s: &Session, inst: NodeId) -> NodeId {
 /// A session with libraries A (blue, plus `extra_a` components) and B (green) enabled, files in a
 /// scratch directory named by `tag`; returns the directory guard, the session and both library ids.
 fn two_libraries(tag: &str, extra_a: &[&str]) -> (Scratch, Session, String, String) {
-    let dir = Scratch(std::env::temp_dir().join(format!("figcraft-libswap-{tag}-{}", std::process::id())));
+    let dir = Scratch(std::env::temp_dir().join(format!("figiran-libswap-{tag}-{}", std::process::id())));
     std::fs::create_dir_all(&dir.0).unwrap();
-    let (pa, pb) = (dir.0.join("a.figcraft").to_string_lossy().into_owned(), dir.0.join("b.figcraft").to_string_lossy().into_owned());
+    let (pa, pb) = (dir.0.join("a.figiran").to_string_lossy().into_owned(), dir.0.join("b.figiran").to_string_lossy().into_owned());
     let a = library(&pa, "#0000ff", extra_a);
     let b = library(&pb, "#00ff00", &[]);
     let mut s = Session::new();
@@ -123,9 +123,9 @@ fn swap_moves_instances_styles_and_variables_by_name() {
 
 #[test]
 fn stored_variable_ids_keep_library_swap_matches_on_the_real_copies() {
-    let dir = Scratch(std::env::temp_dir().join(format!("figcraft-libswap-ids-{}", std::process::id())));
+    let dir = Scratch(std::env::temp_dir().join(format!("figiran-libswap-ids-{}", std::process::id())));
     std::fs::create_dir_all(&dir.0).unwrap();
-    let (pa, pb) = (dir.0.join("a.figcraft").to_string_lossy().into_owned(), dir.0.join("b.figcraft").to_string_lossy().into_owned());
+    let (pa, pb) = (dir.0.join("a.figiran").to_string_lossy().into_owned(), dir.0.join("b.figiran").to_string_lossy().into_owned());
     let a = library(&pa, "#0000ff", &[]);
     let b = library(&pb, "#00ff00", &[]);
     let mut s = Session::new();

@@ -1,6 +1,6 @@
 //! Sketch symbols → components and instances with overrides.
 
-use figcraft_doc::{Document, Node, NodeKind};
+use figiran_doc::{Document, Node, NodeKind};
 use serde_json::{Value, json};
 
 use super::fixture::*;
@@ -349,7 +349,7 @@ fn image_overrides_on_shapes() {
         n.fills
             .iter()
             .filter_map(|p| match &p.kind {
-                figcraft_doc::color::PaintKind::Image(i) => Some(i.image.clone()),
+                figiran_doc::color::PaintKind::Image(i) => Some(i.image.clone()),
                 _ => None,
             })
             .collect()
@@ -389,7 +389,7 @@ fn image_overrides_survive_layer_style_overrides() {
     let (inst, main) = instance_of(&doc, "I");
     let image = |n: &Node| {
         n.fills.iter().find_map(|p| match &p.kind {
-            figcraft_doc::color::PaintKind::Image(i) => Some(i.image.clone()),
+            figiran_doc::color::PaintKind::Image(i) => Some(i.image.clone()),
             _ => None,
         })
     };

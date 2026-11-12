@@ -1,8 +1,8 @@
-//! Team libraries: a file's published library kept on a `figcraft-server` under that file, and
+//! Team libraries: a file's published library kept on a `figiran-server` under that file, and
 //! used by other files through one of its share links (a view link is enough to read it).
 //!
 //! A library on a server is the same published library a library file holds (manifest and
-//! snapshot, with per-asset versions), carried as a small `.figcraft` archive holding only it. Its
+//! snapshot, with per-asset versions), carried as a small `.figiran` archive holding only it. Its
 //! link takes the place of a library file's path in [`LibraryLink::path`], so everything else
 //! (the Assets panel, placing components, updates with overrides kept) works as for library files.
 //! The engine never opens a socket: requests go through the app's [`LiveLink`](crate::live::LiveLink).
@@ -15,8 +15,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::io::Cursor;
 use std::sync::Arc;
 
-use figcraft_collab::message::{AssetUsage, Detached, LibraryReply, LibraryReq, MAX_ASSET_USAGE, Usage};
-use figcraft_doc::{DetachCount, Document, ImportedRecord, NodeId, NodeKind, PublishedLibrary};
+use figiran_collab::message::{AssetUsage, Detached, LibraryReply, LibraryReq, MAX_ASSET_USAGE, Usage};
+use figiran_doc::{DetachCount, Document, ImportedRecord, NodeId, NodeKind, PublishedLibrary};
 
 use crate::live::{NetReply, NetRequest};
 use crate::{EngineError, Result, Session};
@@ -34,13 +34,13 @@ pub const MAX_TEAM_LIBRARIES: usize = 500;
 /// How [`Prefs::team_libraries`](crate::Prefs) keeps a link: its SHA-256, so the preferences hold
 /// no token.
 fn link_key(link: &str) -> String {
-    figcraft_format::image_hash(link.trim().as_bytes())
+    figiran_format::image_hash(link.trim().as_bytes())
 }
 
 /// Whether a library's path is a share link of a file on a server (else it is a library file).
 pub fn is_server_link(path: &str) -> bool {
     let p = path.trim_start().to_ascii_lowercase();
-    ["figcraft://", "ws://", "wss://"].iter().any(|s| p.starts_with(s))
+    ["figiran://", "ws://", "wss://"].iter().any(|s| p.starts_with(s))
 }
 
 /// A library path to show: a server link without its token.
@@ -53,16 +53,16 @@ pub fn shown_path(path: &str) -> String {
     format!("{}token=…{}", path.get(..at).unwrap_or_default(), path.get(end..).unwrap_or_default())
 }
 
-/// `lib` as the archive a server keeps: a `.figcraft` file holding only the library.
+/// `lib` as the archive a server keeps: a `.figiran` file holding only the library.
 pub fn archive(lib: &PublishedLibrary) -> Result<Vec<u8>> {
     let mut holder = Document::new(lib.manifest.name.clone());
     holder.published = Some(Arc::new(lib.clone()));
-    figcraft_format::save_bytes(&holder, None).map_err(|e| EngineError::Other(format!("couldn't pack the library: {e}")))
+    figiran_format::save_bytes(&holder, None).map_err(|e| EngineError::Other(format!("couldn't pack the library: {e}")))
 }
 
 /// The library in an archive from a server (untrusted: read with the library file's limits).
 pub fn read_archive(bytes: &[u8]) -> std::result::Result<PublishedLibrary, String> {
-    match figcraft_format::read_library(Cursor::new(bytes)) {
+    match figiran_format::read_library(Cursor::new(bytes)) {
         Ok(Some(lib)) => Ok(crate::library::settled(lib)),
         Ok(None) => Err("the server sent a file without a library".into()),
         Err(e) => Err(format!("the server sent a library that can't be read ({e})")),
@@ -108,7 +108,7 @@ pub fn asset_usage(doc: &Document, library: &str) -> Option<AssetUsage> {
     }
     let store = doc.library_store();
     let (mut styles, mut variables) = (BTreeMap::<&str, u32>::new(), BTreeMap::<&str, u32>::new());
-    let instance = |n: &figcraft_doc::Node| matches!(n.kind, NodeKind::Instance { .. }) || crate::components::inside_instance(doc, n.id);
+    let instance = |n: &figiran_doc::Node| matches!(n.kind, NodeKind::Instance { .. }) || crate::components::inside_instance(doc, n.id);
     let own = doc.nodes().filter(|n| store.is_none_or(|st| doc.page_of(n.id) != Some(st)) && !instance(n));
     for n in own {
         let used = crate::library::style_links(n).filter_map(|s| style_keys.get(s)).collect::<BTreeSet<_>>();

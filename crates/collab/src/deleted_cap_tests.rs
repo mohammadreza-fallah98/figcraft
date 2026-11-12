@@ -4,7 +4,7 @@
 
 use std::collections::BTreeSet;
 
-use figcraft_doc::{Document, Node, NodeId, NodeKind};
+use figiran_doc::{Document, Node, NodeId, NodeKind};
 
 use crate::message::ClientMsg;
 use crate::server::MAX_DELETED;

@@ -3,7 +3,7 @@
 use std::io::{BufRead, Read, Write};
 use std::sync::Arc;
 
-use figcraft_engine::file_access::{Roots, confined};
+use figiran_engine::file_access::{Roots, confined};
 
 use serde_json::{Value, json};
 
@@ -28,7 +28,7 @@ pub const RESOURCE_NOT_FOUND: i64 = -32002;
 const MAX_LINE: usize = 32 * 1024 * 1024;
 
 /// The `instructions` string sent on initialize.
-pub const INSTRUCTIONS: &str = "FigCraft is an interface design tool: pages hold frames, \
+pub const INSTRUCTIONS: &str = "FigIran is an interface design tool: pages hold frames, \
 groups, shapes, text, components and instances, with auto layout, styles, variables and prototyping. \
 Coordinates are page units (1 unit = 1 px at 100% zoom), x right and y DOWN. create_node and set_properties \
 take x/y RELATIVE TO THE PARENT (the page when there is no parent, so page coordinates); inspect_document \
@@ -42,7 +42,7 @@ screenshot returns a PNG of the page or of given layers to look at. undo/redo st
 Comments: comment.list returns threads (text, anchor node id, frame, page, x/y, replies); fix open ones, \
 reply with what changed, then resolve (a reply reopens a thread). To react to new feedback, call \
 wait_for_changes {after, timeoutMs} and pass the returned cursor back. \
-Resources: figcraft://document, figcraft://node/{id}, figcraft://command/{id}, figcraft://comments. \
+Resources: figiran://document, figiran://node/{id}, figiran://command/{id}, figiran://comments. \
 prompts/list has workflows, including fix_comments.";
 
 /// An MCP server bound to one backend.
@@ -119,7 +119,7 @@ impl Server {
     }
 
     /// Confine the files every request reads and writes to `roots` (see
-    /// [`figcraft_engine::file_access`]).
+    /// [`figiran_engine::file_access`]).
     pub fn with_roots(mut self, roots: Option<Roots>) -> Self {
         self.roots = roots.map(Arc::new);
         self
@@ -257,7 +257,7 @@ impl Server {
                         "resources": {"subscribe": false, "listChanged": false},
                         "prompts": {"listChanged": false},
                     },
-                    "serverInfo": {"name": "figcraft", "title": "FigCraft", "version": env!("CARGO_PKG_VERSION")},
+                    "serverInfo": {"name": "figiran", "title": "FigIran", "version": env!("CARGO_PKG_VERSION")},
                     "instructions": format!("{INSTRUCTIONS} Backend: {}.{}", self.backend.describe(), self.roots_note()),
                 }))
             }

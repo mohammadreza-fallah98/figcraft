@@ -1,8 +1,8 @@
 //! The floating bottom toolbar (UI3): tool groups with flyouts, comments, actions.
 
 use egui::{Align2, Color32, CornerRadius, Rect, Sense, Stroke, StrokeKind, Ui, pos2, vec2};
-use figcraft_engine::ToolId;
-use figcraft_engine::vectoredit::VTool;
+use figiran_engine::ToolId;
+use figiran_engine::vectoredit::VTool;
 use serde_json::json;
 
 use crate::FigApp;
@@ -131,14 +131,14 @@ pub fn show(app: &mut FigApp, ui: &mut Ui) {
         builder_toolbar(app, ui);
         return;
     }
-    let board = app.session.doc().is_ok_and(figcraft_engine::board::is_board);
+    let board = app.session.doc().is_ok_and(figiran_engine::board::is_board);
     main_toolbar(app, ui, canvas, &t, board);
 }
 
 /// The main toolbar pill's width for the active file: the Actions palette matches it so the two
 /// read as one bar.
 pub(crate) fn bar_width(app: &FigApp) -> f32 {
-    let board = app.session.doc().is_ok_and(figcraft_engine::board::is_board);
+    let board = app.session.doc().is_ok_and(figiran_engine::board::is_board);
     main_width(if board { BOARD_GROUPS } else { GROUPS }, board)
 }
 
@@ -343,7 +343,7 @@ fn help_button(app: &mut FigApp, ui: &mut Ui, canvas: Rect, pill: Rect, t: &Toke
             (tr("Keyboard shortcuts"), "help.shortcuts"),
             (tr("Help page"), "help.page"),
             (tr("Check for updates…"), "help.checkForUpdates"),
-            (tr("About FigCraft"), "help.about"),
+            (tr("About FigIran"), "help.about"),
         ] {
             if crate::right::menu_item(ui, l, crate::shortcuts::shortcut(c).unwrap_or("")) {
                 crate::menus::invoke(app, c);
@@ -359,14 +359,14 @@ fn help_button(app: &mut FigApp, ui: &mut Ui, canvas: Rect, pill: Rect, t: &Toke
 fn view_only_toolbar(app: &mut FigApp, ui: &mut Ui, why: &'static str) {
     let t = Tokens::get(ui.ctx());
     // The editing tools are off: the tool falls back to moving around.
-    if !figcraft_engine::live::tool_left(why, app.session.tool.tool) {
+    if !figiran_engine::live::tool_left(why, app.session.tool.tool) {
         app.run("tool.set", json!({"tool": "move"}));
     }
-    let comment = why == figcraft_engine::live::COMMENT_ONLY;
+    let comment = why == figiran_engine::live::COMMENT_ONLY;
     let moving = [(ToolId::Move, Icon::Move), (ToolId::Hand, Icon::Hand), (ToolId::Comment, Icon::Comment)];
     let tools = if comment { &moving[..] } else { &moving[..2] };
     let (label, badge_icon) = match why {
-        figcraft_engine::live::PUBLISHING => (tr("Publishing…"), Icon::Eye),
+        figiran_engine::live::PUBLISHING => (tr("Publishing…"), Icon::Eye),
         _ if comment => (tr("Can comment"), Icon::Comment),
         _ => (tr("View only"), Icon::Eye),
     };
@@ -443,7 +443,7 @@ fn edit_toolbar(app: &mut FigApp, ui: &mut Ui, current: VTool) {
 fn builder_toolbar(app: &mut FigApp, ui: &mut Ui) {
     let t = Tokens::get(ui.ctx());
     let remove = app.session.tool.builder_remove;
-    let has_regions = figcraft_engine::shapebuilder::current(&app.session).is_some_and(|a| !a.regions.is_empty());
+    let has_regions = figiran_engine::shapebuilder::current(&app.session).is_some_and(|a| !a.regions.is_empty());
     let alt = pretty_shortcut("Alt");
     let hint = if !has_regions {
         tr("Select overlapping shapes").to_string()
@@ -640,7 +640,7 @@ fn flyout_id(key: &str) -> egui::Id {
 
 /// "Shift+Cmd+K" → "⇧⌘K" on macOS, "Ctrl+Shift+K" elsewhere.
 pub fn pretty_shortcut(s: &str) -> String {
-    figcraft_engine::keymap::display(s, crate::shortcuts::platform())
+    figiran_engine::keymap::display(s, crate::shortcuts::platform())
 }
 
 #[cfg(test)]

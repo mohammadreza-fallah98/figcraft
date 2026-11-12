@@ -1,7 +1,7 @@
 //! Branches of a file: a copy of the document to work on separately (in its own tab), reviewed
 //! against the main file and merged back. A branch remembers the main document as it was when
-//! the branch was made or last updated from main (its base); [`figcraft_collab::merge`] compares
-//! both sides with it. Branches are saved in the main file ([`figcraft_format::Branch`]); a
+//! the branch was made or last updated from main (its base); [`figiran_collab::merge`] compares
+//! both sides with it. Branches are saved in the main file ([`figiran_format::Branch`]); a
 //! branch tab's edits and its own version history go into its branch ([`sync`]) and are saved with
 //! the main file. Merging adds a version to the main file's history; the branch keeps its own.
 //!
@@ -15,13 +15,13 @@
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
-pub use figcraft_collab::merge::Side;
-use figcraft_collab::merge::{self, Conflict, Key, Plan};
-use figcraft_collab::{Change, Entry, Prop, Target};
-use figcraft_doc::ids::space_of;
-use figcraft_doc::{Document, NodeId};
-use figcraft_format::Branch;
-pub use figcraft_format::BranchState;
+pub use figiran_collab::merge::Side;
+use figiran_collab::merge::{self, Conflict, Key, Plan};
+use figiran_collab::{Change, Entry, Prop, Target};
+use figiran_doc::ids::space_of;
+use figiran_doc::{Document, NodeId};
+use figiran_format::Branch;
+pub use figiran_format::BranchState;
 use serde::Serialize;
 use serde_json::{Value, json};
 
@@ -195,7 +195,7 @@ pub fn needs_copy(s: &Session, d: &DocState) -> bool {
 /// What a recovery copy of `d` holds: the document itself (not a version or live text preview
 /// shown in its place: a crash during a preview must bring the file back, not the version),
 /// its version history and its branches as they are now ([`current`]).
-pub fn recovery_copy(s: &Session, d: &DocState) -> (Arc<Document>, Vec<figcraft_format::Version>, Vec<Branch>) {
+pub fn recovery_copy(s: &Session, d: &DocState) -> (Arc<Document>, Vec<figiran_format::Version>, Vec<Branch>) {
     (d.document_itself().clone(), d.versions.clone(), current(s, d.uid))
 }
 
@@ -297,12 +297,12 @@ fn create(s: &mut Session, p: &Value) -> Result<Value> {
         return Err(disabled(CMD, "this tab is a branch: make branches from the main file"));
     }
     let live = s.live_client_id(CMD, ds.uid)?;
-    if ds.branches.len() >= figcraft_format::MAX_BRANCHES {
-        return Err(disabled(CMD, format!("the file has the most branches it can keep ({})", figcraft_format::MAX_BRANCHES)));
+    if ds.branches.len() >= figiran_format::MAX_BRANCHES {
+        return Err(disabled(CMD, format!("the file has the most branches it can keep ({})", figiran_format::MAX_BRANCHES)));
     }
     let name =
         string(p, "name").map(|n| n.trim().to_string()).filter(|n| !n.is_empty()).unwrap_or_else(|| format!("Branch {}", ds.branches.len() + 1));
-    let name = figcraft_format::clip(&name, figcraft_format::MAX_VERSION_NAME);
+    let name = figiran_format::clip(&name, figiran_format::MAX_VERSION_NAME);
     let base = ds.document_itself().clone();
     let no_space = || disabled(CMD, "no id space left for a new branch");
     // In a live session: your own client space, far above the main file's ids there. Otherwise its
@@ -589,7 +589,7 @@ fn entry_label(plan: &Plan, entry: &Entry, value: Option<&Value>) -> Option<(&'s
     };
     let base = plan.base().value(&Target::Entry(entry.clone())).ok().flatten();
     let named = value.or(base.as_ref().map(|j| &j.0)).and_then(|v| v.get("name").or_else(|| v.get("text"))).and_then(Value::as_str);
-    Some((kind, figcraft_format::clip(named.unwrap_or_default(), 60)))
+    Some((kind, figiran_format::clip(named.unwrap_or_default(), 60)))
 }
 
 /// What `c` did to its entry: added, changed or removed.

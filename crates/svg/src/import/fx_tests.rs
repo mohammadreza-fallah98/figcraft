@@ -1,8 +1,8 @@
 //! Filters → effects: the primitive chains tools write for shadows and blurs, scaled with their
 //! layer, and our own exports coming back as the effects they were.
 
-use figcraft_color::{Color, Paint};
-use figcraft_doc::{Blur, Document, Effect, EffectKind, NodeKind, Shadow};
+use figiran_color::{Color, Paint};
+use figiran_doc::{Blur, Document, Effect, EffectKind, NodeKind, Shadow};
 
 use super::import_svg_with_notes;
 
@@ -170,8 +170,8 @@ fn stacked_blurs_and_their_shadow_come_back_drawing_the_same() {
     // 16: the canvas's box blurs add their variances only nearly).
     let draw = |d: &Document, id| {
         let at = d.world_render_bounds(id).unwrap();
-        let v = figcraft_render::View { origin: (at.x0 - 10.0, at.y0 - 10.0), scale: 1.0, width: 220, height: 220 };
-        figcraft_render::render_view_single(d, d.first_page().unwrap(), &v, &figcraft_render::Options::default()).unwrap()
+        let v = figiran_render::View { origin: (at.x0 - 10.0, at.y0 - 10.0), scale: 1.0, width: 220, height: 220 };
+        figiran_render::render_view_single(d, d.first_page().unwrap(), &v, &figiran_render::Options::default()).unwrap()
     };
     let (a, z) = (draw(&d, r), draw(&d2, back.id));
     let worst = a.data().iter().zip(z.data()).map(|(x, y)| x.abs_diff(*y)).max().unwrap_or(0);

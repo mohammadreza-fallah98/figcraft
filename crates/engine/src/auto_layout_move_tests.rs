@@ -2,7 +2,7 @@
 //! they are, so a drag doesn't lay its contents out again on every pointer move; a change that can
 //! move or resize them still does, and its parent's layout still follows it.
 
-use figcraft_doc::NodeId;
+use figiran_doc::NodeId;
 use serde_json::json;
 
 use crate::Session;
@@ -32,7 +32,7 @@ fn moving_an_auto_layout_frame_leaves_its_contents_alone() {
     // never run on it), then move the frame: its contents aren't laid out again.
     {
         let doc = s.ds_mut().unwrap().doc_mut();
-        doc.node_mut(second).unwrap().transform = figcraft_doc::geom::Affine::translate((0.0, laid_out + 500.0));
+        doc.node_mut(second).unwrap().transform = figiran_doc::geom::Affine::translate((0.0, laid_out + 500.0));
         doc.take_dirty();
     }
     s.execute("node.set", &json!({"ids": [frame.0], "props": {"x": 300, "y": 200}})).unwrap();

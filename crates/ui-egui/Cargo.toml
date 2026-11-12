@@ -1,25 +1,25 @@
 [package]
-name = "figcraft-ui-egui"
+name = "figiran-ui-egui"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "FigCraft egui frontend (the Figma-style UI: canvas, toolbar, layers, design and prototype panels, menus); swappable: nothing below depends on it"
+description = "FigIran egui frontend (the Figma-style UI: canvas, toolbar, layers, design and prototype panels, menus); swappable: nothing below depends on it"
 
 [lints]
 workspace = true
 
 [dependencies]
 craft-ui = { workspace = true }
-figcraft-geom = { workspace = true }
-figcraft-color = { workspace = true }
-figcraft-doc = { workspace = true }
-figcraft-text = { workspace = true }
-figcraft-layout = { workspace = true }
-figcraft-render = { workspace = true }
-figcraft-pathops = { workspace = true }
-figcraft-engine = { workspace = true }
-figcraft-format = { workspace = true }
-figcraft-portal = { workspace = true }
+figiran-geom = { workspace = true }
+figiran-color = { workspace = true }
+figiran-doc = { workspace = true }
+figiran-text = { workspace = true }
+figiran-layout = { workspace = true }
+figiran-render = { workspace = true }
+figiran-pathops = { workspace = true }
+figiran-engine = { workspace = true }
+figiran-format = { workspace = true }
+figiran-portal = { workspace = true }
 egui = { workspace = true, features = ["default_fonts", "monochrome_emoji_fonts"] }
 serde = { workspace = true }
 serde_json = { workspace = true }

@@ -1,13 +1,13 @@
 //! Running a session on a board: a countdown everyone sees and votes on objects.
 //!
-//! Both live in the document ([`figcraft_doc::facilitation`]) so they reach everyone in a live
+//! Both live in the document ([`figiran_doc::facilitation`]) so they reach everyone in a live
 //! session, and neither is an undo step: undoing an edit leaves the timer and the vote as they are.
 
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
-use figcraft_doc::{Ballots, BoardTimer, Document, NodeId, TIMER_MAX_MS, VOTE_HISTORY_MAX, VOTES_MAX, Vote, VoteRecord, VoteScope};
-use figcraft_geom::{Point, Rect};
+use figiran_doc::{Ballots, BoardTimer, Document, NodeId, TIMER_MAX_MS, VOTE_HISTORY_MAX, VOTES_MAX, Vote, VoteRecord, VoteScope};
+use figiran_geom::{Point, Rect};
 use serde_json::{Value, json};
 
 use crate::board::{require, text_of};
@@ -491,7 +491,7 @@ impl Session {
         });
         let hit = || {
             let leaf = self.hit(doc, self.page().ok()?, p, 2.0 / ev.zoom.max(1e-6))?;
-            vote.scope.target(doc, leaf, figcraft_doc::geometry::select_target(doc, leaf, &[], false))
+            vote.scope.target(doc, leaf, figiran_doc::geometry::select_target(doc, leaf, &[], false))
         };
         let (action, target) = match on_badge {
             Some(id) => ("retract", id),

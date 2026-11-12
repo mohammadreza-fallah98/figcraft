@@ -1,9 +1,9 @@
 [package]
-name = "figcraft-portal"
+name = "figiran-portal"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "Login against a company portal: browser sign-in with a one-time code (PKCE-style), the `figcraft://auth` callback, tokens kept in the OS credential store, the user's project list and the join link of a project"
+description = "Login against a company portal: browser sign-in with a one-time code (PKCE-style), the `figiran://auth` callback, tokens kept in the OS credential store, the user's project list and the join link of a project"
 
 [lints]
 workspace = true

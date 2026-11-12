@@ -1,17 +1,17 @@
 [package]
-name = "figcraft-collab-net"
+name = "figiran-collab-net"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "FigCraft live sessions over the network: the WebSocket transport, the session host the app embeds, invite links and presence relay (carries figcraft-collab's messages)"
+description = "FigIran live sessions over the network: the WebSocket transport, the session host the app embeds, invite links and presence relay (carries figiran-collab's messages)"
 
 [lints]
 workspace = true
 
 [dependencies]
-figcraft-engine = { workspace = true }
-figcraft-collab = { workspace = true }
-figcraft-doc = { workspace = true }
+figiran-engine = { workspace = true }
+figiran-collab = { workspace = true }
+figiran-doc = { workspace = true }
 log = { workspace = true }
 # `std::time::Instant` natively, the browser's clock in the web build.
 web-time = "1"

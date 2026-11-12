@@ -1,9 +1,9 @@
 //! Log in to a company portal from the right panel's top bar, next to Share (desktop app, and only
-//! when a portal address is configured: `FIGCRAFT_PORTAL_URL`, see `figcraft-portal`). The button
-//! opens a popover: Log in (the portal's page opens in the browser and `figcraft://auth` brings the
+//! when a portal address is configured: `FIGIRAN_PORTAL_URL`, see `figiran-portal`). The button
+//! opens a popover: Log in (the portal's page opens in the browser and `figiran://auth` brings the
 //! one-time code back), then the person's projects, each opened with the join link the portal
 //! gives. The name from the login goes into Preferences ▸ Your name. All the work is
-//! `figcraft_portal::Portal`'s, on background threads; this file only draws it and applies its
+//! `figiran_portal::Portal`'s, on background threads; this file only draws it and applies its
 //! results (a name to keep, a project to join) once a frame.
 //!
 //! Signed in, there is no button of its own: the avatar's people menu (`live::people_menu`) is the
@@ -15,12 +15,12 @@ use std::sync::{Arc, Mutex, PoisonError};
 use std::time::Duration;
 
 use egui::{CornerRadius, Rect, Sense, Stroke, StrokeKind, Ui, pos2, vec2};
-use figcraft_portal::config::ConfigError;
-use figcraft_portal::session::Projects;
-use figcraft_portal::{Access, Portal, Status, View};
+use figiran_portal::config::ConfigError;
+use figiran_portal::session::Projects;
+use figiran_portal::{Access, Portal, Status, View};
 use serde_json::json;
 
-use figcraft_engine::live::SessionId;
+use figiran_engine::live::SessionId;
 
 use crate::FigApp;
 use crate::a11y::Tip;
@@ -52,7 +52,7 @@ struct Opened {
 }
 
 /// Where the app keeps its settings, for the note a login leaves for another copy of the app
-/// (the system starts a new process for `figcraft://auth`). Call before the first frame.
+/// (the system starts a new process for `figiran://auth`). Call before the first frame.
 pub fn set_state_dir(app: &mut FigApp, dir: Option<PathBuf>) {
     app.ui.portal.state_dir = dir;
 }
@@ -91,10 +91,10 @@ impl PortalUi {
     }
 }
 
-/// A `figcraft:` link the app was handed: `figcraft://auth?code=…` is the portal's login coming
+/// A `figiran:` link the app was handed: `figiran://auth?code=…` is the portal's login coming
 /// back (true); any other link is not this module's.
 pub fn handle_link(app: &mut FigApp, link: &str) -> bool {
-    if !figcraft_portal::is_auth_link(link) {
+    if !figiran_portal::is_auth_link(link) {
         return false;
     }
     if let Ok(portal) = app.ui.portal.get() {
@@ -323,7 +323,7 @@ fn body(app: &mut FigApp, ui: &mut Ui, t: &Tokens, portal: &Portal, view: &View)
         Status::SignedIn => ui.close(),
         Status::SigningIn => widgets::label(ui, tr("Signing in…"), t.text_secondary),
         Status::WaitingForBrowser => {
-            widgets::label(ui, tr("Finish logging in in your browser. FigCraft continues here when you are done."), t.text_secondary);
+            widgets::label(ui, tr("Finish logging in in your browser. FigIran continues here when you are done."), t.text_secondary);
             if widgets::button(ui, tr("Cancel"), false, true).clicked() {
                 portal.cancel_login();
             }

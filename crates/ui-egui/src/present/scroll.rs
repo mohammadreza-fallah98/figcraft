@@ -95,7 +95,7 @@ impl Presenter {
                 continue;
             }
             let rel = doc.world_transform(f).inverse() * doc.world_transform(target);
-            let b = figcraft_geom::transform_rect_bbox(rel, tn.local_rect());
+            let b = figiran_geom::transform_rect_bbox(rel, tn.local_rect());
             let from = self.scroll.get(&f).copied().unwrap_or((0.0, 0.0));
             let to = clamp_scroll((if rx > 0.0 { b.x0 - off[0] } else { from.0 }, if ry > 0.0 { b.y0 - off[1] } else { from.1 }), (rx, ry));
             out.push((f, from, to));
@@ -141,7 +141,7 @@ pub fn scroll_range_in(doc: &Document, frame: NodeId, viewport: Option<(f64, f64
         if !cn.visible || cn.scroll_position == ScrollPosition::Fixed {
             continue;
         }
-        let b = figcraft_geom::transform_rect_bbox(cn.transform, cn.local_rect());
+        let b = figiran_geom::transform_rect_bbox(cn.transform, cn.local_rect());
         x1 = x1.max(b.x1);
         y1 = y1.max(b.y1);
     }
@@ -302,7 +302,7 @@ pub fn apply_scroll(doc: &Document, scroll: &HashMap<NodeId, (f64, f64)>) -> Doc
                 ScrollPosition::Fixed => continue,
                 ScrollPosition::Scrolls => (-sx, -sy),
                 ScrollPosition::Sticky => {
-                    let b = figcraft_geom::transform_rect_bbox(cn.transform, cn.local_rect());
+                    let b = figiran_geom::transform_rect_bbox(cn.transform, cn.local_rect());
                     (sticky(b.x0, sx), sticky(b.y0, sy))
                 }
             };

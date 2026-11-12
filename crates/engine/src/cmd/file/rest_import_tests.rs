@@ -120,7 +120,7 @@ fn open_takes_data_and_a_name_as_a_new_unsaved_document() {
     let data = base64::engine::general_purpose::STANDARD.encode(&bytes);
     let mut s = Session::new();
     let recent = s.prefs.recent_files.clone();
-    let r = s.execute("file.open", &json!({"data": data, "name": "Dropped.figcraft"})).unwrap();
+    let r = s.execute("file.open", &json!({"data": data, "name": "Dropped.figiran"})).unwrap();
     let open = s.docs.len();
     assert_eq!(r["index"], open - 1, "a document of its own, made active");
     assert_eq!(s.ds().unwrap().path, None, "no path to save over");
@@ -139,7 +139,7 @@ fn save_as_data_hands_back_the_file_and_marks_it_saved_once_delivered() {
     assert!(s.execute("file.saveAs", &json!({})).is_err(), "no path and no data: still asks for a path");
     let recent = s.prefs.recent_files.clone();
     let r = s.execute("file.saveAs", &json!({"data": true})).unwrap();
-    assert_eq!(r["name"], "Untitled.figcraft");
+    assert_eq!(r["name"], "Untitled.figiran");
     assert!(s.ds().unwrap().is_dirty(), "not delivered yet: a refused download must not lose the edits");
     s.execute("file.markSaved", &json!({})).unwrap();
     assert!(!s.ds().unwrap().is_dirty());
@@ -152,7 +152,7 @@ fn save_as_data_hands_back_the_file_and_marks_it_saved_once_delivered() {
 
 #[test]
 fn open_and_import_rest_json() {
-    let dir = std::env::temp_dir().join(format!("figcraft-rest-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("figiran-rest-{}", std::process::id()));
     std::fs::create_dir_all(dir.join("images")).unwrap();
     let png = {
         let mut d = Document::new("x");
@@ -172,7 +172,7 @@ fn open_and_import_rest_json() {
     assert_eq!(s.ds().unwrap().path, None, "an import is never saved over its JSON");
     let doc = s.doc().unwrap();
     let photo = doc.nodes().find(|n| n.name == "Photo").unwrap();
-    let figcraft_color::PaintKind::Image(img) = &photo.fills[0].kind else { panic!() };
+    let figiran_color::PaintKind::Image(img) = &photo.fills[0].kind else { panic!() };
     assert_eq!(doc.images.get(&img.image).map(|i| (i.width, i.height)), Some((3, 2)), "read from images/ next to the file");
 
     // Import into another document: pages are appended and references follow the new ids.

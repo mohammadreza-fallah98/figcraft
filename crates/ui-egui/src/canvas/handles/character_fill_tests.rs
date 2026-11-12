@@ -3,8 +3,8 @@
 //! picker show, not the layer's own fill at that index.
 
 use base64::Engine as _;
-use figcraft_color::{Color, ImageScaleMode, Paint, PaintKind};
-use figcraft_engine::Session;
+use figiran_color::{Color, ImageScaleMode, Paint, PaintKind};
+use figiran_engine::Session;
 use serde_json::json;
 
 use super::crop_target;

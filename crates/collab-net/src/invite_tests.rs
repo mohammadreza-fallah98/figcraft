@@ -14,13 +14,13 @@ fn invite() -> Invite {
 #[test]
 fn both_forms_read_back() {
     let i = invite();
-    assert_eq!(i.link(), format!("figcraft://join?host=192.168.1.20:47900&file=0123456789abcdef&token={TOKEN}"));
+    assert_eq!(i.link(), format!("figiran://join?host=192.168.1.20:47900&file=0123456789abcdef&token={TOKEN}"));
     assert_eq!(Invite::parse(&i.link()), Ok(i.clone()));
     assert_eq!(Invite::parse(&i.url()), Ok(i.clone()));
     // Pasted with spaces, quotes or angle brackets, or with escapes.
     assert_eq!(Invite::parse(&format!("  <{}>\n", i.link())), Ok(i.clone()));
     assert_eq!(Invite::parse(&format!("\"{}\"", i.url())), Ok(i.clone()));
-    assert_eq!(Invite::parse(&format!("figcraft://join?host=192.168.1.20%3A47900&file=0123456789abcdef&token={TOKEN}")), Ok(i.clone()));
+    assert_eq!(Invite::parse(&format!("figiran://join?host=192.168.1.20%3A47900&file=0123456789abcdef&token={TOKEN}")), Ok(i.clone()));
     // The secret never travels in the WebSocket request.
     assert_eq!(i.endpoint(), "ws://192.168.1.20:47900/");
     assert_eq!(i.server.display(), "192.168.1.20:47900");
@@ -39,23 +39,20 @@ fn hosts_can_be_v6_or_names() {
 #[test]
 fn server_links_carry_tls_and_a_path() {
     // A server behind a TLS reverse proxy, under a path: the server= form.
-    let i = Invite { server: Endpoint { host: "figcraft.example.com:443".into(), path: "/live/".into(), secure: true }, ..invite() };
-    assert_eq!(i.link(), format!("figcraft://join?server=wss://figcraft.example.com:443/live/&file=0123456789abcdef&token={TOKEN}"));
-    assert_eq!(i.url(), format!("wss://figcraft.example.com:443/live/?file=0123456789abcdef&token={TOKEN}"));
-    assert_eq!(i.endpoint(), "wss://figcraft.example.com:443/live/");
-    assert_eq!(i.server.display(), "wss://figcraft.example.com:443/live/");
+    let i = Invite { server: Endpoint { host: "figiran.example.com:443".into(), path: "/live/".into(), secure: true }, ..invite() };
+    assert_eq!(i.link(), format!("figiran://join?server=wss://figiran.example.com:443/live/&file=0123456789abcdef&token={TOKEN}"));
+    assert_eq!(i.url(), format!("wss://figiran.example.com:443/live/?file=0123456789abcdef&token={TOKEN}"));
+    assert_eq!(i.endpoint(), "wss://figiran.example.com:443/live/");
+    assert_eq!(i.server.display(), "wss://figiran.example.com:443/live/");
     assert_eq!(Invite::parse(&i.link()), Ok(i.clone()));
     assert_eq!(Invite::parse(&i.url()), Ok(i.clone()));
     // The scheme's port when there's none, and a path without its last slash.
-    assert_eq!(Invite::parse(&format!("wss://figcraft.example.com/live?file=0123456789abcdef&token={TOKEN}")), Ok(i.clone()));
-    assert_eq!(
-        Invite::parse(&format!("figcraft://join?server=wss%3A%2F%2Ffigcraft.example.com%2Flive%2F&file=0123456789abcdef&token={TOKEN}")),
-        Ok(i)
-    );
+    assert_eq!(Invite::parse(&format!("wss://figiran.example.com/live?file=0123456789abcdef&token={TOKEN}")), Ok(i.clone()));
+    assert_eq!(Invite::parse(&format!("figiran://join?server=wss%3A%2F%2Ffigiran.example.com%2Flive%2F&file=0123456789abcdef&token={TOKEN}")), Ok(i));
     // A plain server at / is the same as an app's invite.
-    let plain = Invite::parse(&format!("figcraft://join?server=ws://10.0.0.5:47900&file=0123456789abcdef&token={TOKEN}")).unwrap();
+    let plain = Invite::parse(&format!("figiran://join?server=ws://10.0.0.5:47900&file=0123456789abcdef&token={TOKEN}")).unwrap();
     assert_eq!(plain, Invite::new("10.0.0.5:47900", "0123456789abcdef", TOKEN));
-    assert!(plain.link().starts_with("figcraft://join?host=10.0.0.5:47900&"));
+    assert!(plain.link().starts_with("figiran://join?host=10.0.0.5:47900&"));
 }
 
 #[test]
@@ -87,17 +84,17 @@ fn bad_links_are_refused_without_echoing_them() {
         String::new(),
         "hello".into(),
         format!("https://example.com/?token={secret}"),
-        format!("figcraft://node/12?token={secret}"),
-        format!("figcraft://join?file=abc&token={secret}"),
-        format!("figcraft://join?host=10.0.0.1&file=abc&token={secret}"),
-        format!("figcraft://join?host=10.0.0.1:0&file=abc&token={secret}"),
-        format!("figcraft://join?host=10.0.0.1:47900&token={secret}"),
-        "figcraft://join?host=10.0.0.1:47900&file=abc&token=short".into(),
-        format!("figcraft://join?host=10.0.0.1:47900&file=a/b&token={secret}"),
-        format!("figcraft://join?host=10.0.0.1:47900&file=abc&token={secret}%zz"),
-        format!("figcraft://join?server=http://10.0.0.1:47900/&file=abc&token={secret}"),
+        format!("figiran://node/12?token={secret}"),
+        format!("figiran://join?file=abc&token={secret}"),
+        format!("figiran://join?host=10.0.0.1&file=abc&token={secret}"),
+        format!("figiran://join?host=10.0.0.1:0&file=abc&token={secret}"),
+        format!("figiran://join?host=10.0.0.1:47900&token={secret}"),
+        "figiran://join?host=10.0.0.1:47900&file=abc&token=short".into(),
+        format!("figiran://join?host=10.0.0.1:47900&file=a/b&token={secret}"),
+        format!("figiran://join?host=10.0.0.1:47900&file=abc&token={secret}%zz"),
+        format!("figiran://join?server=http://10.0.0.1:47900/&file=abc&token={secret}"),
         format!("wss://10.0.0.1:47900/?file=abc&token=short{secret}!"),
-        format!("figcraft://join?host=10.0.0.1:47900&file=abc&token={}", "x".repeat(3000)),
+        format!("figiran://join?host=10.0.0.1:47900&file=abc&token={}", "x".repeat(3000)),
     ] {
         let e = Invite::parse(&bad).expect_err(&bad);
         assert!(!e.contains(secret), "{e}");
@@ -108,8 +105,8 @@ proptest! {
     #[test]
     fn the_parsers_survive_anything(s in ".{0,300}") {
         let _ = Invite::parse(&s);
-        let _ = Invite::parse(&format!("figcraft://join?{s}"));
-        let _ = Invite::parse(&format!("figcraft://join?server={s}"));
+        let _ = Invite::parse(&format!("figiran://join?{s}"));
+        let _ = Invite::parse(&format!("figiran://join?server={s}"));
         let _ = Invite::parse(&format!("ws://{s}"));
         let _ = Invite::parse(&format!("wss://{s}"));
         let _ = Endpoint::parse(&s);

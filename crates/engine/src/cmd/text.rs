@@ -1,6 +1,6 @@
 //! Text menu and text editing commands.
 
-use figcraft_doc::{
+use figiran_doc::{
     LetterSpacing, LineHeight, ListStyle, NodeId, NodeKind, TextAlignH, TextAutoResize, TextCase, TextData, TextDecoration, TextDirection, TextPath,
     TextStyle, VariableId,
 };
@@ -216,9 +216,9 @@ pub(crate) fn name_weight(style: &str) -> u16 {
     // A Univers number's weight digit has no fixed CSS weight ("65" is Medium in Helvetica Neue,
     // Bold in Univers): the words after it say it.
     if let Some((_, rest)) = words.split_first().filter(|_| univers_width(&words).is_some()) {
-        return figcraft_doc::style_weight(&rest.join(" "));
+        return figiran_doc::style_weight(&rest.join(" "));
     }
-    words.iter().find_map(|w| w_number(w).or_else(|| number_weight(w))).unwrap_or_else(|| figcraft_doc::style_weight(style))
+    words.iter().find_map(|w| w_number(w).or_else(|| number_weight(w))).unwrap_or_else(|| figiran_doc::style_weight(style))
 }
 
 /// The next heavier (`up`) or lighter style of `styles` (a family's with the weight each is listed
@@ -252,7 +252,7 @@ pub(crate) fn next_style(styles: &[(String, u16)], st: &TextStyle, up: bool) -> 
 /// `text.weightUp` / `text.weightDown`: each targeted run moves to the next style of its family.
 fn step_weight(s: &mut Session, p: &Value, up: bool) -> Result<Value> {
     style(s, p, |st| {
-        let styles = figcraft_text::family_style_weights(&st.font_family);
+        let styles = figiran_text::family_style_weights(&st.font_family);
         if styles.is_empty() {
             // A family that isn't installed: step the weight by 100 under its canonical name.
             let w = (i32::from(st.weight()) + if up { 100 } else { -100 }).clamp(100, 900) as u16;
@@ -279,7 +279,7 @@ fn on_path(s: &mut Session, p: &Value) -> Result<Value> {
         .or_else(|| sel.iter().copied().find(|i| *i != text && !is_text(i)))
         .ok_or_else(|| bad(CMD, "select a path or shape too (or pass `path`)"))?;
     let pn = doc.get(path)?;
-    let geom = figcraft_doc::geometry::stroke_geometry(pn).filter(|g| !g.elements().is_empty()).ok_or_else(|| bad(CMD, "that layer has no path"))?;
+    let geom = figiran_doc::geometry::stroke_geometry(pn).filter(|g| !g.elements().is_empty()).ok_or_else(|| bad(CMD, "that layer has no path"))?;
     if !is_text(&text) || doc.is_ancestor(path, text) {
         return Err(bad(CMD, "`text` must be a text layer outside the path layer"));
     }
@@ -448,7 +448,7 @@ pub fn specs() -> Vec<CommandSpec> {
             "{style: auto|balance|pretty, ids?}  where lines break when the text wraps: Auto fits as many words as fit on each line, Balance makes the lines close to the same length, Pretty keeps lines full but leaves no one word alone on the last",
             true,
             |s, p| {
-                let w: figcraft_doc::WrapStyle =
+                let w: figiran_doc::WrapStyle =
                     get(p, "style").and_then(super::props::enum_of).ok_or_else(|| bad("text.wrapStyle", "`style`: auto|balance|pretty"))?;
                 para(s, p, |t| t.wrap_style = w)
             }
@@ -718,7 +718,7 @@ pub fn specs() -> Vec<CommandSpec> {
             "{family? (list its styles), style?, features? (the face's OpenType features), axes? (the face's variation axes and named instances)}",
             false,
             |_, p| {
-                let face = |f: &str| figcraft_text::find_face(f, &string(p, "style").unwrap_or_else(|| "Regular".into()));
+                let face = |f: &str| figiran_text::find_face(f, &string(p, "style").unwrap_or_else(|| "Regular".into()));
                 Ok(match string(p, "family") {
                     Some(f) if boolean(p, "features").unwrap_or(false) => json!(face(&f).map(|face| face.feature_tags()).unwrap_or_default()),
                     Some(f) if boolean(p, "axes").unwrap_or(false) => match face(&f) {
@@ -734,8 +734,8 @@ pub fn specs() -> Vec<CommandSpec> {
                         }),
                         None => Value::Null,
                     },
-                    Some(f) => json!(figcraft_text::family_styles(&f)),
-                    None => json!(figcraft_text::family_names()),
+                    Some(f) => json!(figiran_text::family_styles(&f)),
+                    None => json!(figiran_text::family_names()),
                 })
             }
         ),
@@ -745,7 +745,7 @@ pub fn specs() -> Vec<CommandSpec> {
             "{}  walks the system font folders again, for fonts installed while the app runs; the open document's auto-sizing text in the families that gained faces (new ones, or styles installed since) fits them (text.refit) → {added: [families that were unknown], refitted: [ids]}",
             true,
             |s, _| {
-                let rescan = figcraft_text::rescan_system_fonts();
+                let rescan = figiran_text::rescan_system_fonts();
                 let refitted = crate::fonts::refit_open(s, None, Some(&rescan.changed));
                 Ok(json!({"added": rescan.added, "refitted": refitted}))
             }
@@ -762,11 +762,11 @@ pub fn specs() -> Vec<CommandSpec> {
                     let b64 = b64.split_once(',').map(|(_, d)| d.to_string()).unwrap_or(b64);
                     base64::engine::general_purpose::STANDARD.decode(b64.trim()).map_err(|e| bad(cmd, format!("`data`: {e}")))?
                 } else if let Some(path) = string(p, "path") {
-                    super::file::read_capped(&path, figcraft_text::fontdb::MAX_FONT_FILE)?
+                    super::file::read_capped(&path, figiran_text::fontdb::MAX_FONT_FILE)?
                 } else {
                     return Err(bad(cmd, "pass `path` or `data` (base64)"));
                 };
-                let families = figcraft_text::load_font_bytes(bytes);
+                let families = figiran_text::load_font_bytes(bytes);
                 if families.is_empty() {
                     return Err(bad(cmd, "not a font file"));
                 }

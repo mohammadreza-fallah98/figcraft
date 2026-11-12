@@ -8,7 +8,7 @@ use super::{
 const MAX_STASH: usize = 1 << 20;
 
 /// Whether a width profile reaches further on one side of the path than on the other.
-pub(super) fn one_sided(p: &figcraft_doc::WidthProfile) -> bool {
+pub(super) fn one_sided(p: &figiran_doc::WidthProfile) -> bool {
     p.points.iter().any(|q| q.bias.abs() > 1e-6)
 }
 
@@ -32,12 +32,12 @@ pub(super) fn outlined(n: &Node) -> Option<(Node, String)> {
     {
         return None;
     }
-    let path = figcraft_doc::geometry::stroke_geometry(n)?;
+    let path = figiran_doc::geometry::stroke_geometry(n)?;
     let net = match &n.kind {
-        NodeKind::Vector { network } => Some(figcraft_doc::geometry::drawn_network(network, n.corners.smoothing)),
+        NodeKind::Vector { network } => Some(figiran_doc::geometry::drawn_network(network, n.corners.smoothing)),
         _ => None,
     };
-    let area = figcraft_pathops::stroke_outline_of(&path, sp, figcraft_doc::geometry::is_closed(n), net.as_deref());
+    let area = figiran_pathops::stroke_outline_of(&path, sp, figiran_doc::geometry::is_closed(n), net.as_deref());
     if area.elements().is_empty() || area.elements().len() > MAX_NETWORK / 4 {
         return None;
     }
@@ -323,7 +323,7 @@ pub(super) fn style_fields(st: &TextStyle, f: &mut Fields) {
 }
 
 /// Layout grid `index` of a layer, with the variables `bound` to its fields.
-pub(super) fn layout_grid(g: &figcraft_doc::LayoutGrid, index: usize, bound: &Bound) -> Kv<'static> {
+pub(super) fn layout_grid(g: &figiran_doc::LayoutGrid, index: usize, bound: &Bound) -> Kv<'static> {
     let (pattern, axis) = match g.kind {
         GridKind::Grid => ("GRID", "X"),
         GridKind::Columns => ("STRIPES", "X"),
@@ -351,14 +351,14 @@ pub(super) fn layout_grid(g: &figcraft_doc::LayoutGrid, index: usize, bound: &Bo
     o(f)
 }
 
-pub(super) fn export_setting(x: &figcraft_doc::ExportSetting) -> Kv<'static> {
+pub(super) fn export_setting(x: &figiran_doc::ExportSetting) -> Kv<'static> {
     let format = match x.format {
         // The format has no WebP export setting.
-        figcraft_doc::ExportFormat::Png | figcraft_doc::ExportFormat::Webp => "PNG",
-        figcraft_doc::ExportFormat::Jpg => "JPEG",
+        figiran_doc::ExportFormat::Png | figiran_doc::ExportFormat::Webp => "PNG",
+        figiran_doc::ExportFormat::Jpg => "JPEG",
         // Nor an Android Vector Drawable one: the nearest is the other vector format.
-        figcraft_doc::ExportFormat::Svg | figcraft_doc::ExportFormat::VectorDrawable => "SVG",
-        figcraft_doc::ExportFormat::Pdf => "PDF",
+        figiran_doc::ExportFormat::Svg | figiran_doc::ExportFormat::VectorDrawable => "SVG",
+        figiran_doc::ExportFormat::Pdf => "PDF",
     };
     let (ty, value) = match x.size {
         ExportSize::Scale { value } => ("CONTENT_SCALE", value),

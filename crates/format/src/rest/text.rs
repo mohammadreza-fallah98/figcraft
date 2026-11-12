@@ -3,7 +3,7 @@
 
 use std::collections::BTreeMap;
 
-use figcraft_doc::{
+use figiran_doc::{
     DecorationLength, DecorationStyle, LetterSpacing, LineHeight, ListStyle, ParaList, StyleRun, TextAlignH, TextAlignV, TextAutoResize, TextCase,
     TextData, TextDecoration, TextDirection, TextPath, TextStyle,
 };
@@ -93,11 +93,11 @@ fn paragraph(s: &Value, td: &mut TextData) {
     td.hanging_punctuation = flag(s, "hangingPunctuation").unwrap_or(false);
     td.hanging_list = flag(s, "hangingList").unwrap_or(false);
     if text(s, "leadingTrim") == Some("CAP_HEIGHT") {
-        td.leading_trim = figcraft_doc::LeadingTrim::CapHeight;
+        td.leading_trim = figiran_doc::LeadingTrim::CapHeight;
     }
     if let Some(flags) = s.get("openTypeFlags").and_then(Value::as_object) {
         for (tag, on) in flags.iter().take(64) {
-            if figcraft_doc::valid_feature_tag(&tag.to_ascii_lowercase()) {
+            if figiran_doc::valid_feature_tag(&tag.to_ascii_lowercase()) {
                 td.features.insert(tag.to_ascii_lowercase(), on.as_f64().is_some_and(|x| x != 0.0) || on.as_bool() == Some(true));
             }
         }
@@ -116,7 +116,7 @@ fn type_style(cx: &mut Ctx, s: &Value, base: &TextStyle) -> TextStyle {
         let weight = num(s, "fontWeight").map_or_else(|| t.weight(), |w| w.clamp(1.0, 1000.0) as u16);
         t.font_style = style_name(weight, flag(s, "italic").unwrap_or_else(|| t.italic()));
     }
-    // Variable font axes, `{tag: value}` (FigCraft's own key; the Sketch importer writes it).
+    // Variable font axes, `{tag: value}` (FigIran's own key; the Sketch importer writes it).
     if let Some(axes) = s.get("fontVariations").and_then(Value::as_object) {
         t.variations = axes
             .iter()

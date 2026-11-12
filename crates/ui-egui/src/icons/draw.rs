@@ -1078,7 +1078,7 @@ fn draw(p: &P, icon: Icon) {
             p.poly(&[(10.5, 5.5), (13.0, 8.0), (10.5, 10.5)], false);
         }
         Logo => {
-            // FigCraft's own mark: the curled tail of the chameleon on the app icon. One bold
+            // FigIran's own mark: a curled tail. One bold
             // stroke: a shaft along the bottom, then three half turns, each tighter than the last.
             let mut tail = vec![(13.75, 13.0)];
             tail.extend(arc_pts(7.25, 8.0, 5.0, FRAC_PI_2, 3.0 * FRAC_PI_2));
@@ -1095,7 +1095,7 @@ fn draw(p: &P, icon: Icon) {
 /// SVG path data outlines on a `size`-unit box, painted into `rect`: each part filled, or
 /// stroked `width` box units wide. Board shapes and stamp marks are drawn this way in the UI from
 /// the same outlines the canvas has.
-pub fn paint_outlines(painter: &Painter, rect: Rect, size: f64, parts: &[(&figcraft_geom::BezPath, bool)], color: Color32, width: f32) {
+pub fn paint_outlines(painter: &Painter, rect: Rect, size: f64, parts: &[(&figiran_geom::BezPath, bool)], color: Color32, width: f32) {
     let s = rect.width().min(rect.height()) / size as f32;
     let px = 1.0 / painter.ctx().pixels_per_point();
     let o = rect.center() - Vec2::splat(size as f32 * s / 2.0);
@@ -1109,14 +1109,14 @@ pub fn paint_outlines(painter: &Painter, rect: Rect, size: f64, parts: &[(&figcr
             sub.clear();
         };
         let mut closed = false;
-        figcraft_geom::kurbo::flatten(path.iter(), 0.25, |el| match el {
-            figcraft_geom::kurbo::PathEl::MoveTo(q) => {
+        figiran_geom::kurbo::flatten(path.iter(), 0.25, |el| match el {
+            figiran_geom::kurbo::PathEl::MoveTo(q) => {
                 flush(&mut sub, closed);
                 closed = false;
                 sub.push((q.x as f32, q.y as f32));
             }
-            figcraft_geom::kurbo::PathEl::LineTo(q) => sub.push((q.x as f32, q.y as f32)),
-            figcraft_geom::kurbo::PathEl::ClosePath => closed = true,
+            figiran_geom::kurbo::PathEl::LineTo(q) => sub.push((q.x as f32, q.y as f32)),
+            figiran_geom::kurbo::PathEl::ClosePath => closed = true,
             _ => {}
         });
         flush(&mut sub, closed);

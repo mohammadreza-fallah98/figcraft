@@ -3,7 +3,7 @@
 
 use std::sync::{Arc, Mutex};
 
-use figcraft_engine::Session;
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::{FigApp, Services};
@@ -38,16 +38,16 @@ fn app(file: Option<&'static str>) -> (FigApp, Saved) {
 
 #[test]
 fn save_keeps_the_name_the_host_opened() {
-    let (mut app, got) = app(Some("client.figcraft"));
+    let (mut app, got) = app(Some("client.figiran"));
     app.save();
-    assert_eq!(got.lock().unwrap().as_slice(), ["client.figcraft"]);
+    assert_eq!(got.lock().unwrap().as_slice(), ["client.figiran"]);
 }
 
 #[test]
 fn save_as_uses_the_document_s_own_name() {
-    let (mut app, got) = app(Some("client.figcraft"));
+    let (mut app, got) = app(Some("client.figiran"));
     app.save_as_dialog();
-    assert_eq!(got.lock().unwrap().as_slice(), ["Original.figcraft"]);
+    assert_eq!(got.lock().unwrap().as_slice(), ["Original.figiran"]);
 }
 
 #[test]
@@ -55,6 +55,6 @@ fn without_a_host_file_or_for_a_copy_format_save_is_a_save_as() {
     for file in [None, Some("design.json"), Some("export.fig")] {
         let (mut app, got) = app(file);
         app.save();
-        assert_eq!(got.lock().unwrap().as_slice(), ["Original.figcraft"], "{file:?}");
+        assert_eq!(got.lock().unwrap().as_slice(), ["Original.figiran"], "{file:?}");
     }
 }

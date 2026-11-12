@@ -2,8 +2,8 @@
 //! the layer it fills, not as a fresh render, so patterns in patterns can't stack three times the
 //! cap; and the deepest render the cap allows fits a render thread's stack ([`RENDER_STACK`]).
 
-use figcraft_color::{Color, Paint, PaintKind, PatternPaint};
-use figcraft_doc::{Document, Effect, NodeId, NodeKind};
+use figiran_color::{Color, Paint, PaintKind, PatternPaint};
+use figiran_doc::{Document, Effect, NodeId, NodeKind};
 use tiny_skia::Pixmap;
 
 use crate::backdrop::render_beneath;

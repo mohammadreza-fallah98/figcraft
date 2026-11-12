@@ -7,7 +7,7 @@
 use crate::Session;
 use crate::codegen::CodeLang;
 use crate::components::tests::{ex, idv};
-use figcraft_doc::*;
+use figiran_doc::*;
 use serde_json::json;
 
 fn code(s: &mut Session, id: NodeId, lang: &str) -> String {

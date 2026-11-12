@@ -57,7 +57,7 @@ fn the_multipart_body_has_the_name_the_company_and_the_file() {
     let text = String::from_utf8_lossy(&body).to_string();
     assert!(text.starts_with("--BOUND\r\nContent-Disposition: form-data; name=\"name\"\r\n\r\nMy project\r\n"), "{text}");
     assert!(text.contains("name=\"companyId\"\r\n\r\n8\r\n"));
-    assert!(text.contains("name=\"file\"; filename=\"project.figcraft\"\r\nContent-Type: application/octet-stream\r\n\r\n"));
+    assert!(text.contains("name=\"file\"; filename=\"project.figiran\"\r\nContent-Type: application/octet-stream\r\n\r\n"));
     assert!(text.ends_with("\r\n--BOUND--\r\n"));
     let at = body.windows(4).position(|w| w == [0x50, 0x4B, 3, 4]).unwrap();
     assert_eq!(&body[at..at + 6], &file);
@@ -137,7 +137,7 @@ fn a_success_answer_without_data_is_a_bad_response() {
 // ---- the temporary file -----------------------------------------------------------------------
 
 fn temp_dir(tag: &str) -> PathBuf {
-    let dir = std::env::temp_dir().join(format!("figcraft-upload-test-{tag}-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("figiran-upload-test-{tag}-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     dir
 }
@@ -152,7 +152,7 @@ fn the_temporary_file_is_written_and_deleted_on_drop() {
     let temp = TempFile::create(&dir, b"PK\x03\x04data").unwrap();
     let path = temp.path().to_path_buf();
     assert_eq!(std::fs::read(&path).unwrap(), b"PK\x03\x04data");
-    assert_eq!(path.extension().and_then(|e| e.to_str()), Some("figcraft"));
+    assert_eq!(path.extension().and_then(|e| e.to_str()), Some("figiran"));
     drop(temp);
     assert!(!path.exists());
     std::fs::remove_dir_all(&dir).unwrap();
@@ -160,7 +160,7 @@ fn the_temporary_file_is_written_and_deleted_on_drop() {
 
 #[test]
 fn a_missing_temp_folder_is_a_local_error() {
-    let dir = std::env::temp_dir().join("figcraft-upload-test-no-such-folder-xyz");
+    let dir = std::env::temp_dir().join("figiran-upload-test-no-such-folder-xyz");
     assert!(matches!(TempFile::create(&dir, b"x"), Err(UploadError::Local(_))));
 }
 
@@ -239,16 +239,16 @@ fn signed_in() -> (Portal, Arc<Fake>) {
     let fake = Arc::new(Fake::default());
     let portal = Portal::new("https://portal.example", fake.clone(), Box::new(MemoryStore::default()), Box::new(|| {}), inline, None);
     portal.begin_login().unwrap();
-    portal.handle_auth_link("figcraft://auth?code=abc");
+    portal.handle_auth_link("figiran://auth?code=abc");
     assert_eq!(portal.view().status, Status::SignedIn);
     (portal, fake)
 }
 
-const PAYLOAD: &[u8] = b"PK\x03\x04 a native figcraft file";
+const PAYLOAD: &[u8] = b"PK\x03\x04 a native figiran file";
 
 fn job(dir: &std::path::Path, company: Option<i64>) -> UploadJob {
     UploadJob {
-        encoded: base64::engine::general_purpose::STANDARD.encode(b"PK\x03\x04 a native figcraft file"),
+        encoded: base64::engine::general_purpose::STANDARD.encode(b"PK\x03\x04 a native figiran file"),
         name: "HSS".into(),
         company_id: company,
         temp_dir: dir.to_path_buf(),
@@ -398,7 +398,7 @@ fn bad_or_empty_document_data_is_a_local_failure() {
 #[test]
 fn a_missing_temp_folder_fails_without_sending() {
     let (portal, fake) = signed_in();
-    portal.start_upload(job(&std::env::temp_dir().join("figcraft-upload-test-no-such-folder-abc"), None));
+    portal.start_upload(job(&std::env::temp_dir().join("figiran-upload-test-no-such-folder-abc"), None));
     assert!(matches!(portal.upload_view().phase, UploadPhase::Failed(UploadError::Local(_))));
     assert!(fake.sent.lock().unwrap().is_empty());
 }

@@ -1,8 +1,8 @@
 //! The colour picker of a layer's paint or effect closes when that layer is no longer the
 //! selection, so it never keeps editing a layer that was deselected (#396).
 
-use figcraft_doc::NodeId;
-use figcraft_engine::Session;
+use figiran_doc::NodeId;
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::colorpicker::PickerTarget;
@@ -126,14 +126,14 @@ fn opening_the_first_picker_preserves_the_active_text_undo_interaction() {
     let mut s = Session::new();
     let text = NodeId(s.execute("text.create", &json!({"text": "Hi"})).unwrap()["id"].as_u64().unwrap());
     let mut app = crate::FigApp::new(s, Box::new(crate::NoServices));
-    figcraft_engine::textedit::begin(&mut app.session, text, Some(2), false).unwrap();
-    figcraft_engine::textedit::insert(&mut app.session, "a").unwrap();
+    figiran_engine::textedit::begin(&mut app.session, text, Some(2), false).unwrap();
+    figiran_engine::textedit::insert(&mut app.session, "a").unwrap();
     let depth = app.session.undo_depth();
     app.open_picker(PickerTarget::TextRange { id: text, start: 0, end: 2 }, None);
     assert!(app.session.ds().unwrap().interaction.is_some());
     assert_eq!(app.session.undo_depth(), depth);
-    figcraft_engine::textedit::insert(&mut app.session, "b").unwrap();
-    figcraft_engine::textedit::end(&mut app.session).unwrap();
+    figiran_engine::textedit::insert(&mut app.session, "b").unwrap();
+    figiran_engine::textedit::end(&mut app.session).unwrap();
     app.session.execute("edit.undo", &json!({})).unwrap();
     assert_eq!(app.session.doc().unwrap().node(text).unwrap().kind.text().unwrap().characters, "Hi");
 }
@@ -170,7 +170,7 @@ fn moved_page_effect_and_text_range_swatches_still_toggle_the_picker_closed() {
             }
             _ => {
                 let text = NodeId(u.app.session.execute("text.create", &json!({"text":"Hello"})).unwrap()["id"].as_u64().unwrap());
-                figcraft_engine::textedit::begin(&mut u.app.session, text, None, false).unwrap();
+                figiran_engine::textedit::begin(&mut u.app.session, text, None, false).unwrap();
                 PickerTarget::TextRange { id: text, start: 0, end: 5 }
             }
         };
@@ -203,7 +203,7 @@ fn a_press_in_the_gradient_variable_picker_keeps_the_colour_picker_open() {
     }
     // Open the same child picker used by a gradient stop, away from the parent's card.
     let _ = u.ctx.run_ui(RawInput { screen_rect: Some(Rect::from_min_size(Pos2::ZERO, vec2(1440.0, 900.0))), ..Default::default() }, |ui| {
-        crate::variable_ui::open(ui, &[a], "fills/0/stops/0/color", figcraft_doc::VariableType::Color, pos2(500.0, 180.0));
+        crate::variable_ui::open(ui, &[a], "fills/0/stops/0/color", figiran_doc::VariableType::Color, pos2(500.0, 180.0));
     });
     for _ in 0..5 {
         u.frame(vec![]);
@@ -234,7 +234,7 @@ fn dragging_a_gradient_handle_on_the_canvas_keeps_the_picker_open() {
     assert_eq!(u.app.ui.picker, Some(target.clone()));
     let depth = u.app.session.undo_depth().0;
     let from_handle = |u: &Ui| match &u.app.session.doc().unwrap().node(a).unwrap().fills[0].kind {
-        figcraft_color::PaintKind::Gradient(g) => g.from,
+        figiran_color::PaintKind::Gradient(g) => g.from,
         _ => panic!("the fill is a gradient"),
     };
     assert_eq!(from_handle(&u), (0.5, 0.0), "a linear gradient starts at the top middle");
@@ -279,7 +279,7 @@ fn a_gradient_drag_released_off_the_canvas_ends_there() {
         }
         let depth = u.app.session.undo_depth().0;
         let from_handle = |u: &Ui| match &u.app.session.doc().unwrap().node(a).unwrap().fills[0].kind {
-            figcraft_color::PaintKind::Gradient(g) => g.from,
+            figiran_color::PaintKind::Gradient(g) => g.from,
             _ => panic!("the fill is a gradient"),
         };
         u.button(u.app.to_screen(200.0, 100.0), true);

@@ -3,7 +3,7 @@
 //!
 //! The browser build can't catch a panic (wasm32 always aborts, and stable Rust has no unwinding
 //! std for it), so there a panicking command stops the page: its panic hook keeps the files with
-//! unsaved changes for the next page instead (`apps/figcraft-web/src/recovery.rs`).
+//! unsaved changes for the next page instead (`apps/figiran-web/src/recovery.rs`).
 
 use crate::{EngineError, Result};
 

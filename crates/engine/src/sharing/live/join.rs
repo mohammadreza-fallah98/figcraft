@@ -215,7 +215,7 @@ pub fn specs() -> Vec<CommandSpec> {
         spec!(
             "collab.join",
             "Join live session",
-            "{code | link (a join code: K7M-2QX-9TD from a server, asked at the server in Preferences; a longer one for the local network; spaces, dashes and case don't matter, O reads as 0 and I or L as 1; or an invite link: figcraft://join?host=…&file=…&token=…, figcraft://join?server=ws(s)://…&file=…&token=… or ws(s)://host:port/?file=…&token=…, from a session an app hosts or a server's share link; either key takes either)} → the new session: {session, status: \"connecting\", …}; its file opens in a tab of its own (other files' sessions go on) and `collab.peers` tells when it's live (`sessions` lists it until then, and if it fails)",
+            "{code | link (a join code: K7M-2QX-9TD from a server, asked at the server in Preferences; a longer one for the local network; spaces, dashes and case don't matter, O reads as 0 and I or L as 1; or an invite link: figiran://join?host=…&file=…&token=…, figiran://join?server=ws(s)://…&file=…&token=… or ws(s)://host:port/?file=…&token=…, from a session an app hosts or a server's share link; either key takes either)} → the new session: {session, status: \"connecting\", …}; its file opens in a tab of its own (other files' sessions go on) and `collab.peers` tells when it's live (`sessions` lists it until then, and if it fails)",
             false,
             join
         ),
@@ -236,7 +236,7 @@ pub fn specs() -> Vec<CommandSpec> {
         spec!(
             "collab.publish",
             "Publish to server",
-            "{server: ws://host:port/?key=… or wss://host/path/?key=… (the server's address with its key; `figcraft-server key` prints it; without a key on a server open to the public), key? (when the address has none), name? (default: the file's name)} → status \"connecting\": the open file is uploaded as a new file and this tab syncs through the server; `collab.peers` then has `published: {server, file, name, edit, view, owner (published without a key: the owner token, shown once), expires (seconds since 1970, or null)}` and `hosting` (the server's operator, terms and idle expiry)",
+            "{server: ws://host:port/?key=… or wss://host/path/?key=… (the server's address with its key; `figiran-server key` prints it; without a key on a server open to the public), key? (when the address has none), name? (default: the file's name)} → status \"connecting\": the open file is uploaded as a new file and this tab syncs through the server; `collab.peers` then has `published: {server, file, name, edit, view, owner (published without a key: the owner token, shown once), expires (seconds since 1970, or null)}` and `hosting` (the server's operator, terms and idle expiry)",
             false,
             publish
         ),

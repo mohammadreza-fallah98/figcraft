@@ -34,8 +34,8 @@
 use std::sync::{Arc, Mutex};
 
 use egui::Context;
-use figcraft_engine::cmd::comment::{Filter, Sort};
-use figcraft_engine::{PointerEvent, PointerKind, Session};
+use figiran_engine::cmd::comment::{Filter, Sort};
+use figiran_engine::{PointerEvent, PointerKind, Session};
 use serde_json::{Value, json};
 
 use crate::FigApp;
@@ -904,7 +904,7 @@ impl EncodedShot {
     fn finish(self) -> Result<Value, String> {
         match self {
             Self::File { path, png, width, height } => {
-                figcraft_engine::file_access::write(&path, &png).map_err(|e| e.to_string())?;
+                figiran_engine::file_access::write(&path, &png).map_err(|e| e.to_string())?;
                 Ok(json!({"path": path, "width": width, "height": height}))
             }
             Self::Data(result) => Ok(result),
@@ -981,7 +981,7 @@ fn commit_shot(
 /// A controller button given as its standard-layout index, its key trigger name ("Gamepad A") or
 /// its short name ("A", "LB", "Up").
 fn pad_name(v: &Value) -> Option<&'static str> {
-    use figcraft_doc::proto::{GAMEPAD_BUTTONS, gamepad_button};
+    use figiran_doc::proto::{GAMEPAD_BUTTONS, gamepad_button};
     if let Some(i) = v.as_u64() {
         return usize::try_from(i).ok().and_then(gamepad_button);
     }
@@ -995,17 +995,17 @@ fn b(p: &Value, k: &str) -> bool {
 
 fn ui_key(app: &mut FigApp, ctx: &Context, p: &Value) -> Result<Value, String> {
     let key = p.get("key").and_then(Value::as_str).ok_or("`key` required")?;
-    let m = figcraft_engine::keymap::Mods { shift: b(p, "shift"), alt: b(p, "alt"), cmd: b(p, "cmd"), ctrl: b(p, "ctrl") };
+    let m = figiran_engine::keymap::Mods { shift: b(p, "shift"), alt: b(p, "alt"), cmd: b(p, "cmd"), ctrl: b(p, "ctrl") };
     let platform = crate::shortcuts::platform();
-    use figcraft_engine::keymap::{Context, lookup, normalize};
+    use figiran_engine::keymap::{Context, lookup, normalize};
     // Text editing keys go to the editor (after the shortcuts live while editing).
     if app.session.ds().map(|d| d.text_edit.is_some()).unwrap_or(false) {
         if let Some(bd) = lookup(platform, Context::Text, key, m).filter(|_| m.cmd || m.alt || m.ctrl) {
             crate::menus::invoke(app, bd.id);
             return Ok(json!({"command": bd.id}));
         }
-        let (word, line) = figcraft_engine::keymap::text_motion(platform, key, m);
-        figcraft_engine::textedit::key(&mut app.session, key, m.shift, word, line).map_err(|e| e.to_string())?;
+        let (word, line) = figiran_engine::keymap::text_motion(platform, key, m);
+        figiran_engine::textedit::key(&mut app.session, key, m.shift, word, line).map_err(|e| e.to_string())?;
         return Ok(json!({"ok": true}));
     }
     // The keyboard selection box and pick select take their keys first, as on the keyboard.
@@ -1020,7 +1020,7 @@ fn ui_key(app: &mut FigApp, ctx: &Context, p: &Value) -> Result<Value, String> {
         return Ok(json!({"ok": true}));
     }
     // The Comment tool's arrows step through the comment threads.
-    if app.session.tool.tool == figcraft_engine::ToolId::Comment && m.is_none() && matches!(key, "ArrowUp" | "ArrowDown" | "Up" | "Down") {
+    if app.session.tool.tool == figiran_engine::ToolId::Comment && m.is_none() && matches!(key, "ArrowUp" | "ArrowDown" | "Up" | "Down") {
         let r = crate::comments::step(app, ctx, if matches!(key, "ArrowUp" | "Up") { -1 } else { 1 });
         return Ok(json!({"comment": r.and_then(|v| v.get("id").cloned())}));
     }
@@ -1117,7 +1117,7 @@ fn ui_input(app: &mut FigApp, ctx: &Context, p: &Value) -> Result<Value, String>
                 modifiers: mods,
             });
         } else if let Some(g) = e.get("gamepad") {
-            let names = figcraft_doc::proto::GAMEPAD_BUTTONS.join(", ");
+            let names = figiran_doc::proto::GAMEPAD_BUTTONS.join(", ");
             pads.push(pad_name(g).ok_or_else(|| format!("unknown controller button {g} (an index 0-16 or one of {names})"))?.to_string());
         } else if b(e, "leave") {
             events.push(egui::Event::PointerGone);
@@ -1338,7 +1338,7 @@ fn ui_set_panels(app: &mut FigApp, ctx: &Context, p: &Value) -> Result<(), Strin
         Some(Value::Array(a)) => {
             let id = a.first().and_then(Value::as_u64).ok_or("protoEditor: [layer id, interaction index]")?;
             let k = a.get(1).and_then(Value::as_u64).unwrap_or(0) as usize;
-            crate::proto_panel::open_editor(ctx, Some((figcraft_doc::NodeId(id), k)));
+            crate::proto_panel::open_editor(ctx, Some((figiran_doc::NodeId(id), k)));
         }
         _ => {}
     }
@@ -1380,7 +1380,7 @@ fn ui_set_styles(app: &mut FigApp, p: &Value) -> Result<(), String> {
     }
     // The Color profile dialog: a profile id opens it with that profile chosen, null closes it.
     if let Some(v) = p.get("colorProfileDialog") {
-        app.ui.color_profile = v.as_str().and_then(figcraft_color::ColorProfile::parse);
+        app.ui.color_profile = v.as_str().and_then(figiran_color::ColorProfile::parse);
     }
     if let Some(v) = p.get("exportPreview").and_then(Value::as_bool) {
         app.ui.export_thumb = v;
@@ -1389,7 +1389,7 @@ fn ui_set_styles(app: &mut FigApp, p: &Value) -> Result<(), String> {
     // the saved version it compares with (null: when it was marked ready for dev),
     // `devCompareMode` is sideBySide or overlay, `devCompareSplit` the overlay slider (0–1).
     if let Some(v) = p.get("devCompare") {
-        app.ui.dev.compare = figcraft_engine::params::id_of(v).map(|id| crate::dev_compare::CompareView::new(id, None));
+        app.ui.dev.compare = figiran_engine::params::id_of(v).map(|id| crate::dev_compare::CompareView::new(id, None));
     }
     if let Some(c) = app.ui.dev.compare.as_mut() {
         if let Some(v) = p.get("devCompareVersion") {
@@ -1415,7 +1415,7 @@ fn ui_set_styles(app: &mut FigApp, p: &Value) -> Result<(), String> {
     }
     if let (Some(r), Some(picks)) = (app.ui.branch_review.as_mut(), p.get("branchReviewPicks").and_then(Value::as_object)) {
         for (k, v) in picks {
-            let side = v.as_str().and_then(figcraft_engine::branches::Side::parse).ok_or("branchReviewPicks: \"branch\" or \"main\"")?;
+            let side = v.as_str().and_then(figiran_engine::branches::Side::parse).ok_or("branchReviewPicks: \"branch\" or \"main\"")?;
             r.picks.insert(k.clone(), side);
         }
     }
@@ -1481,22 +1481,22 @@ pub fn handle(app: &mut FigApp, ctx: &Context, method: &str, p: &Value) -> Resul
             r
         }
         "engine.commands" => Ok(Value::Array(
-            figcraft_engine::all_commands()
+            figiran_engine::all_commands()
                 .iter()
                 .map(|c| json!({"id": c.id, "label": c.label, "params": c.params, "menu": c.menu(), "shortcut": c.shortcut(), "undoable": c.history}))
                 .collect(),
         )),
         "document.inspect" => {
             let depth = p.get("depth").and_then(Value::as_u64).unwrap_or(8).min(64) as usize;
-            let options = figcraft_engine::inspect::InspectOptions::parse(p)?;
-            in_document(app, p, |s| Ok(figcraft_engine::inspect::document_with_options(s, depth, b(p, "allPages"), &options)))
+            let options = figiran_engine::inspect::InspectOptions::parse(p)?;
+            in_document(app, p, |s| Ok(figiran_engine::inspect::document_with_options(s, depth, b(p, "allPages"), &options)))
         }
         "node.get" => {
-            let id = p.get("id").and_then(figcraft_engine::params::id_of).ok_or("`id` required")?;
+            let id = p.get("id").and_then(figiran_engine::params::id_of).ok_or("`id` required")?;
             let depth = p.get("depth").and_then(Value::as_u64).unwrap_or(1) as usize;
-            let options = figcraft_engine::inspect::InspectOptions::parse(p)?;
+            let options = figiran_engine::inspect::InspectOptions::parse(p)?;
             in_document(app, p, |s| {
-                s.doc().map(|d| figcraft_engine::inspect::node_json_with_options(d, id, depth, &options)).map_err(|e| e.to_string())
+                s.doc().map(|d| figiran_engine::inspect::node_json_with_options(d, id, depth, &options)).map_err(|e| e.to_string())
             })
         }
         "window.new" => {
@@ -1518,7 +1518,7 @@ pub fn handle(app: &mut FigApp, ctx: &Context, method: &str, p: &Value) -> Resul
         "ui.input" => ui_input(app, ctx, p),
         "ui.type" => {
             let text = p.get("text").and_then(Value::as_str).ok_or("`text` required")?;
-            figcraft_engine::textedit::insert(&mut app.session, text).map_err(|e| e.to_string())?;
+            figiran_engine::textedit::insert(&mut app.session, text).map_err(|e| e.to_string())?;
             Ok(json!({"ok": true}))
         }
         "ui.menu.invoke" => {
@@ -1536,8 +1536,8 @@ pub fn handle(app: &mut FigApp, ctx: &Context, method: &str, p: &Value) -> Resul
         }
         "ui.render" => {
             let scale = p.get("scale").and_then(Value::as_f64).unwrap_or(1.0);
-            let ids: Vec<figcraft_doc::NodeId> =
-                p.get("ids").and_then(Value::as_array).map(|a| a.iter().filter_map(figcraft_engine::params::id_of).collect()).unwrap_or_default();
+            let ids: Vec<figiran_doc::NodeId> =
+                p.get("ids").and_then(Value::as_array).map(|a| a.iter().filter_map(figiran_engine::params::id_of).collect()).unwrap_or_default();
             let mut params = json!({"format": "png", "scale": scale});
             if let Some(path) = p.get("path").and_then(Value::as_str) {
                 params["path"] = json!(path);

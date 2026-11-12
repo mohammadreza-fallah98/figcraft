@@ -5,27 +5,27 @@ use super::*;
 
 /// Thumbnail PNG of the chosen frame, or the first page's content (file browsers / home screen).
 pub fn thumbnail(doc: &Document) -> Option<Vec<u8>> {
-    let render = |page, b: figcraft_geom::Rect, solo| {
+    let render = |page, b: figiran_geom::Rect, solo| {
         let scale = (400.0 / b.width().max(b.height()).max(1.0)).min(2.0);
-        let view = figcraft_render::View {
+        let view = figiran_render::View {
             origin: (b.x0, b.y0),
             scale,
             width: (b.width() * scale).ceil().max(1.0) as u32,
             height: (b.height() * scale).ceil().max(1.0) as u32,
         };
-        let opts = figcraft_render::Options { solo, ..Default::default() };
-        let pix = figcraft_render::render_view(doc, page, &view, &opts)?;
-        figcraft_render::encode_png(&pix).ok()
+        let opts = figiran_render::Options { solo, ..Default::default() };
+        let pix = figiran_render::render_view(doc, page, &view, &opts)?;
+        figiran_render::encode_png(&pix).ok()
     };
     doc.ids()
         .find_map(|id| {
             let n = doc.node(id)?;
-            if !n.kind.is_frame_like() || n.plugin_data.get("figcraft.thumbnail").map(String::as_str) != Some("true") {
+            if !n.kind.is_frame_like() || n.plugin_data.get("figiran.thumbnail").map(String::as_str) != Some("true") {
                 return None;
             }
             // Hidden library-store pages are not document pages.
             let page = doc.page_of(id).filter(|p| doc.pages.contains(p))?;
-            let b = figcraft_render::export_bounds(doc, id)?;
+            let b = figiran_render::export_bounds(doc, id)?;
             if ![b.x0, b.y0, b.x1, b.y1, b.width(), b.height()].into_iter().all(f64::is_finite) || b.width() <= 0.0 || b.height() <= 0.0 {
                 return None;
             }
@@ -37,7 +37,7 @@ pub fn thumbnail(doc: &Document) -> Option<Vec<u8>> {
         })
 }
 
-/// The `.figcraft` file for a document: content, thumbnail and version history.
+/// The `.figiran` file for a document: content, thumbnail and version history.
 pub fn file_bytes(ds: &DocState) -> Result<Vec<u8>> {
     FileSnapshot::of(ds).encode()
 }
@@ -54,7 +54,7 @@ pub struct FileSnapshot {
     saved: Arc<Document>,
     page: NodeId,
     versions: Vec<Version>,
-    branches: Vec<figcraft_format::Branch>,
+    branches: Vec<figiran_format::Branch>,
 }
 
 impl FileSnapshot {
@@ -76,8 +76,7 @@ impl FileSnapshot {
         let mut doc = (*self.doc).clone();
         doc.current_page = Some(self.page);
         let thumb = thumbnail(&doc);
-        figcraft_format::save_bytes_with_history(&doc, thumb.as_deref(), &self.versions, &self.branches)
-            .map_err(|e| EngineError::Other(e.to_string()))
+        figiran_format::save_bytes_with_history(&doc, thumb.as_deref(), &self.versions, &self.branches).map_err(|e| EngineError::Other(e.to_string()))
     }
 
     /// Write `bytes` (this snapshot's [`encode`](Self::encode)) to the document's file: it is saved
@@ -106,7 +105,7 @@ impl FileSnapshot {
 fn refuse_dropping_images(ds: &DocState, path: &str) -> Result<()> {
     match ds.images_lost_saving_to(path) {
         Some(count) => Err(EngineError::Other(format!(
-            "{} wasn't saved: {count} of its images weren't loaded (together they pass what FigCraft reads from one file), and saving over it would delete them. Save it under another name; this file keeps them.",
+            "{} wasn't saved: {count} of its images weren't loaded (together they pass what FigIran reads from one file), and saving over it would delete them. Save it under another name; this file keeps them.",
             file_stem(path)
         ))),
         None => Ok(()),
@@ -117,7 +116,7 @@ fn refuse_dropping_images(ds: &DocState, path: &str) -> Result<()> {
 fn refuse_overwriting_changes(ds: &DocState, path: &str) -> Result<()> {
     match (&ds.on_disk, crate::library::stat(path)) {
         (Some(was), Ok(now)) if now != *was => Err(EngineError::Other(format!(
-            "{} wasn't saved: the file changed on disk since it was opened or saved here (another app or figcraft-cli wrote to it), and saving would replace those changes. Revert to saved to load them, or Save as to keep this version as well.",
+            "{} wasn't saved: the file changed on disk since it was opened or saved here (another app or figiran-cli wrote to it), and saving would replace those changes. Revert to saved to load them, or Save as to keep this version as well.",
             file_stem(path)
         ))),
         _ => Ok(()),
@@ -137,7 +136,7 @@ pub(super) fn color_profile(s: &mut Session, p: &Value) -> Result<Value> {
         s.request_ui("dialog.colorProfile", json!({}));
         return Ok(json!({"profile": s.doc()?.color_profile.id(), "changed": false}));
     };
-    let profile = figcraft_color::ColorProfile::parse(&name).ok_or_else(|| bad(cmd, "profile: srgb or displayP3"))?;
+    let profile = figiran_color::ColorProfile::parse(&name).ok_or_else(|| bad(cmd, "profile: srgb or displayP3"))?;
     let convert = boolean(p, "convert").unwrap_or(true);
     let changed = s.doc()?.color_profile != profile && s.doc_mut()?.set_color_profile(profile, convert);
     Ok(json!({"profile": profile.id(), "changed": changed}))
@@ -180,7 +179,7 @@ fn save_to(s: &mut Session, path: Option<String>) -> Result<Value> {
     let bytes = snapshot.encode()?;
     let Some(path) = path else {
         // The download can still be refused: the caller marks the file saved once it was delivered.
-        let name = format!("{}.figcraft", ds.doc.name);
+        let name = format!("{}.figiran", ds.doc.name);
         return Ok(json!({"name": name, "bytes": bytes.len(), "data": base64::engine::general_purpose::STANDARD.encode(&bytes)}));
     };
     write(&path, &bytes)?;
@@ -231,7 +230,7 @@ pub(super) fn save_as(s: &mut Session, p: &Value) -> Result<Value> {
     match string(p, "path") {
         Some(mut path) => {
             if ext(&path).is_empty() {
-                path.push_str(".figcraft");
+                path.push_str(".figiran");
             }
             save_to(s, Some(path))
         }

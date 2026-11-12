@@ -6,8 +6,8 @@
 //! their iOS and Android code syntax in SwiftUI and Compose. The output is a starting point, not a
 //! pixel-exact translation.
 
-use figcraft_color::{Color, PaintKind};
-use figcraft_doc::{
+use figiran_color::{Color, PaintKind};
+use figiran_doc::{
     ContentAlign, CrossAlign, Document, EffectKind, LayoutMode, LetterSpacing, LineHeight, MainAlign, Node, NodeId, NodeKind, Shadow, Sizing,
     TextAlignH, TextCase, TextDecoration, Variable,
 };
@@ -386,7 +386,7 @@ const PADDING: [[&str; 3]; 4] = [
     ["paddingLeft", "paddingHorizontal", "padding"],
 ];
 
-/// What code for `platform` (a [`figcraft_doc::CODE_PLATFORMS`] key) writes for a value of `n`: the
+/// What code for `platform` (a [`figiran_doc::CODE_PLATFORMS`] key) writes for a value of `n`: the
 /// code syntax of the variable bound to the first of `fields` that has one, else `value`. Without a
 /// code syntax the value stays: a name made up here wouldn't exist in the code it lands in.
 fn named(doc: &Document, n: &Node, platform: &str, fields: &[&str], value: String) -> String {
@@ -498,7 +498,7 @@ mod tests {
     fn css_gradient_folds_in_paint_opacity() {
         let mut s = Session::new();
         let f = id_of(&s.execute("frame.create", &json!({"x": 0, "y": 0, "width": 200, "height": 100})).unwrap()["id"]).unwrap();
-        let mut p = figcraft_color::Paint::gradient(figcraft_color::Gradient::default_for(figcraft_color::GradientKind::Linear, Color::BLACK));
+        let mut p = figiran_color::Paint::gradient(figiran_color::Gradient::default_for(figiran_color::GradientKind::Linear, Color::BLACK));
         p.opacity = 0.5;
         s.doc_mut().unwrap().get_mut(f).unwrap().fills = vec![p];
         let css = code_for(s.doc().unwrap(), f, CodeLang::Css);

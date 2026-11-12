@@ -3,8 +3,8 @@
 //! selection ("Mixed") have nothing to drag.
 
 use egui::{Event, Pos2};
-use figcraft_doc::NodeId;
-use figcraft_engine::Session;
+use figiran_doc::NodeId;
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::layers_drag_tests::Ui;
@@ -109,8 +109,8 @@ fn effects_and_grids_drag_too_and_mixed_lists_dont() {
     assert!(b.y < 880.0, "{b:?}");
     drag(&mut u, a, b - egui::vec2(0.0, 12.0));
     u.button(b - egui::vec2(0.0, 12.0), false);
-    let grids: Vec<figcraft_doc::GridKind> = u.app.session.doc().unwrap().node(f).unwrap().grids.iter().map(|g| g.kind).collect();
-    assert_eq!(grids, [figcraft_doc::GridKind::Rows, figcraft_doc::GridKind::Columns]);
+    let grids: Vec<figiran_doc::GridKind> = u.app.session.doc().unwrap().node(f).unwrap().grids.iter().map(|g| g.kind).collect();
+    assert_eq!(grids, [figiran_doc::GridKind::Rows, figiran_doc::GridKind::Columns]);
     // The frame and the rectangle have different fills: nothing to drag.
     u.app.session.execute("select.set", &json!({"ids": [r, f]})).unwrap();
     for _ in 0..2 {

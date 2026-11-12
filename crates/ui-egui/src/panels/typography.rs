@@ -8,7 +8,7 @@
 use std::sync::Arc;
 
 use egui::{Align2, Color32, CornerRadius, Id, Rect, Sense, Stroke, StrokeKind, Ui, pos2, vec2};
-use figcraft_doc::{
+use figiran_doc::{
     DecorationLength, Document, LeadingTrim, LetterSpacing, LineHeight, ListStyle, NodeId, NodeKind, TextAlignH, TextAlignV, TextAutoResize,
     TextCase, TextData, TextDecoration, TextDirection, TextStyle, VariableType, trim_num,
 };
@@ -98,7 +98,7 @@ pub fn typography(app: &mut FigApp, ui: &mut Ui, doc: &Document, sel: &[NodeId])
         return;
     }
     // While editing a range, character edits apply to it.
-    let range = figcraft_engine::textedit::selected_range(&app.session);
+    let range = figiran_engine::textedit::selected_range(&app.session);
     let editing = range.is_some();
     let styles = target_styles(doc, &ids, range);
     let apply_style = |app: &mut FigApp, key: &str, v: Value| commit_text(app, &ids, range, json!({ key: v }));
@@ -128,7 +128,7 @@ fn path_row(app: &mut FigApp, ui: &mut Ui, doc: &Document, sel: &[NodeId], ids: 
         ids.iter().map(|i| doc.node(*i).and_then(|n| n.kind.text()).and_then(|t| t.path.as_ref()).map(|p| (p.start(), p.flip))).collect();
     let Some(paths) = paths else {
         let other = sel.iter().find(|i| !ids.contains(i)).and_then(|i| doc.node(*i));
-        if ids.len() == 1 && sel.len() == 2 && other.is_some_and(|n| figcraft_doc::geometry::stroke_geometry(n).is_some()) {
+        if ids.len() == 1 && sel.len() == 2 && other.is_some_and(|n| figiran_doc::geometry::stroke_geometry(n).is_some()) {
             row(ui, 32.0, |ui| {
                 if widgets::button(ui, tr("Put text on path"), false, true).clicked() {
                     app.run("text.onPath", json!({ "ids": sel }));
@@ -210,7 +210,7 @@ pub(crate) fn field_row<R>(ui: &mut Ui, label: &str, add: impl FnOnce(&mut Ui, f
 #[cfg(test)]
 mod variable_tests {
     use egui::{Event, Modifiers, PointerButton, Pos2, RawInput};
-    use figcraft_engine::Session;
+    use figiran_engine::Session;
 
     use super::*;
     use crate::NoServices;
@@ -333,13 +333,13 @@ mod variable_tests {
         assert!(shows(&texts, "Heading font") && shows(&texts, "Heading weight"), "the chips are drawn in place of the dropdowns");
         assert!(!shows(&texts, "Inter"), "the family dropdown is not drawn");
         // While characters are selected in the text, the dropdowns show the values, with no Apply variable.
-        figcraft_engine::textedit::begin(&mut p.app.session, p.text, Some(1), false).unwrap();
-        figcraft_engine::textedit::set_caret(&mut p.app.session, 3, true).unwrap();
+        figiran_engine::textedit::begin(&mut p.app.session, p.text, Some(1), false).unwrap();
+        figiran_engine::textedit::set_caret(&mut p.app.session, 3, true).unwrap();
         let texts = p.frame(vec![]);
         let texts = p.click(at(&texts, "Inter"));
         assert!(!shows(&texts, "Apply variable"), "a selected range takes a font, not a variable");
         p.frame(vec![Event::Key { key: egui::Key::Escape, physical_key: None, pressed: true, repeat: false, modifiers: Modifiers::NONE }]);
-        figcraft_engine::textedit::end(&mut p.app.session).unwrap();
+        figiran_engine::textedit::end(&mut p.app.session).unwrap();
         p.frame(vec![]);
         for field in ["fontFamily", "fontStyle"] {
             let rect = p.ctx.read_response(Id::unique(("bound_chip", field, &ids[..])).with("bound")).expect("the chip").rect;

@@ -2,8 +2,8 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use figcraft_doc::{Document, Effect, ExportSetting, ImageData, LayoutGrid, Node, NodeId, NodeKind};
-use figcraft_geom::Affine;
+use figiran_doc::{Document, Effect, ExportSetting, ImageData, LayoutGrid, Node, NodeId, NodeKind};
+use figiran_geom::Affine;
 use serde_json::{Map, Value, json};
 
 use super::{CommandSpec, ok};

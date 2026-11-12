@@ -1,6 +1,6 @@
 //! Compact inspection keeps the tree useful without building every layer property.
 
-use figcraft_doc::{NodeId, NodeKind};
+use figiran_doc::{NodeId, NodeKind};
 use serde_json::{Value, json};
 
 use crate::Session;

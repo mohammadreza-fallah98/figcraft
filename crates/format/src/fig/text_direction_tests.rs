@@ -2,7 +2,7 @@
 //! LTR or RTL) comes in as the paragraph's direction and goes back out. Fixtures built in code with
 //! the parent module's helpers.
 
-use figcraft_doc::{NodeKind, TextDirection};
+use figiran_doc::{NodeKind, TextDirection};
 
 use super::*;
 
@@ -47,7 +47,7 @@ fn text_node(id: u64, name: &str, chars: &str, lines: Vec<Kv<'static>>) -> Kv<'s
     )
 }
 
-fn directions(doc: &figcraft_doc::Document, name: &str) -> Vec<TextDirection> {
+fn directions(doc: &figiran_doc::Document, name: &str) -> Vec<TextDirection> {
     let NodeKind::Text(t) = &named(doc, name).kind else { panic!("{name} is no text") };
     (0..t.paragraph_count()).map(|p| t.para_list(p).direction).collect()
 }

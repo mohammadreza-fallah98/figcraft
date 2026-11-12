@@ -2,8 +2,8 @@
 
 use std::time::{Duration, Instant};
 
-use figcraft_doc::BoolOp;
-use figcraft_geom::kurbo::{BezPath, Rect, Shape};
+use figiran_doc::BoolOp;
+use figiran_geom::kurbo::{BezPath, Rect, Shape};
 
 use crate::{Complexity, FoldBudget, MAX_CROSSINGS, MAX_FOLD_SEGMENTS, MAX_SEGMENTS, PathOpsError, boolean, complexity, faces, simplify};
 

@@ -148,7 +148,7 @@ pub(super) fn paint_lead(p: &egui::Painter, r: Rect, g: LeadGlyph, col: Color32)
 mod tests {
     use super::*;
     use crate::panels::typography::{target_styles, uniform};
-    use figcraft_doc::{Document, LetterSpacing, LineHeight, Node, NodeKind, TextData, TextStyle};
+    use figiran_doc::{Document, LetterSpacing, LineHeight, Node, NodeKind, TextData, TextStyle};
     use serde_json::json;
 
     #[test]
@@ -230,8 +230,8 @@ mod tests {
     #[test]
     fn arrow_keys_step_through_the_families_and_enter_picks() {
         // #345
-        figcraft_text::scan_system_fonts();
-        let all = figcraft_text::family_names();
+        figiran_text::scan_system_fonts();
+        let all = figiran_text::family_names();
         if all.len() < 3 {
             eprintln!("fewer than three font families; skipping");
             return;
@@ -253,7 +253,7 @@ mod tests {
 
     #[test]
     fn axis_values_round_by_axis_width() {
-        let axis = |min: f64, max: f64| figcraft_text::Axis { tag: "test".into(), name: "Test".into(), min, default: min, max, hidden: false };
+        let axis = |min: f64, max: f64| figiran_text::Axis { tag: "test".into(), name: "Test".into(), min, default: min, max, hidden: false };
         assert_eq!(round_axis(&axis(100.0, 900.0), 456.6), 457.0);
         assert_eq!(round_axis(&axis(-10.0, 0.0), -4.26), -4.3);
         assert_eq!(round_axis(&axis(0.0, 1.0), 0.04), 0.0);

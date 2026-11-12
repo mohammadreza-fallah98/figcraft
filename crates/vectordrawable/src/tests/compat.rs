@@ -1,8 +1,8 @@
 use super::*;
 use crate::paint::nonzero;
-use figcraft_color::BlendMode;
-use figcraft_doc::{Effect, MaskType};
-use figcraft_geom::{BezPath, Point, Shape};
+use figiran_color::BlendMode;
+use figiran_doc::{Effect, MaskType};
+use figiran_geom::{BezPath, Point, Shape};
 
 fn fills(xml: &str) -> Vec<String> {
     tagged(&elements(xml), "path").iter().filter_map(|e| e.get("fillColor").map(str::to_string)).collect()
@@ -57,7 +57,7 @@ fn a_faded_leaf_with_a_fill_and_a_stroke_overlaps_itself() {
     let n = d.get_mut(r).unwrap();
     n.strokes = vec![Paint::solid(hex("000000"))];
     n.stroke.weight = 2.0;
-    n.stroke.align = figcraft_doc::StrokeAlign::Center;
+    n.stroke.align = figiran_doc::StrokeAlign::Center;
     n.opacity = 0.5;
     let w = export(&d, &[r], Compat::BestEffort).warnings;
     assert_eq!(w, ["layer opacity was applied to each shape: where shapes overlap they look denser (R)"]);
@@ -73,7 +73,7 @@ fn even_odd_fills_per_mode() {
     let (mut d, p) = doc();
     let a = rect(&mut d, p, "A", 0.0, 0.0, 60.0, 60.0, "000000");
     let b = rect(&mut d, p, "B", 20.0, 20.0, 20.0, 20.0, "000000");
-    let bo = d.create(p, NodeKind::BooleanOp { op: figcraft_doc::BoolOp::Exclude }, "Ring", 0.0, 0.0, 1.0, 1.0).unwrap();
+    let bo = d.create(p, NodeKind::BooleanOp { op: figiran_doc::BoolOp::Exclude }, "Ring", 0.0, 0.0, 1.0, 1.0).unwrap();
     d.reparent(a, bo, None).unwrap();
     d.reparent(b, bo, None).unwrap();
     d.fit_to_children(bo).unwrap();
@@ -123,9 +123,9 @@ fn the_non_zero_rewrite_fills_the_same_area() {
     // Nested squares wound the same way (three levels) and an overlapping circle.
     let mut nest = BezPath::new();
     for (o, s) in [(0.0, 90.0), (15.0, 60.0), (30.0, 30.0)] {
-        nest.extend(figcraft_geom::Rect::new(o, o, o + s, o + s).to_path(0.1));
+        nest.extend(figiran_geom::Rect::new(o, o, o + s, o + s).to_path(0.1));
     }
-    nest.extend(figcraft_geom::kurbo::Circle::new((80.0, 80.0), 25.0).to_path(0.1));
+    nest.extend(figiran_geom::kurbo::Circle::new((80.0, 80.0), 25.0).to_path(0.1));
     same_area(&nest);
 }
 
@@ -164,7 +164,7 @@ fn what_has_no_equivalent_is_left_out_and_named_once_per_kind() {
     d.get_mut(b).unwrap().blend = BlendMode::Multiply;
     d.get_mut(b).unwrap().effects = vec![Effect::layer_blur()];
     let img = rect(&mut d, f, "Photo", 100.0, 100.0, 30.0, 30.0, "000000");
-    d.get_mut(img).unwrap().fills = vec![Paint::image("abc", figcraft_color::ImageScaleMode::Fill)];
+    d.get_mut(img).unwrap().fills = vec![Paint::image("abc", figiran_color::ImageScaleMode::Fill)];
     let out = export(&d, &[f], Compat::BestEffort);
     assert_eq!(
         out.warnings,
@@ -202,7 +202,7 @@ fn huge_coordinates_are_left_out_with_a_warning() {
     d.get_mut(f).unwrap().fills.clear();
     rect(&mut d, f, "Near", 0.0, 0.0, 10.0, 10.0, "FF0000");
     rect(&mut d, f, "Far", 3.0e7, 0.0, 10.0, 10.0, "00FF00");
-    let opts = VdOptions { bounds: Some(figcraft_geom::Rect::new(0.0, 0.0, 100.0, 100.0)), ..Default::default() };
+    let opts = VdOptions { bounds: Some(figiran_geom::Rect::new(0.0, 0.0, 100.0, 100.0)), ..Default::default() };
     let out = export_with(&d, &[f], opts);
     assert_eq!(fills(&out.xml), ["#FF0000"]);
     assert_eq!(out.warnings, ["shapes with coordinates beyond ±10,000,000 were left out (Far)"]);
@@ -212,7 +212,7 @@ fn huge_coordinates_are_left_out_with_a_warning() {
 fn ring_masked() -> (Document, NodeId) {
     let (mut d, p) = doc();
     let g = d.create(p, NodeKind::Group, "G", 0.0, 0.0, 60.0, 60.0).unwrap();
-    let bo = d.create(g, NodeKind::BooleanOp { op: figcraft_doc::BoolOp::Exclude }, "Ring", 0.0, 0.0, 1.0, 1.0).unwrap();
+    let bo = d.create(g, NodeKind::BooleanOp { op: figiran_doc::BoolOp::Exclude }, "Ring", 0.0, 0.0, 1.0, 1.0).unwrap();
     let a = rect(&mut d, bo, "A", 0.0, 0.0, 60.0, 60.0, "000000");
     let b = rect(&mut d, bo, "B", 20.0, 20.0, 20.0, 20.0, "000000");
     let _ = (a, b);

@@ -6,7 +6,7 @@ use serde_json::json;
 use crate::Session;
 use crate::cmd::props::STROKE_CAP_HELP;
 use crate::params::id_of;
-use figcraft_doc::StrokeCap;
+use figiran_doc::StrokeCap;
 
 #[test]
 fn an_unknown_cap_lists_every_cap() {

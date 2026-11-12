@@ -9,8 +9,8 @@ use crate::proto::{Interaction, Overflow, ScrollPosition};
 use crate::styles::{CollectionId, ModeId, StyleRefs, VariableId};
 use crate::text::TextData;
 use crate::vector::VectorNetwork;
-use figcraft_color::{BlendMode, Color, Paint};
-use figcraft_geom::Affine;
+use figiran_color::{BlendMode, Color, Paint};
+use figiran_geom::Affine;
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -222,7 +222,7 @@ impl DevStatus {
 pub struct Annotation {
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub label: String,
-    /// Pinned property ids ("width", "fill", "fontSize"…; `figcraft_engine::annotations` lists
+    /// Pinned property ids ("width", "fill", "fontSize"…; `figiran_engine::annotations` lists
     /// them). Unknown ids are kept and ignored.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub properties: Vec<String>,
@@ -234,7 +234,7 @@ pub struct Annotation {
 
 /// A main component (or component set) linked to the code component it is built as, in one
 /// language: Dev Mode shows the snippet its template makes instead of generated code
-/// (`figcraft_engine::code_connect`).
+/// (`figiran_engine::code_connect`).
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct CodeLink {
     /// `react`, `leptos`, `vue`, `swiftui`, `compose`, `arkui` or `flutter`.
@@ -763,8 +763,8 @@ impl Node {
         (self.width, self.height)
     }
 
-    pub fn local_rect(&self) -> figcraft_geom::Rect {
-        figcraft_geom::Rect::new(0.0, 0.0, self.width, self.height)
+    pub fn local_rect(&self) -> figiran_geom::Rect {
+        figiran_geom::Rect::new(0.0, 0.0, self.width, self.height)
     }
 
     pub fn is_page(&self) -> bool {
@@ -881,10 +881,10 @@ impl Node {
 
     /// The page-space area this node paints itself under `world` (its children aside): its box
     /// grown by its strokes and glyphs, then by its effects (see [`Node::grow_by_effects`]).
-    pub fn own_paint_bounds(&self, world: Affine) -> figcraft_geom::Rect {
+    pub fn own_paint_bounds(&self, world: Affine) -> figiran_geom::Rect {
         let o = self.outline_reach();
         let base = self.local_rect().inflate(o, o);
-        let grown = self.grow_by_effects(figcraft_geom::transform_rect_bbox(world, base));
+        let grown = self.grow_by_effects(figiran_geom::transform_rect_bbox(world, base));
         // A filled outline's spread grows in local units (see [`Node::outline_spreads`]): a box by
         // its spread all round, sharp corners' mitres anywhere within a circle of it.
         let [a, b, c, d, _, _] = world.as_coeffs();
@@ -893,14 +893,14 @@ impl Node {
             EffectKind::DropShadow(s) if outlined && s.spread.is_finite() && s.spread > 0.0 => {
                 let spread = effect_reach(s.spread);
                 let outline = if exact {
-                    figcraft_geom::transform_rect_bbox(world, base.inflate(spread, spread))
+                    figiran_geom::transform_rect_bbox(world, base.inflate(spread, spread))
                 } else {
                     let m = spread * SPREAD_MITER_LIMIT;
-                    figcraft_geom::transform_rect_bbox(world, base).inflate(m * a.hypot(c), m * b.hypot(d))
+                    figiran_geom::transform_rect_bbox(world, base).inflate(m * a.hypot(c), m * b.hypot(d))
                 };
                 let (g, (dx, dy)) = (layer + s.radius.abs() * 1.5, s.offset);
                 if g.is_finite() && dx.is_finite() && dy.is_finite() && outline.is_finite() {
-                    r.union(outline.inflate(g, g) + figcraft_geom::kurbo::Vec2::new(dx, dy))
+                    r.union(outline.inflate(g, g) + figiran_geom::kurbo::Vec2::new(dx, dy))
                 } else {
                     r
                 }
@@ -914,7 +914,7 @@ impl Node {
     /// shadow falling down adds room below and none above.
     /// Layer blurs and texture grow it by what they reach together, and drop shadows are cast from
     /// that (see [`Node::layer_effects_reach`]).
-    pub fn grow_by_effects(&self, b: figcraft_geom::Rect) -> figcraft_geom::Rect {
+    pub fn grow_by_effects(&self, b: figiran_geom::Rect) -> figiran_geom::Rect {
         let miter = self.spread_miter_reach();
         let layer = self.layer_effects_reach();
         let moved = if layer > 0.0 { b.inflate(layer, layer) } else { b };
@@ -923,7 +923,7 @@ impl Node {
                 let g = s.radius.abs() * 1.5 + s.spread.max(0.0) + miter;
                 let (dx, dy) = s.offset;
                 if g.is_finite() && dx.is_finite() && dy.is_finite() {
-                    r.union(moved.inflate(g, g) + figcraft_geom::kurbo::Vec2::new(dx, dy))
+                    r.union(moved.inflate(g, g) + figiran_geom::kurbo::Vec2::new(dx, dy))
                 } else {
                     r
                 }
@@ -974,7 +974,7 @@ impl Node {
     fn outline_mitres_end_on_its_box(&self) -> bool {
         match self.kind {
             NodeKind::Rectangle | NodeKind::Section { .. } => true,
-            NodeKind::Ellipse { sweep, .. } => figcraft_geom::full_sweep(sweep),
+            NodeKind::Ellipse { sweep, .. } => figiran_geom::full_sweep(sweep),
             _ => self.kind.is_frame_like(),
         }
     }

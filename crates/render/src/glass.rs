@@ -26,9 +26,9 @@ use std::collections::HashMap;
 use std::hash::{DefaultHasher, Hash, Hasher};
 use std::sync::{Arc, Mutex, OnceLock};
 
-use figcraft_doc::{Glass, Node, NodeKind};
-use figcraft_geom::kurbo::Shape as _;
-use figcraft_geom::{Affine, Point};
+use figiran_doc::{Glass, Node, NodeKind};
+use figiran_geom::kurbo::Shape as _;
+use figiran_geom::{Affine, Point};
 use tiny_skia::Pixmap;
 
 use crate::backdrop::EffectFrame;
@@ -768,7 +768,7 @@ fn whole_shape(shape: &Outline, xf: Affine, m: u32, r: usize) -> Option<(Arc<Edg
 }
 
 /// A layer whose glass shape is a rectangle with circular corners: its size and corner radii
-/// (top-left, top-right, bottom-right, bottom-left), as [`figcraft_geom::rounded_rect`] draws them.
+/// (top-left, top-right, bottom-right, bottom-left), as [`figiran_geom::rounded_rect`] draws them.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct RoundedRect {
     pub width: f64,
@@ -1137,7 +1137,7 @@ mod tests {
     fn a_shape_too_big_to_keep_bends_along_its_normals() {
         // A small shape fits whole with a core's margin; one wider than the kept-shape limit
         // doesn't, at this zoom or with this margin, wherever it sits.
-        let shape = |w: f64, h: f64| -> Outline { (figcraft_geom::kurbo::Rect::new(0.0, 0.0, w, h).to_path(0.1), tiny_skia::FillRule::Winding) };
+        let shape = |w: f64, h: f64| -> Outline { (figiran_geom::kurbo::Rect::new(0.0, 0.0, w, h).to_path(0.1), tiny_skia::FillRule::Winding) };
         assert!(fits_whole(&shape(200.0, 120.0), Affine::translate((10.5, 3.0)), 64));
         assert!(!fits_whole(&shape(4000.0, 3000.0), Affine::translate((10.5, 3.0)), 64));
         assert!(!fits_whole(&shape(200.0, 120.0), Affine::scale(40.0), 64));

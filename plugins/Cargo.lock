@@ -6,18 +6,18 @@ version = 4
 name = "counter"
 version = "0.1.0"
 dependencies = [
- "figcraft-plugin-sdk",
+ "figiran-plugin-sdk",
 ]
 
 [[package]]
 name = "export-names"
 version = "0.1.0"
 dependencies = [
- "figcraft-plugin-sdk",
+ "figiran-plugin-sdk",
 ]
 
 [[package]]
-name = "figcraft-plugin-sdk"
+name = "figiran-plugin-sdk"
 version = "0.1.0"
 dependencies = [
  "serde_json",
@@ -99,7 +99,7 @@ dependencies = [
 name = "swatch-grid"
 version = "0.1.0"
 dependencies = [
- "figcraft-plugin-sdk",
+ "figiran-plugin-sdk",
 ]
 
 [[package]]
@@ -117,7 +117,7 @@ dependencies = [
 name = "tidy-names"
 version = "0.1.0"
 dependencies = [
- "figcraft-plugin-sdk",
+ "figiran-plugin-sdk",
 ]
 
 [[package]]

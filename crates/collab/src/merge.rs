@@ -20,7 +20,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
-use figcraft_doc::{Document, Node, NodeId, NodeKind, Sizing, TextAutoResize};
+use figiran_doc::{Document, Node, NodeId, NodeKind, Sizing, TextAutoResize};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 

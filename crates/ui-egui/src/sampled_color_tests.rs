@@ -8,7 +8,7 @@ use crate::export_preview_tests::{click, labelled};
 use crate::layers_drag_tests::Ui;
 use crate::sampled_color::{SampledColor, create_params};
 
-fn opened(s: figcraft_engine::Session) -> Ui {
+fn opened(s: figiran_engine::Session) -> Ui {
     let mut u = Ui::new(s);
     u.app.session.request_ui("dialog.createFromColor", json!({"color": "#ff8800"}));
     u.app.handle_ui_requests();
@@ -25,7 +25,7 @@ fn press(u: &mut Ui, text: &str) {
 
 #[test]
 fn the_eyedroppers_request_opens_the_window_and_create_makes_a_style() {
-    let mut u = opened(figcraft_engine::Session::new());
+    let mut u = opened(figiran_engine::Session::new());
     let s = u.app.ui.sampled_color.clone().expect("the window is open");
     assert_eq!((s.color.as_str(), s.variable, s.name.as_str()), ("#FF8800", false, "Color 1"));
     let texts: Vec<String> = labelled(&mut u).into_iter().map(|(t, _)| t).collect();
@@ -34,7 +34,7 @@ fn the_eyedroppers_request_opens_the_window_and_create_makes_a_style() {
     let doc = u.app.session.doc().unwrap();
     let style = doc.styles.iter().find(|s| s.name == "Color 1").expect("a style");
     let colour = match &style.kind {
-        figcraft_doc::StyleKind::Paint { paints } => paints.first().and_then(|p| p.solid_color()).map(|c| c.to_hex()),
+        figiran_doc::StyleKind::Paint { paints } => paints.first().and_then(|p| p.solid_color()).map(|c| c.to_hex()),
         _ => None,
     };
     assert_eq!(colour.as_deref(), Some("FF8800"), "a paint style of the colour: {style:?}");
@@ -44,7 +44,7 @@ fn the_eyedroppers_request_opens_the_window_and_create_makes_a_style() {
 #[test]
 fn a_variable_goes_into_a_new_or_the_chosen_collection() {
     // No collection yet: one is made with it, one undo step.
-    let mut u = opened(figcraft_engine::Session::new());
+    let mut u = opened(figiran_engine::Session::new());
     let undo = u.app.session.undo_depth().0;
     if let Some(s) = u.app.ui.sampled_color.as_mut() {
         s.variable = true;
@@ -58,7 +58,7 @@ fn a_variable_goes_into_a_new_or_the_chosen_collection() {
     assert_eq!(c.name, "Collection");
     assert_eq!(u.app.session.undo_depth().0, undo + 1, "one step");
     // With collections: the first is chosen, and the variable goes there.
-    let mut s = figcraft_engine::Session::new();
+    let mut s = figiran_engine::Session::new();
     s.execute("variable.createCollection", &json!({"name": "Brand"})).unwrap();
     let u = opened(s);
     let state = u.app.ui.sampled_color.clone().unwrap();

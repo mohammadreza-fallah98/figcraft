@@ -7,8 +7,8 @@
 use std::borrow::Cow;
 use std::collections::{BTreeMap, BTreeSet};
 
-use figcraft_color::PaintKind;
-use figcraft_doc::{
+use figiran_color::PaintKind;
+use figiran_doc::{
     CollectionId, Document, EffectKind, LetterSpacing, LineHeight, ModeId, Node, NodeId, NodeKind, Style, StyleId, StyleKind, TextStyle, VariableId,
     VariableType, VariableValue, Variables,
 };
@@ -48,7 +48,7 @@ pub fn effect_field_type(kind: &EffectKind, field: &str) -> Option<VariableType>
         (EffectKind::DropShadow(_) | EffectKind::InnerShadow(_), "color") => Some(Color),
         (EffectKind::DropShadow(_) | EffectKind::InnerShadow(_), "radius" | "spread" | "offsetX" | "offsetY") => Some(Number),
         (EffectKind::LayerBlur(_) | EffectKind::BackgroundBlur(_), "radius" | "startRadius") => Some(Number),
-        (EffectKind::Glass(_), f) if figcraft_doc::Glass::BOUND_FIELDS.contains(&f) => Some(Number),
+        (EffectKind::Glass(_), f) if figiran_doc::Glass::BOUND_FIELDS.contains(&f) => Some(Number),
         _ => None,
     }
 }

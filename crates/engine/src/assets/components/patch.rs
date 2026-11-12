@@ -461,10 +461,10 @@ fn patch_copies(doc: &mut Document, seeds: &[(NodeId, Vec<&'static str>)]) -> bo
                 }
             }
             if (geometry || gs.iter().any(|g| text(g)))
-                && let Some((w, h)) = doc.node(c).and_then(figcraft_text::auto_size)
+                && let Some((w, h)) = doc.node(c).and_then(figiran_text::auto_size)
                 && doc.node(c).is_some_and(|n| (n.width - w).abs() > 1e-6 || (n.height - h).abs() > 1e-6)
             {
-                figcraft_layout::set_size(doc, c, w, h);
+                figiran_layout::set_size(doc, c, w, h);
             }
             work.push((c, gs));
         }

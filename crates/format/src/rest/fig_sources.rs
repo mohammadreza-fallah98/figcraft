@@ -3,7 +3,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use figcraft_doc::{Document, NodeId, NodeKind};
+use figiran_doc::{Document, NodeId, NodeKind};
 use serde_json::Value;
 
 use super::{FIG_SOURCE_FIELD, MAX_DEPTH};

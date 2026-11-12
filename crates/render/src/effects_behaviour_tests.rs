@@ -1,12 +1,12 @@
-//! Effects behaviour, written from the public documentation of the design tools FigCraft follows:
+//! Effects behaviour, written from the public documentation of the design tools FigIran follows:
 //! drop and inner shadows (offset, blur, spread, colour, showing behind transparent areas),
 //! layer and background blurs, effects on groups, the order effects stack in and what exports
 //! include. Each case says in one line why it expects what it does; where the documentation is
 //! silent the case says so and pins today's behaviour. Scenes are small and synthetic, drawn on
 //! a white page at 1×.
 
-use figcraft_color::{Color, Paint};
-use figcraft_doc::{Blur, BlurType, Document, Effect, EffectKind, NodeId, NodeKind, Shadow, StrokeAlign};
+use figiran_color::{Color, Paint};
+use figiran_doc::{Blur, BlurType, Document, Effect, EffectKind, NodeId, NodeKind, Shadow, StrokeAlign};
 
 use super::paint_behaviour_tests::{Probes, Pt, Px, hex, near, page, px, rect, render, solid_at};
 use super::*;
@@ -56,7 +56,7 @@ fn new_effects_start_from_the_documented_defaults() {
         assert_eq!(e.kind, want, "{ty}");
         assert!(e.visible, "{ty} starts visible");
     }
-    assert!(!shadow.show_behind && shadow.blend == figcraft_color::BlendMode::Normal);
+    assert!(!shadow.show_behind && shadow.blend == figiran_color::BlendMode::Normal);
     assert_eq!(Blur::default().blur_type, BlurType::Uniform);
 }
 
@@ -274,7 +274,7 @@ fn a_containers_effects_reach_past_what_its_children_paint() {
 
 #[test]
 fn effects_reach_as_far_under_a_scaled_or_turned_transform() {
-    use figcraft_geom::kurbo::Affine;
+    use figiran_geom::kurbo::Affine;
     let shadow = |d: (f64, f64)| fx(EffectKind::DropShadow(sharp(d, 0.0)));
     let spread = |s: f64| fx(EffectKind::DropShadow(sharp((0.0, 0.0), s)));
     let turned = Affine::translate((150.0, 50.0)) * Affine::rotate(std::f64::consts::FRAC_PI_4);
@@ -338,7 +338,7 @@ fn effects_reach_as_far_under_a_tiny_scale() {
         let (mut d, p) = page();
         let r = rect(&mut d, p, (0.0, 0.0, w, w), vec![Paint::solid(hex("FF0000"))]);
         let n = d.get_mut(r).unwrap();
-        n.transform = figcraft_geom::kurbo::Affine::scale(100.0 / w);
+        n.transform = figiran_geom::kurbo::Affine::scale(100.0 / w);
         n.effects = vec![fx(EffectKind::DropShadow(sharp((0.0, 80.0), 0.0)))];
         d
     };
@@ -360,7 +360,7 @@ fn a_spread_counts_once_in_an_export() {
         let (mut d, p) = page();
         let r = rect(&mut d, p, (0.0, 0.0, 100.0, 100.0), vec![Paint::solid(hex("FF0000"))]);
         let n = d.get_mut(r).unwrap();
-        n.transform = figcraft_geom::kurbo::Affine::scale(scale);
+        n.transform = figiran_geom::kurbo::Affine::scale(scale);
         n.effects = vec![fx(EffectKind::DropShadow(sharp((0.0, 0.0), 20.0)))];
         let px = render_node(&d, r, 1.0).unwrap();
         assert_eq!((px.width(), px.height()), (side, side), "at scale {scale}");
@@ -496,14 +496,14 @@ fn exports_include_what_effects_paint_outside_the_layer() {
         ("a layer blur reaches out", vec![fx(EffectKind::LayerBlur(Blur::uniform(4.0)))], true),
         ("an inner shadow stays inside", vec![fx(EffectKind::InnerShadow(sharp((0.0, 10.0), 0.0)))], false),
         ("a background blur stays inside", vec![fx(EffectKind::BackgroundBlur(Blur::uniform(4.0)))], false),
-        ("noise stays on the layer's pixels", vec![fx(EffectKind::Noise(figcraft_doc::Noise::default()))], false),
-        ("texture roughens past the edge", vec![fx(EffectKind::Texture(figcraft_doc::Texture::default()))], true),
+        ("noise stays on the layer's pixels", vec![fx(EffectKind::Noise(figiran_doc::Noise::default()))], false),
+        ("texture roughens past the edge", vec![fx(EffectKind::Texture(figiran_doc::Texture::default()))], true),
         (
             "texture clipped to the shape stays inside",
-            vec![fx(EffectKind::Texture(figcraft_doc::Texture { clip_to_shape: true, ..Default::default() }))],
+            vec![fx(EffectKind::Texture(figiran_doc::Texture { clip_to_shape: true, ..Default::default() }))],
             false,
         ),
-        ("glass stays inside", vec![fx(EffectKind::Glass(figcraft_doc::Glass::default()))], false),
+        ("glass stays inside", vec![fx(EffectKind::Glass(figiran_doc::Glass::default()))], false),
     ];
     for (why, effects, grows) in rows {
         let (w, h) = size(effects);
@@ -535,7 +535,7 @@ fn exports_hold_what_stacked_effects_reach_together() {
         ("four blurs of 25", vec![blur(25.0), blur(25.0), blur(25.0), blur(25.0)]),
         ("eight blurs of 10", (0..8).map(|_| blur(10.0)).collect()),
         ("sixteen blurs of 3", (0..16).map(|_| blur(3.0)).collect()),
-        ("texture over blurs", vec![blur(15.0), blur(15.0), fx(EffectKind::Texture(figcraft_doc::Texture { radius: 12.0, ..Default::default() }))]),
+        ("texture over blurs", vec![blur(15.0), blur(15.0), fx(EffectKind::Texture(figiran_doc::Texture { radius: 12.0, ..Default::default() }))]),
         ("a blur under a shadow", vec![blur(20.0), fx(EffectKind::DropShadow(sharp((0.0, 30.0), 0.0)))]),
         ("a shadow then a blur", vec![fx(EffectKind::DropShadow(sharp((0.0, 30.0), 0.0))), blur(20.0)]),
     ];

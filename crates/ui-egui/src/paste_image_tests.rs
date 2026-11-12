@@ -7,8 +7,8 @@ use std::rc::Rc;
 use std::sync::Arc;
 
 use egui::{Event, Key, Modifiers, PointerButton, Pos2, RawInput, Rect, Shape, vec2};
-use figcraft_doc::NodeId;
-use figcraft_engine::Session;
+use figiran_doc::NodeId;
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::{FigApp, Services};
@@ -16,7 +16,7 @@ use crate::{FigApp, Services};
 /// What the system clipboard holds when a paste chord is pressed (#716).
 #[derive(Clone, Copy, Debug)]
 enum Held {
-    /// FigCraft's own copy (its SVG text).
+    /// FigIran's own copy (its SVG text).
     Ours,
     /// Text copied in another app.
     Text,
@@ -123,7 +123,7 @@ impl Win {
         self.frame(vec![Event::ModifiersChanged(Modifiers::NONE)]);
     }
 
-    /// A red rectangle A copied in FigCraft, and a grey rectangle B selected; then `held` on the
+    /// A red rectangle A copied in FigIran, and a grey rectangle B selected; then `held` on the
     /// system clipboard. Returns (A, B).
     fn copy_a_select_b(&mut self, held: Held) -> (NodeId, NodeId) {
         let s = &mut self.app.session;
@@ -144,7 +144,7 @@ impl Win {
     }
 
     fn fill(&self, id: NodeId) -> String {
-        let n = figcraft_engine::inspect::node_json(self.app.session.doc().unwrap(), id, 0);
+        let n = figiran_engine::inspect::node_json(self.app.session.doc().unwrap(), id, 0);
         n["fills"][0]["color"].as_str().unwrap_or_default().to_string()
     }
 
@@ -166,7 +166,7 @@ impl Win {
     }
 
     fn texts(&self) -> usize {
-        self.app.session.doc().unwrap().nodes().filter(|n| matches!(n.kind, figcraft_doc::NodeKind::Text(_))).count()
+        self.app.session.doc().unwrap().nodes().filter(|n| matches!(n.kind, figiran_doc::NodeKind::Text(_))).count()
     }
 
     fn rects(&self) -> usize {
@@ -205,14 +205,14 @@ fn cmd_v_fills_a_selected_oval_without_adding_a_layer() {
     let doc = w.app.session.doc().unwrap();
     let node = doc.node(oval).unwrap();
     assert_eq!(doc.node_count(), before);
-    assert!(matches!(node.kind, figcraft_doc::NodeKind::Ellipse { .. }));
+    assert!(matches!(node.kind, figiran_doc::NodeKind::Ellipse { .. }));
     // Added on top: the oval's own fill stays under it.
     assert_eq!(node.fills.len(), original_fill.len() + 1);
     assert_eq!(node.fills[..original_fill.len()], original_fill[..]);
-    assert!(matches!(node.fills.last().unwrap().kind, figcraft_color::PaintKind::Image(_)));
+    assert!(matches!(node.fills.last().unwrap().kind, figiran_color::PaintKind::Image(_)));
     assert_eq!((node.width, node.height), (120.0, 80.0));
     assert_eq!(w.app.session.selection(), vec![oval]);
-    let png = figcraft_engine::cmd::file::export_bytes(doc, &[oval], figcraft_doc::ExportFormat::Png, 1.0).unwrap();
+    let png = figiran_engine::cmd::file::export_bytes(doc, &[oval], figiran_doc::ExportFormat::Png, 1.0).unwrap();
     let pixels = image::load_from_memory(&png).unwrap().to_rgba8();
     assert_eq!(pixels.get_pixel(0, 0)[3], 0, "the picture stays inside the oval");
     assert_eq!(pixels.get_pixel(60, 40)[3], 255, "the oval contains the picture");
@@ -234,14 +234,14 @@ fn pasting_an_image_keeps_the_other_fills_variables() {
     w.copy_image_elsewhere();
     w.cmd_v();
     let node = w.app.session.doc().unwrap().node(oval).unwrap();
-    assert!(matches!(node.fills.last().unwrap().kind, figcraft_color::PaintKind::Image(_)));
-    assert!(matches!(node.fills[0].kind, figcraft_color::PaintKind::Solid { .. }));
+    assert!(matches!(node.fills.last().unwrap().kind, figiran_color::PaintKind::Image(_)));
+    assert!(matches!(node.fills[0].kind, figiran_color::PaintKind::Solid { .. }));
     assert!(!node.bound.is_empty(), "the colour fill under the image keeps its variable");
 }
 
-/// An image layer copied in FigCraft pastes as a layer, a selected shape or not.
+/// An image layer copied in FigIran pastes as a layer, a selected shape or not.
 #[test]
-fn an_image_layer_copied_in_figcraft_pastes_as_a_layer() {
+fn an_image_layer_copied_in_figiran_pastes_as_a_layer() {
     let mut w = Win::new();
     w.copy_image_elsewhere();
     w.cmd_v();

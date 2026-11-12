@@ -5,7 +5,7 @@ use serde_json::{Value, json};
 
 use crate::params::id_of;
 use crate::{EngineError, Session};
-use figcraft_doc::{NodeId, NodeKind, Sizing};
+use figiran_doc::{NodeId, NodeKind, Sizing};
 
 fn id(v: Value) -> NodeId {
     id_of(&v["id"]).unwrap()
@@ -90,14 +90,14 @@ fn adding_auto_layout_preserves_mask_runs_and_their_rendering() {
     ex(&mut s, "node.set", json!({"ids": [mask, mask2], "props": {"isMask": true}}));
     // Absolute layers keep the overlaps, isolating paint order from normal flow placement.
     ex(&mut s, "node.set", json!({"ids": [mask, content, mask2, content2], "props": {"absolute": true}}));
-    let before = figcraft_render::render_node(s.doc().unwrap(), group, 1.0).unwrap();
+    let before = figiran_render::render_node(s.doc().unwrap(), group, 1.0).unwrap();
     ex(&mut s, "layout.add", json!({"ids": [group]}));
     let doc = s.doc().unwrap();
     let frame = doc.node(group).unwrap();
     assert_eq!(frame.children, vec![left, right, mask, content, mask2, content2], "sort the unmasked prefix, retain mask runs");
     let runs: Vec<Vec<NodeId>> = doc.paint_runs(frame).iter().map(|r| frame.children[r.clone()].to_vec()).collect();
     assert_eq!(runs, vec![vec![left], vec![right], vec![mask, content], vec![mask2, content2]]);
-    let after = figcraft_render::render_node(doc, group, 1.0).unwrap();
+    let after = figiran_render::render_node(doc, group, 1.0).unwrap();
     assert_eq!((after.width(), after.height(), after.data()), (before.width(), before.height(), before.data()));
     s.undo().unwrap();
     assert_eq!(s.doc().unwrap().node(group).unwrap().children, vec![right, left, mask, content, mask2, content2]);
@@ -150,7 +150,7 @@ fn hidden_children_do_not_influence_inferred_direction_or_padding() {
     let before = [page_box(&s, a), page_box(&s, b)];
     ex(&mut s, "layout.add", json!({"ids": [frame]}));
     let layout = s.doc().unwrap().node(frame).unwrap().layout.as_ref().unwrap();
-    assert_eq!(layout.mode, figcraft_doc::LayoutMode::Horizontal);
+    assert_eq!(layout.mode, figiran_doc::LayoutMode::Horizontal);
     assert_eq!(layout.padding, [20.0, 170.0, 160.0, 10.0]);
     assert_eq!(layout.gap, 40.0);
     assert_eq!([page_box(&s, a), page_box(&s, b)], before);

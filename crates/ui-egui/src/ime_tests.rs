@@ -5,8 +5,8 @@
 
 use egui::output::{IMEOutput, IMESurroundingText, IMESurroundingTextPayload, ImeChangeCause};
 use egui::{Event, ImeEvent, Key, Modifiers, RawInput, Rect};
-use figcraft_doc::{NodeId, NodeKind};
-use figcraft_engine::Session;
+use figiran_doc::{NodeId, NodeKind};
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::layers_drag_tests::Ui;
@@ -65,13 +65,13 @@ fn text_layer(s: &mut Session, text: &str) -> NodeId {
 fn pinyin_composes_inline_and_commits_once_with_the_ime_on_every_frame() {
     // The text is measured with a font: without craft-fonts a system one, scanned here rather than
     // by whichever test happens to run first (#333).
-    figcraft_text::scan_system_fonts();
+    figiran_text::scan_system_fonts();
     let mut s = Session::new();
     let t = NodeId(s.execute("text.create", &json!({"text": "Hi", "x": 40, "y": 40})).unwrap()["id"].as_u64().unwrap());
     // On a machine without any font nothing lays out and every caret sits at the start.
-    let fonts = figcraft_text::layout_node(s.doc().unwrap().node(t).unwrap()).is_some_and(|(l, _)| !l.glyphs.is_empty());
+    let fonts = figiran_text::layout_node(s.doc().unwrap().node(t).unwrap()).is_some_and(|(l, _)| !l.glyphs.is_empty());
     let mut u = Ui::new(s);
-    figcraft_engine::textedit::begin(&mut u.app.session, t, Some(2), false).unwrap();
+    figiran_engine::textedit::begin(&mut u.app.session, t, Some(2), false).unwrap();
     // An idle frame (the caret blinking) keeps the IME on, or macOS drops the composition.
     let caret = ime(&mut u, vec![]);
     let ds = u.app.session.ds().unwrap();
@@ -112,11 +112,11 @@ fn an_empty_ime_commit_ends_the_composition_without_inserting_text() {
     // Safari's egui web integration sends `Commit("")` (not `Preedit("")`) when the last
     // composition character is deleted. It ends the composition; it must not leave the pre-edit
     // rendering or insert anything.
-    figcraft_text::scan_system_fonts();
+    figiran_text::scan_system_fonts();
     let mut s = Session::new();
     let t = text_layer(&mut s, "Hello");
     let mut u = Ui::new(s);
-    figcraft_engine::textedit::begin(&mut u.app.session, t, Some(5), false).unwrap();
+    figiran_engine::textedit::begin(&mut u.app.session, t, Some(5), false).unwrap();
     ime(&mut u, vec![preedit("にほ")]);
     assert_eq!(composing(&u).as_deref(), Some("にほ"));
     let after = ime_descriptor(&mut u, vec![Event::Ime(ImeEvent::Commit(String::new()))]);
@@ -137,17 +137,17 @@ fn an_ime_replacing_text_deletes_in_bytes_before_the_paired_commit() {
     // 0.37 sends `DeleteSurroundingBytes` immediately before the commit that replaces it. The
     // custom engine editor deletes the exact UTF-8 range (never display-bidi text) and keeps the
     // whole edit as one undo step.
-    figcraft_text::scan_system_fonts();
+    figiran_text::scan_system_fonts();
     let mut s = Session::new();
     let t = NodeId(s.execute("text.create", &json!({"text": "ab\u{4F60}\u{597D}cd", "x": 40, "y": 40})).unwrap()["id"].as_u64().unwrap());
     let mut u = Ui::new(s);
-    figcraft_engine::textedit::begin(&mut u.app.session, t, Some(4), false).unwrap();
+    figiran_engine::textedit::begin(&mut u.app.session, t, Some(4), false).unwrap();
     ime(&mut u, vec![]);
     // Compose, then replace "你好c" with "X".
     ime(&mut u, vec![preedit("x")]);
     ime(&mut u, vec![Event::Ime(ImeEvent::DeleteSurroundingBytes { before_bytes: 6, after_bytes: 1 }), Event::Ime(ImeEvent::Commit("X".into()))]);
     assert_eq!(text(&u, t), "abXd");
-    figcraft_engine::textedit::end(&mut u.app.session).unwrap();
+    figiran_engine::textedit::end(&mut u.app.session).unwrap();
     u.app.session.execute("edit.undo", &json!({})).unwrap();
     assert_eq!(text(&u, t), "ab\u{4F60}\u{597D}cd", "one undo restores the pre-IME text");
 }
@@ -156,14 +156,14 @@ fn an_ime_replacing_text_deletes_in_bytes_before_the_paired_commit() {
 /// deletions) while a later direct commit still works.
 #[test]
 fn a_caret_click_rejects_the_stale_delete_and_commit_in_the_same_input_batch() {
-    figcraft_text::scan_system_fonts();
+    figiran_text::scan_system_fonts();
     for delete in
         [ImeEvent::DeleteSurrounding { before_chars: 1, after_chars: 1 }, ImeEvent::DeleteSurroundingBytes { before_bytes: 1, after_bytes: 1 }]
     {
         let mut s = Session::new();
         let t = text_layer(&mut s, "abcdef");
         let mut u = Ui::new(s);
-        figcraft_engine::textedit::begin(&mut u.app.session, t, Some(6), false).unwrap();
+        figiran_engine::textedit::begin(&mut u.app.session, t, Some(6), false).unwrap();
         ime(&mut u, vec![preedit("z")]);
         let p = u.app.to_screen(42.0, 45.0);
         // Real canvas pointer handling moves the caret and cancels preedit before text_keys.
@@ -187,7 +187,7 @@ fn a_caret_click_rejects_the_stale_delete_and_commit_in_the_same_input_batch() {
         let mut expected = "abcdef".to_string();
         expected.insert(caret, 'X');
         assert_eq!(text(&u, t), expected, "the interrupted batch does not poison a later direct commit");
-        figcraft_engine::textedit::end(&mut u.app.session).unwrap();
+        figiran_engine::textedit::end(&mut u.app.session).unwrap();
         u.app.session.execute("edit.undo", &json!({})).unwrap();
         assert_eq!(text(&u, t), "abcdef", "the valid edit retains one-session undo");
     }
@@ -197,15 +197,15 @@ fn a_caret_click_rejects_the_stale_delete_and_commit_in_the_same_input_batch() {
 /// batch, while a direct commit to the new target remains valid.
 #[test]
 fn a_document_switch_rejects_the_old_compositions_delete_and_commit_batch() {
-    figcraft_text::scan_system_fonts();
+    figiran_text::scan_system_fonts();
     let mut s = Session::new();
     let a = text_layer(&mut s, "Alpha");
     s.execute("file.new", &json!({"name": "B"})).unwrap();
     let b = text_layer(&mut s, "Bravo");
-    figcraft_engine::textedit::begin(&mut s, b, Some(5), false).unwrap();
+    figiran_engine::textedit::begin(&mut s, b, Some(5), false).unwrap();
     s.execute("doc.switch", &json!({"index": 0})).unwrap();
     let mut u = Ui::new(s);
-    figcraft_engine::textedit::begin(&mut u.app.session, a, Some(5), false).unwrap();
+    figiran_engine::textedit::begin(&mut u.app.session, a, Some(5), false).unwrap();
     ime(&mut u, vec![preedit("z")]);
     let (tx, rx) = std::sync::mpsc::channel();
     u.app.control_queue.push(crate::control::ControlRequest {
@@ -228,11 +228,11 @@ fn a_document_switch_rejects_the_old_compositions_delete_and_commit_batch() {
 /// `InputMethod` with UTF-8 offsets, the same owner and generation.
 #[test]
 fn ime_cause_is_input_method_only_for_an_accepted_commit() {
-    figcraft_text::scan_system_fonts();
+    figiran_text::scan_system_fonts();
     let mut s = Session::new();
     let t = text_layer(&mut s, "Hi");
     let mut u = Ui::new(s);
-    figcraft_engine::textedit::begin(&mut u.app.session, t, Some(2), false).unwrap();
+    figiran_engine::textedit::begin(&mut u.app.session, t, Some(2), false).unwrap();
 
     let first = ime_descriptor(&mut u, vec![]);
     assert_eq!(first.change_cause, ImeChangeCause::Other, "the first focused observation starts a context");
@@ -256,11 +256,11 @@ fn ime_cause_is_input_method_only_for_an_accepted_commit() {
 /// `InputMethod` without lingering state.
 #[test]
 fn ime_cause_reports_mixed_application_and_ime_mutations_as_other() {
-    figcraft_text::scan_system_fonts();
+    figiran_text::scan_system_fonts();
     let mut s = Session::new();
     let t = text_layer(&mut s, "Hi");
     let mut u = Ui::new(s);
-    figcraft_engine::textedit::begin(&mut u.app.session, t, Some(2), false).unwrap();
+    figiran_engine::textedit::begin(&mut u.app.session, t, Some(2), false).unwrap();
     ime(&mut u, vec![]);
 
     let mixed = ime_descriptor(&mut u, vec![Event::Ime(ImeEvent::Commit("あ".into())), Event::Text("b".into())]);
@@ -284,11 +284,11 @@ fn ime_cause_reports_mixed_application_and_ime_mutations_as_other() {
 /// Asserts a control-channel text edit is an application change (`Other`).
 #[test]
 fn a_control_channel_text_edit_is_an_application_change() {
-    figcraft_text::scan_system_fonts();
+    figiran_text::scan_system_fonts();
     let mut s = Session::new();
     let t = text_layer(&mut s, "Hi");
     let mut u = Ui::new(s);
-    figcraft_engine::textedit::begin(&mut u.app.session, t, Some(2), false).unwrap();
+    figiran_engine::textedit::begin(&mut u.app.session, t, Some(2), false).unwrap();
     ime(&mut u, vec![]);
 
     // A command from the control channel (not an ImeEvent) changes committed text.
@@ -302,11 +302,11 @@ fn a_control_channel_text_edit_is_an_application_change() {
 /// post-mutation text and caret.
 #[test]
 fn ime_delete_then_commit_is_input_method_and_describes_the_post_mutation_text() {
-    figcraft_text::scan_system_fonts();
+    figiran_text::scan_system_fonts();
     let mut s = Session::new();
     let t = text_layer(&mut s, "ab\u{4F60}\u{597D}cd");
     let mut u = Ui::new(s);
-    figcraft_engine::textedit::begin(&mut u.app.session, t, Some(4), false).unwrap();
+    figiran_engine::textedit::begin(&mut u.app.session, t, Some(4), false).unwrap();
     ime(&mut u, vec![]);
 
     let out = ime_descriptor(
@@ -323,11 +323,11 @@ fn ime_delete_then_commit_is_input_method_and_describes_the_post_mutation_text()
 /// following commit is `InputMethod`.
 #[test]
 fn preedit_is_not_surrounding_text_but_the_commit_that_follows_is_input_method() {
-    figcraft_text::scan_system_fonts();
+    figiran_text::scan_system_fonts();
     let mut s = Session::new();
     let t = text_layer(&mut s, "Hi");
     let mut u = Ui::new(s);
-    figcraft_engine::textedit::begin(&mut u.app.session, t, Some(2), false).unwrap();
+    figiran_engine::textedit::begin(&mut u.app.session, t, Some(2), false).unwrap();
     ime(&mut u, vec![]);
 
     let composing = ime_descriptor(&mut u, vec![preedit("にほ")]);
@@ -345,13 +345,13 @@ fn preedit_is_not_surrounding_text_but_the_commit_that_follows_is_input_method()
 /// selection.
 #[test]
 fn ime_surrounding_text_is_logical_utf8_and_keeps_a_reversed_selection() {
-    figcraft_text::scan_system_fonts();
+    figiran_text::scan_system_fonts();
     let mut s = Session::new();
     let t = text_layer(&mut s, "café😀e\u{301}x");
     let mut u = Ui::new(s);
-    figcraft_engine::textedit::begin(&mut u.app.session, t, Some(8), false).unwrap();
-    figcraft_engine::textedit::set_caret(&mut u.app.session, 8, false).unwrap();
-    figcraft_engine::textedit::set_caret(&mut u.app.session, 5, true).unwrap();
+    figiran_engine::textedit::begin(&mut u.app.session, t, Some(8), false).unwrap();
+    figiran_engine::textedit::set_caret(&mut u.app.session, 8, false).unwrap();
+    figiran_engine::textedit::set_caret(&mut u.app.session, 5, true).unwrap();
 
     let out = ime_descriptor(&mut u, vec![]);
     let payload = available(&out);
@@ -364,11 +364,11 @@ fn ime_surrounding_text_is_logical_utf8_and_keeps_a_reversed_selection() {
 /// explicitly unavailable but still has a nonzero IME context generation.
 #[test]
 fn empty_text_is_available_while_a_too_wide_selection_is_explicitly_unavailable() {
-    figcraft_text::scan_system_fonts();
+    figiran_text::scan_system_fonts();
     let mut s = Session::new();
     let t = text_layer(&mut s, "");
     let mut u = Ui::new(s);
-    figcraft_engine::textedit::begin(&mut u.app.session, t, Some(0), false).unwrap();
+    figiran_engine::textedit::begin(&mut u.app.session, t, Some(0), false).unwrap();
     let empty = ime_descriptor(&mut u, vec![]);
     let payload = available(&empty);
     assert_eq!((payload.text.as_str(), payload.cursor, payload.anchor), ("", 0, 0));
@@ -378,7 +378,7 @@ fn empty_text_is_available_while_a_too_wide_selection_is_explicitly_unavailable(
     let long = "a".repeat(5000);
     let t = text_layer(&mut s, &long);
     let mut u = Ui::new(s);
-    figcraft_engine::textedit::begin(&mut u.app.session, t, None, false).unwrap();
+    figiran_engine::textedit::begin(&mut u.app.session, t, None, false).unwrap();
     let wide = ime_descriptor(&mut u, vec![]);
     assert_eq!(wide.surrounding_text, IMESurroundingText::Unavailable);
     assert!(wide.context_generation > 0, "the owner stays known when only the text is unavailable");
@@ -387,12 +387,12 @@ fn empty_text_is_available_while_a_too_wide_selection_is_explicitly_unavailable(
 /// Asserts replacing a too-wide selection with a commit is still an `InputMethod` receipt.
 #[test]
 fn a_commit_replacing_a_too_wide_selection_is_still_an_input_method_receipt() {
-    figcraft_text::scan_system_fonts();
+    figiran_text::scan_system_fonts();
     let mut s = Session::new();
     let long = "a".repeat(5000);
     let t = text_layer(&mut s, &long);
     let mut u = Ui::new(s);
-    figcraft_engine::textedit::begin(&mut u.app.session, t, None, false).unwrap();
+    figiran_engine::textedit::begin(&mut u.app.session, t, None, false).unwrap();
     let wide = ime_descriptor(&mut u, vec![]);
     assert_eq!(wide.surrounding_text, IMESurroundingText::Unavailable);
 
@@ -410,22 +410,22 @@ fn a_commit_replacing_a_too_wide_selection_is_still_an_input_method_receipt() {
 /// context generation while keeping the owner key.
 #[test]
 fn a_new_edit_session_and_another_text_node_are_new_ime_owners() {
-    figcraft_text::scan_system_fonts();
+    figiran_text::scan_system_fonts();
     let mut s = Session::new();
     let a = text_layer(&mut s, "A");
     let b = text_layer(&mut s, "B");
     let mut u = Ui::new(s);
-    figcraft_engine::textedit::begin(&mut u.app.session, a, Some(1), false).unwrap();
+    figiran_engine::textedit::begin(&mut u.app.session, a, Some(1), false).unwrap();
     let first = ime_descriptor(&mut u, vec![]);
 
-    figcraft_engine::textedit::end(&mut u.app.session).unwrap();
-    figcraft_engine::textedit::begin(&mut u.app.session, b, Some(1), false).unwrap();
+    figiran_engine::textedit::end(&mut u.app.session).unwrap();
+    figiran_engine::textedit::begin(&mut u.app.session, b, Some(1), false).unwrap();
     let other = ime_descriptor(&mut u, vec![]);
     assert_ne!(other.owner, first.owner, "another text node is another owner");
     assert_ne!(other.context_generation, first.context_generation);
 
-    figcraft_engine::textedit::end(&mut u.app.session).unwrap();
-    figcraft_engine::textedit::begin(&mut u.app.session, a, Some(1), false).unwrap();
+    figiran_engine::textedit::end(&mut u.app.session).unwrap();
+    figiran_engine::textedit::begin(&mut u.app.session, a, Some(1), false).unwrap();
     let again = ime_descriptor(&mut u, vec![]);
     assert_eq!(again.owner, first.owner, "the owner key is the document and node");
     assert_ne!(again.context_generation, first.context_generation, "re-entering is a replaced target");
@@ -435,11 +435,11 @@ fn a_new_edit_session_and_another_text_node_are_new_ime_owners() {
 /// its `InputMethod` cause, while a mixed rerun is `Other`.
 #[test]
 fn an_accepted_commit_survives_a_discarded_pass_without_reapplying_or_losing_its_cause() {
-    figcraft_text::scan_system_fonts();
+    figiran_text::scan_system_fonts();
     let mut s = Session::new();
     let t = text_layer(&mut s, "Hi");
     let mut u = Ui::new(s);
-    figcraft_engine::textedit::begin(&mut u.app.session, t, Some(2), false).unwrap();
+    figiran_engine::textedit::begin(&mut u.app.session, t, Some(2), false).unwrap();
     let first = ime_descriptor(&mut u, vec![]);
 
     let out = u.frame_raw_with_discard(RawInput { events: vec![Event::Ime(ImeEvent::Commit("あ".into()))], ..Default::default() });
@@ -461,16 +461,16 @@ fn an_accepted_commit_survives_a_discarded_pass_without_reapplying_or_losing_its
 /// the old generation.
 #[test]
 fn ime_context_state_is_scoped_per_viewport() {
-    figcraft_text::scan_system_fonts();
+    figiran_text::scan_system_fonts();
     let mut s = Session::new();
     let t = text_layer(&mut s, "Hi");
-    figcraft_engine::textedit::begin(&mut s, t, Some(2), false).unwrap();
+    figiran_engine::textedit::begin(&mut s, t, Some(2), false).unwrap();
     let mut app = crate::FigApp::new(s, Box::new(crate::NoServices));
     // No window drew here, so give the canvas a finite rect for the caret geometry.
     app.canvas.rect = Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(800.0, 600.0));
     let ctx = egui::Context::default();
     ctx.set_embed_viewports(false);
-    let aux = egui::ViewportId::from_hash_of("figcraft-ime-aux");
+    let aux = egui::ViewportId::from_hash_of("figiran-ime-aux");
 
     let mut raw = RawInput { viewport_id: egui::ViewportId::ROOT, ..Default::default() };
     raw.viewports.entry(egui::ViewportId::ROOT).or_default();
@@ -515,7 +515,7 @@ fn ime_context_state_is_scoped_per_viewport() {
 #[test]
 fn the_engine_surrounding_limit_matches_the_wire_limit() {
     // A divergence would truncate or overrun the bounded payload silently.
-    let engine = figcraft_engine::textedit::MAX_IME_SURROUNDING_BYTES;
+    let engine = figiran_engine::textedit::MAX_IME_SURROUNDING_BYTES;
     let wire = egui::output::MAX_IME_SURROUNDING_TEXT_BYTES;
     assert_eq!(engine, wire);
 }
@@ -524,11 +524,11 @@ fn the_engine_surrounding_limit_matches_the_wire_limit() {
 /// early-return pass.
 #[test]
 fn a_frame_observes_the_ime_once_even_when_it_ends_early() {
-    figcraft_text::scan_system_fonts();
+    figiran_text::scan_system_fonts();
     let mut s = Session::new();
     let t = text_layer(&mut s, "Hi");
     let mut u = Ui::new(s);
-    figcraft_engine::textedit::begin(&mut u.app.session, t, Some(2), false).unwrap();
+    figiran_engine::textedit::begin(&mut u.app.session, t, Some(2), false).unwrap();
     let before = u.app.ime_observations;
     u.frame(vec![]);
     assert_eq!(u.app.ime_observations - before, 1, "one final observation for the editor pass");
@@ -544,26 +544,26 @@ fn a_frame_observes_the_ime_once_even_when_it_ends_early() {
 /// owner or generation.
 #[test]
 fn a_double_click_inside_the_edit_keeps_the_ime_generation() {
-    figcraft_text::scan_system_fonts();
+    figiran_text::scan_system_fonts();
     let mut s = Session::new();
     let t = text_layer(&mut s, "Hello world");
     let mut u = Ui::new(s);
-    figcraft_engine::textedit::begin(&mut u.app.session, t, Some(2), false).unwrap();
+    figiran_engine::textedit::begin(&mut u.app.session, t, Some(2), false).unwrap();
     let (p, zoom) = {
         let doc = u.app.session.doc().unwrap();
         let node = doc.node(t).unwrap();
-        let Some((layout, dy)) = figcraft_text::layout_node(node) else { return };
+        let Some((layout, dy)) = figiran_text::layout_node(node) else { return };
         if layout.glyphs.is_empty() || layout.lines.is_empty() {
             return; // no fonts
         }
         let (x0, x1) = (layout.caret(7).0, layout.caret(8).0);
         let line = &layout.lines[0];
         let world = doc.world_transform(t);
-        let p = world * figcraft_geom::Point::new((x0 + x1) / 2.0, line.top + line.height / 2.0 + dy);
+        let p = world * figiran_geom::Point::new((x0 + x1) / 2.0, line.top + line.height / 2.0 + dy);
         (p, u.app.session.ds().unwrap().view.zoom)
     };
     let first = ime_descriptor(&mut u, vec![]);
-    let ev = figcraft_engine::PointerEvent::at(figcraft_engine::PointerKind::DoubleClick, p.x, p.y, zoom);
+    let ev = figiran_engine::PointerEvent::at(figiran_engine::PointerKind::DoubleClick, p.x, p.y, zoom);
     u.app.session.pointer(&ev).unwrap();
 
     let after = ime_descriptor(&mut u, vec![]);
@@ -576,12 +576,12 @@ fn a_double_click_inside_the_edit_keeps_the_ime_generation() {
 /// descriptor.
 #[test]
 fn a_window_new_that_moves_the_edited_file_leaves_the_root_ime_idle() {
-    figcraft_text::scan_system_fonts();
+    figiran_text::scan_system_fonts();
     let mut s = Session::empty();
     s.execute("file.new", &json!({"name": "A"})).unwrap();
     let uid = s.ds().unwrap().uid;
     let t = text_layer(&mut s, "Hi");
-    figcraft_engine::textedit::begin(&mut s, t, Some(2), false).unwrap();
+    figiran_engine::textedit::begin(&mut s, t, Some(2), false).unwrap();
     s.execute("file.new", &json!({"name": "B"})).unwrap();
     let a = s.docs.iter().position(|d| d.uid == uid).unwrap();
     s.execute("doc.switch", &json!({"index": a})).unwrap();
@@ -592,7 +592,7 @@ fn a_window_new_that_moves_the_edited_file_leaves_the_root_ime_idle() {
 
     // A `window.new` queued before the pass is applied after `windows::begin` picked the file
     // for the root: the root no longer shows the edited file when the pass ends.
-    u.app.window_requests.push(figcraft_engine::UiRequest { kind: "window.new".into(), data: json!({"index": a}) });
+    u.app.window_requests.push(figiran_engine::UiRequest { kind: "window.new".into(), data: json!({"index": a}) });
     let out = u.frame_raw(RawInput::default());
     assert_ne!(u.app.windows.of(uid), 0, "the file moved to its own window");
     assert!(out.platform_output.ime.is_none(), "the root must not emit a descriptor for a file it no longer shows");
@@ -602,11 +602,11 @@ fn a_window_new_that_moves_the_edited_file_leaves_the_root_ime_idle() {
 /// control-only commits insert nothing.
 #[test]
 fn a_transformed_commit_is_application_origin_and_a_bare_newline_does_nothing() {
-    figcraft_text::scan_system_fonts();
+    figiran_text::scan_system_fonts();
     let mut s = Session::new();
     let t = text_layer(&mut s, "Hi");
     let mut u = Ui::new(s);
-    figcraft_engine::textedit::begin(&mut u.app.session, t, Some(2), false).unwrap();
+    figiran_engine::textedit::begin(&mut u.app.session, t, Some(2), false).unwrap();
     ime(&mut u, vec![]);
 
     let normalized = ime_descriptor(&mut u, vec![Event::Ime(ImeEvent::Commit("a\r\nb".into()))]);
@@ -626,12 +626,12 @@ fn a_transformed_commit_is_application_origin_and_a_bare_newline_does_nothing() 
 /// and reports `InputMethod`.
 #[test]
 fn ime_delete_surrounding_chars_keeps_the_selection_for_the_paired_commit() {
-    figcraft_text::scan_system_fonts();
+    figiran_text::scan_system_fonts();
     let mut s = Session::new();
     let t = text_layer(&mut s, "ab\u{4F60}\u{597D}cd");
     let mut u = Ui::new(s);
-    figcraft_engine::textedit::begin(&mut u.app.session, t, Some(2), false).unwrap();
-    figcraft_engine::textedit::set_caret(&mut u.app.session, 4, true).unwrap(); // "你好"
+    figiran_engine::textedit::begin(&mut u.app.session, t, Some(2), false).unwrap();
+    figiran_engine::textedit::set_caret(&mut u.app.session, 4, true).unwrap(); // "你好"
     ime(&mut u, vec![]);
 
     let out = ime_descriptor(

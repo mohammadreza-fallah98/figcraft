@@ -4,7 +4,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use figcraft_doc::{Collection, CollectionId, Document, Mode, ModeId, Variable, VariableId, VariableValue, Variables, trim_num};
+use figiran_doc::{Collection, CollectionId, Document, Mode, ModeId, Variable, VariableId, VariableValue, Variables, trim_num};
 use serde_json::{Value, json};
 
 use super::CommandSpec;
@@ -44,7 +44,7 @@ fn export(s: &mut Session, p: &Value) -> Result<Value> {
         Some(_) => return Err(bad(cmd, "collections: [collection ids or names]")),
     };
     let text = match string(p, "format").as_deref().unwrap_or("json") {
-        "json" => serde_json::to_string_pretty(&figcraft_format::rest::export_variables(&doc.variables, &colls))
+        "json" => serde_json::to_string_pretty(&figiran_format::rest::export_variables(&doc.variables, &colls))
             .map_err(|e| EngineError::Other(e.to_string()))?,
         "css" => css(doc, &colls, false),
         "tailwind" => css(doc, &colls, true),
@@ -226,7 +226,7 @@ fn dart_comment(text: &str) -> String {
 /// per variable. Aliases are resolved to their value in that mode (a variable of another
 /// collection in that collection's default mode), so each class stands alone.
 fn dart(vars: &Variables, colls: &[&Collection]) -> String {
-    let mut out = String::from("// Variables exported from FigCraft.\n\nimport 'dart:ui';\n");
+    let mut out = String::from("// Variables exported from FigIran.\n\nimport 'dart:ui';\n");
     let mut classes = BTreeSet::new();
     for c in colls {
         let base = dart_ident(&c.name, true);
@@ -257,7 +257,7 @@ fn import(s: &mut Session, p: &Value) -> Result<Value> {
     let cmd = "variable.import";
     let v =
         super::file::variables_param(cmd, p)?.ok_or_else(|| bad(cmd, "`variables` (the variables JSON: an object, JSON text or a path) required"))?;
-    let (src, mut warnings) = figcraft_format::rest::read_variables(&v).ok_or_else(|| bad(cmd, "not a variables JSON"))?;
+    let (src, mut warnings) = figiran_format::rest::read_variables(&v).ok_or_else(|| bad(cmd, "not a variables JSON"))?;
     let doc = s.doc_mut()?;
     // Imported collection → (this file's collection, imported mode → its mode).
     let mut colls: BTreeMap<CollectionId, (CollectionId, BTreeMap<ModeId, ModeId>)> = BTreeMap::new();

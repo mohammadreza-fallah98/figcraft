@@ -104,7 +104,7 @@ impl<'d> Exporter<'d> {
         let mut seen: BTreeMap<(String, &'static str), PropDef> = BTreeMap::new();
         for v in &variants {
             let NodeKind::Component { props, prop_order, .. } = &v.kind else { continue };
-            for (name, d) in figcraft_doc::ordered_props(props, prop_order) {
+            for (name, d) in figiran_doc::ordered_props(props, prop_order) {
                 let Some(ty) = prop_type(d) else { continue };
                 match seen.get(&(name.clone(), ty)) {
                     Some(first) if first != d => self.warn("variants with different defaults for one property were written with the first variant's"),

@@ -4,7 +4,7 @@
 
 use std::collections::BTreeSet;
 
-use figcraft_doc::{
+use figiran_doc::{
     CODE_PLATFORMS, Collection, CollectionId, ColorOperand, Document, ModeId, NodeId, NodeKind, Variable, VariableId, VariableType, VariableValue,
     Variables, normalize_scopes, scope_known,
 };

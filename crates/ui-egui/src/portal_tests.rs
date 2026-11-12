@@ -1,14 +1,14 @@
 //! The portal login in the right panel's top bar: no button without a configured portal, the
-//! popover's Log in opens the portal's login page, `figcraft://auth` goes to the portal and every
+//! popover's Log in opens the portal's login page, `figiran://auth` goes to the portal and every
 //! other link to the Join dialog.
 
 use std::sync::{Arc, Mutex};
 
 use egui::Pos2;
-use figcraft_portal::api::{Access, Login, OpenedProject, PortalError, ProjectEntry};
-use figcraft_portal::config::ConfigError;
-use figcraft_portal::secret::MemoryStore;
-use figcraft_portal::session::{Api, Portal, Status};
+use figiran_portal::api::{Access, Login, OpenedProject, PortalError, ProjectEntry};
+use figiran_portal::config::ConfigError;
+use figiran_portal::secret::MemoryStore;
+use figiran_portal::session::{Api, Portal, Status};
 
 use crate::Services;
 use crate::live_tests::{Harness, has_text, text_center, texts};
@@ -46,7 +46,7 @@ impl Api for Scripted {
     }
 }
 
-const JOIN: &str = "figcraft://join?host=127.0.0.1:47900&file=f&token=t";
+const JOIN: &str = "figiran://join?host=127.0.0.1:47900&file=f&token=t";
 
 fn inline(job: Box<dyn FnOnce() + Send + 'static>) {
     job();
@@ -100,7 +100,7 @@ fn the_login_button_opens_a_popover_and_log_in_opens_the_browser() {
     assert!(url.starts_with(&format!("{BASE}/app-login?challenge=")), "{url}");
     assert_eq!(url.rsplit('=').next().map(str::len), Some(43));
     let shapes = h.frames(2);
-    assert!(has_text(&shapes, "Finish logging in in your browser. FigCraft continues here when you are done."));
+    assert!(has_text(&shapes, "Finish logging in in your browser. FigIran continues here when you are done."));
 }
 
 #[test]
@@ -108,11 +108,11 @@ fn the_auth_link_goes_to_the_portal_and_other_links_to_the_join_dialog() {
     let (mut h, _) = Harness::new();
     let portal = portal();
     h.app.ui.portal.install(Ok(portal.clone()));
-    crate::live::open_invite(&mut h.app, "figcraft://auth?code=abc");
+    crate::live::open_invite(&mut h.app, "figiran://auth?code=abc");
     assert_eq!(h.app.ui.live.join, None, "the auth link isn't a join link");
     assert!(matches!(portal.view().status, Status::Failed(m) if m.contains("No login is waiting")));
-    crate::live::open_invite(&mut h.app, "figcraft://join?host=127.0.0.1:47900&file=f&token=t");
-    assert_eq!(h.app.ui.live.join.as_deref(), Some("figcraft://join?host=127.0.0.1:47900&file=f&token=t"));
+    crate::live::open_invite(&mut h.app, "figiran://join?host=127.0.0.1:47900&file=f&token=t");
+    assert_eq!(h.app.ui.live.join.as_deref(), Some("figiran://join?host=127.0.0.1:47900&file=f&token=t"));
 }
 
 #[test]
@@ -121,7 +121,7 @@ fn the_name_from_the_login_goes_to_preferences() {
     let portal = portal();
     h.app.ui.portal.install(Ok(portal.clone()));
     portal.begin_login().unwrap();
-    portal.handle_auth_link("figcraft://auth?code=abc");
+    portal.handle_auth_link("figiran://auth?code=abc");
     assert_eq!(portal.view().status, Status::SignedIn);
     h.frames(2);
     assert_eq!(h.app.session.prefs.user_name, "Ada Lovelace");
@@ -138,7 +138,7 @@ fn signed_in_the_people_menu_is_the_profile_menu_with_log_out_last() {
     let portal = portal();
     h.app.ui.portal.install(Ok(portal.clone()));
     portal.begin_login().unwrap();
-    portal.handle_auth_link("figcraft://auth?code=abc");
+    portal.handle_auth_link("figiran://auth?code=abc");
     let shapes = h.frames(3);
     // The chevron beside the avatar opens the people menu.
     let avatar = last_center(&shapes, "AL");
@@ -165,7 +165,7 @@ fn the_profile_menu_opens_the_portal_pages_between_refresh_and_log_out() {
     let portal = portal();
     h.app.ui.portal.install(Ok(portal.clone()));
     portal.begin_login().unwrap();
-    portal.handle_auth_link("figcraft://auth?code=abc");
+    portal.handle_auth_link("figiran://auth?code=abc");
     let shapes = h.frames(3);
     let avatar = last_center(&shapes, "AL");
     h.click(Pos2::new(avatar.x + 24.0, avatar.y));
@@ -215,7 +215,7 @@ fn signed_in_only_the_avatar_remains() {
     let portal = portal();
     h.app.ui.portal.install(Ok(portal.clone()));
     portal.begin_login().unwrap();
-    portal.handle_auth_link("figcraft://auth?code=abc");
+    portal.handle_auth_link("figiran://auth?code=abc");
     let shapes = h.frames(3);
     assert!(!has_text(&shapes, "Log in"));
     assert_eq!(texts(&shapes).iter().filter(|(t, _, _)| t == "AL").count(), 1);
@@ -227,7 +227,7 @@ fn opening_a_project_joins_its_session() {
     let portal = portal();
     h.app.ui.portal.install(Ok(portal.clone()));
     portal.begin_login().unwrap();
-    portal.handle_auth_link("figcraft://auth?code=abc");
+    portal.handle_auth_link("figiran://auth?code=abc");
     h.frames(2);
     assert!(h.app.ui.live.joining.is_none());
     portal.open_project(1);
@@ -262,7 +262,7 @@ fn signed_out_the_login_button_sits_where_the_own_avatar_is_and_peers_follow_it(
     let signed_in = portal();
     h.app.ui.portal.install(Ok(signed_in.clone()));
     signed_in.begin_login().unwrap();
-    signed_in.handle_auth_link("figcraft://auth?code=abc");
+    signed_in.handle_auth_link("figiran://auth?code=abc");
     let avatar = last_center(&h.frames(3), "AL");
     // Signed out, the button starts at that edge (avatar - 14) and is at least 52px wide.
     let (mut h, _) = Harness::new();
@@ -285,7 +285,7 @@ fn signed_in(h: &mut Harness) -> Portal {
     let portal = portal();
     h.app.ui.portal.install(Ok(portal.clone()));
     portal.begin_login().unwrap();
-    portal.handle_auth_link("figcraft://auth?code=abc");
+    portal.handle_auth_link("figiran://auth?code=abc");
     h.frames(2);
     portal
 }

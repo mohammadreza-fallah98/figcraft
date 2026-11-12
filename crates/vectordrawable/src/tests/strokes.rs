@@ -1,6 +1,6 @@
 use super::*;
-use figcraft_doc::{StrokeAlign, StrokeCap, StrokeJoin};
-use figcraft_geom::Affine;
+use figiran_doc::{StrokeAlign, StrokeCap, StrokeJoin};
+use figiran_geom::Affine;
 
 fn stroked(align: StrokeAlign) -> (Document, NodeId) {
     let (mut d, p) = doc();
@@ -62,7 +62,7 @@ fn a_uniform_scale_scales_the_stroke_width() {
 
 #[test]
 fn strokes_android_cant_draw_are_their_filled_outline() {
-    type Edit = fn(&mut figcraft_doc::Node);
+    type Edit = fn(&mut figiran_doc::Node);
     let cases: [(&str, Edit); 4] = [
         ("inside", |n| n.stroke.align = StrokeAlign::Inside),
         ("outside", |n| n.stroke.align = StrokeAlign::Outside),
@@ -77,7 +77,7 @@ fn strokes_android_cant_draw_are_their_filled_outline() {
             let paths = paths_of(&out.xml);
             assert!(!out.xml.contains("strokeColor"), "{what}:\n{}", out.xml);
             assert!(!paths.is_empty() && paths.iter().all(|p| p.get("fillColor") == Some("#112233")), "{what}:\n{}", out.xml);
-            // Rings fill even-odd in FigCraft: rewritten, or kept as the rule in exact/ignore.
+            // Rings fill even-odd in FigIran: rewritten, or kept as the rule in exact/ignore.
             let ring = what == "inside" || what == "outside";
             let kept = paths.iter().any(|p| p.get("fillType") == Some("evenOdd"));
             match compat {
@@ -99,7 +99,7 @@ fn an_inside_stroke_outline_covers_only_the_ring() {
     let out = export(&d, &[r], Compat::BestEffort);
     let data = paths_of(&out.xml)[0].get("pathData").unwrap().to_string();
     let path = parse_path(&data);
-    use figcraft_geom::Shape;
+    use figiran_geom::Shape;
     // Viewport = the rectangle itself (inside strokes don't grow it): (0,0)–(40,30).
     assert_ne!(path.winding((1.0, 1.0).into()), 0, "on the ring");
     assert_eq!(path.winding((20.0, 15.0).into()), 0, "the hole");
@@ -123,17 +123,17 @@ fn a_line_stroke_is_native_with_its_caps() {
 #[test]
 fn a_gradient_stroke_is_an_outline_filled_with_the_gradient() {
     let (mut d, r) = stroked(StrokeAlign::Center);
-    d.get_mut(r).unwrap().strokes = vec![Paint::gradient(figcraft_color::Gradient::default_for(figcraft_color::GradientKind::Linear, hex("FF0000")))];
+    d.get_mut(r).unwrap().strokes = vec![Paint::gradient(figiran_color::Gradient::default_for(figiran_color::GradientKind::Linear, hex("FF0000")))];
     let out = export(&d, &[r], Compat::BestEffort);
     assert!(!out.xml.contains("strokeColor") && out.xml.contains("android:type=\"linear\""), "{}", out.xml);
 }
 
 /// Parse path data as written ("M0,0 L1,0 C… Z") back into a path.
-pub(super) fn parse_path(s: &str) -> figcraft_geom::BezPath {
-    let mut p = figcraft_geom::BezPath::new();
+pub(super) fn parse_path(s: &str) -> figiran_geom::BezPath {
+    let mut p = figiran_geom::BezPath::new();
     let mut cmd = ' ';
-    let mut pts: Vec<figcraft_geom::Point> = Vec::new();
-    let flush = |cmd: char, pts: &mut Vec<figcraft_geom::Point>, p: &mut figcraft_geom::BezPath| {
+    let mut pts: Vec<figiran_geom::Point> = Vec::new();
+    let flush = |cmd: char, pts: &mut Vec<figiran_geom::Point>, p: &mut figiran_geom::BezPath| {
         match (cmd, pts.as_slice()) {
             (' ', []) => {}
             ('M', [a]) => p.move_to(*a),
@@ -153,7 +153,7 @@ pub(super) fn parse_path(s: &str) -> figcraft_geom::BezPath {
             rest = &tok[1..];
         }
         if let Some((x, y)) = rest.split_once(',') {
-            pts.push(figcraft_geom::Point::new(x.parse().unwrap(), y.parse().unwrap()));
+            pts.push(figiran_geom::Point::new(x.parse().unwrap(), y.parse().unwrap()));
         }
     }
     flush(cmd, &mut pts, &mut p);

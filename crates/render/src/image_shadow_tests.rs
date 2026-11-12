@@ -4,8 +4,8 @@
 
 use std::sync::Arc;
 
-use figcraft_color::{Color, ImageScaleMode, Paint};
-use figcraft_doc::{Document, Effect, EffectKind, ImageData, NodeId, NodeKind, Shadow};
+use figiran_color::{Color, ImageScaleMode, Paint};
+use figiran_doc::{Document, Effect, EffectKind, ImageData, NodeId, NodeKind, Shadow};
 
 use super::{Pixmap, View, render_nodes_into, shadow};
 

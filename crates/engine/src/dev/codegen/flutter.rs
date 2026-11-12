@@ -1,4 +1,4 @@
-use figcraft_doc::AutoLayout;
+use figiran_doc::AutoLayout;
 
 use super::swift::one_line;
 use super::{

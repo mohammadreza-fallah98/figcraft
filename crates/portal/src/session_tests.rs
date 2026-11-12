@@ -188,12 +188,12 @@ fn a_stray_request_does_not_end_the_login_and_cancel_closes_the_port() {
 }
 
 #[test]
-fn the_figcraft_link_still_works_and_closes_the_listener() {
+fn the_figiran_link_still_works_and_closes_the_listener() {
     let (p, fake, _) = setup();
     push(&fake.exchange, Ok(login("AT", "RT", 3600)));
     push(&fake.projects, Ok(vec![]));
     let (port, _) = loopback_of(&p.begin_login().unwrap());
-    assert!(p.handle_auth_link("figcraft://auth?code=abc"));
+    assert!(p.handle_auth_link("figiran://auth?code=abc"));
     assert_eq!(p.view().status, Status::SignedIn);
     wait_for(|| std::net::TcpStream::connect(("127.0.0.1", port)).is_err());
 }
@@ -204,7 +204,7 @@ fn the_callback_trades_the_code_and_verifier_for_a_session() {
     push(&fake.exchange, Ok(login("AT", "RT", 3600)));
     push(&fake.projects, Ok(vec![project(1), project(2)]));
     let challenge = challenge_of(&p.begin_login().unwrap());
-    assert!(p.handle_auth_link("figcraft://auth?code=abc123"));
+    assert!(p.handle_auth_link("figiran://auth?code=abc123"));
     let v = p.view();
     assert_eq!(v.status, Status::SignedIn);
     assert_eq!(v.account.unwrap().display_name, "Ada Lovelace");
@@ -222,8 +222,8 @@ fn a_callback_is_used_once() {
     push(&fake.exchange, Ok(login("AT", "RT", 3600)));
     push(&fake.projects, Ok(vec![]));
     p.begin_login().unwrap();
-    assert!(p.handle_auth_link("figcraft://auth?code=abc"));
-    assert!(p.handle_auth_link("figcraft://auth?code=abc"));
+    assert!(p.handle_auth_link("figiran://auth?code=abc"));
+    assert!(p.handle_auth_link("figiran://auth?code=abc"));
     assert_eq!(fake.calls().iter().filter(|c| c.starts_with("exchange")).count(), 1);
     assert_eq!(p.view().status, Status::SignedIn);
     assert!(p.view().notice.is_some_and(|n| n.contains("No login is waiting")));
@@ -232,7 +232,7 @@ fn a_callback_is_used_once() {
 #[test]
 fn a_callback_nobody_asked_for_is_refused() {
     let (p, fake, _) = setup();
-    assert!(p.handle_auth_link("figcraft://auth?code=abc"));
+    assert!(p.handle_auth_link("figiran://auth?code=abc"));
     assert!(matches!(p.view().status, Status::Failed(m) if m.contains("No login is waiting")));
     assert!(fake.calls().is_empty());
 }
@@ -241,7 +241,7 @@ fn a_callback_nobody_asked_for_is_refused() {
 fn other_links_are_not_taken() {
     let (p, ..) = setup();
     p.begin_login().unwrap();
-    assert!(!p.handle_auth_link("figcraft://join?host=1.2.3.4:5&file=f&token=t"));
+    assert!(!p.handle_auth_link("figiran://join?host=1.2.3.4:5&file=f&token=t"));
     assert_eq!(p.view().status, Status::WaitingForBrowser);
 }
 
@@ -249,7 +249,7 @@ fn other_links_are_not_taken() {
 fn a_bad_code_ends_the_pending_login() {
     let (p, fake, _) = setup();
     p.begin_login().unwrap();
-    assert!(p.handle_auth_link("figcraft://auth?code=a%20b"));
+    assert!(p.handle_auth_link("figiran://auth?code=a%20b"));
     assert!(matches!(p.view().status, Status::Failed(m) if m.contains("isn't valid")));
     assert!(fake.calls().is_empty());
 }
@@ -259,7 +259,7 @@ fn an_old_pending_login_is_refused() {
     let (p, fake, _) = setup();
     p.begin_login().unwrap();
     p.backdate_pending(LOGIN_WAIT + Duration::from_secs(1));
-    assert!(p.handle_auth_link("figcraft://auth?code=abc"));
+    assert!(p.handle_auth_link("figiran://auth?code=abc"));
     assert!(matches!(p.view().status, Status::Failed(m) if m.contains("took too long")));
     assert!(fake.calls().is_empty());
 }
@@ -269,7 +269,7 @@ fn a_refused_code_is_a_failed_login_with_nothing_kept() {
     let (p, fake, store) = setup();
     push(&fake.exchange, Err(PortalError::Unauthorized("Code is invalid.".into())));
     p.begin_login().unwrap();
-    p.handle_auth_link("figcraft://auth?code=abc");
+    p.handle_auth_link("figiran://auth?code=abc");
     assert_eq!(p.view().status, Status::Failed("Code is invalid.".into()));
     assert_eq!(store.load().unwrap(), None);
     assert_eq!(p.view().account, None);
@@ -282,15 +282,15 @@ fn an_expiring_access_token_is_renewed_and_each_new_refresh_token_replaces_the_o
     push(&fake.projects, Ok(vec![]));
     push(&fake.refresh, Ok(login("AT2", "RT2", 0)));
     push(&fake.refresh, Ok(login("AT3", "RT3", 3600)));
-    push(&fake.open, Ok(OpenedProject { project_id: 4, project_name: "P4".into(), access: Access::View, join_url: "figcraft://join?x=1".into() }));
+    push(&fake.open, Ok(OpenedProject { project_id: 4, project_name: "P4".into(), access: Access::View, join_url: "figiran://join?x=1".into() }));
     p.begin_login().unwrap();
-    p.handle_auth_link("figcraft://auth?code=abc");
+    p.handle_auth_link("figiran://auth?code=abc");
     p.open_project(4);
     let calls = fake.calls();
     assert_eq!(&calls[1..], ["refresh RT1", "projects AT2", "refresh RT2", "open AT3 4"]);
     assert_eq!(store.load().unwrap().as_deref(), Some("RT3"));
     let opened = p.take_opened().unwrap();
-    assert_eq!((opened.project_id, opened.join_url.as_str()), (4, "figcraft://join?x=1"));
+    assert_eq!((opened.project_id, opened.join_url.as_str()), (4, "figiran://join?x=1"));
     assert_eq!(p.take_opened(), None);
 }
 
@@ -302,7 +302,7 @@ fn a_token_the_portal_refuses_is_renewed_once_and_the_call_retried() {
     push(&fake.refresh, Ok(login("AT2", "RT2", 3600)));
     push(&fake.projects, Ok(vec![project(9)]));
     p.begin_login().unwrap();
-    p.handle_auth_link("figcraft://auth?code=abc");
+    p.handle_auth_link("figiran://auth?code=abc");
     assert_eq!(fake.calls()[1..], ["projects AT1", "refresh RT1", "projects AT2"]);
     assert_eq!(p.view().projects, Projects::Loaded(vec![project(9)]));
 }
@@ -314,7 +314,7 @@ fn a_session_the_portal_no_longer_knows_ends_the_login() {
     push(&fake.projects, Err(unauthorized()));
     push(&fake.refresh, Err(unauthorized()));
     p.begin_login().unwrap();
-    p.handle_auth_link("figcraft://auth?code=abc");
+    p.handle_auth_link("figiran://auth?code=abc");
     assert!(matches!(p.view().status, Status::Failed(_)));
     assert_eq!(p.view().account, None);
     assert_eq!(store.load().unwrap(), None);
@@ -327,7 +327,7 @@ fn a_project_that_wont_open_is_a_notice_not_a_logout() {
     push(&fake.projects, Ok(vec![]));
     push(&fake.open, Err(PortalError::Rejected { status: 404, message: "No access".into() }));
     p.begin_login().unwrap();
-    p.handle_auth_link("figcraft://auth?code=abc");
+    p.handle_auth_link("figiran://auth?code=abc");
     p.open_project(3);
     let v = p.view();
     assert_eq!((v.status, v.notice, v.opening), (Status::SignedIn, Some("No access".into()), None));
@@ -342,7 +342,7 @@ fn logout_forgets_everything() {
     push(&fake.exchange, Ok(login("AT", "RT", 3600)));
     push(&fake.projects, Ok(vec![project(1)]));
     p.begin_login().unwrap();
-    p.handle_auth_link("figcraft://auth?code=abc");
+    p.handle_auth_link("figiran://auth?code=abc");
     p.logout();
     let v = p.view();
     assert_eq!((v.status, v.account, v.projects), (Status::SignedOut, None, Projects::NotLoaded));
@@ -356,7 +356,7 @@ fn sign_in_for_logout() -> (Portal, Arc<Fake>, Arc<MemoryStore>) {
     push(&fake.exchange, Ok(login("AT", "RT", 3600)));
     push(&fake.projects, Ok(vec![]));
     p.begin_login().unwrap();
-    p.handle_auth_link("figcraft://auth?code=abc");
+    p.handle_auth_link("figiran://auth?code=abc");
     (p, fake, store)
 }
 
@@ -408,7 +408,7 @@ fn a_login_without_a_refresh_token_keeps_none() {
     push(&fake.exchange, Ok(login("AT", "", 3600)));
     push(&fake.projects, Ok(vec![]));
     p.begin_login().unwrap();
-    p.handle_auth_link("figcraft://auth?code=abc");
+    p.handle_auth_link("figiran://auth?code=abc");
     assert_eq!(p.view().status, Status::SignedIn);
     assert_eq!(store.load().unwrap(), None);
 }
@@ -465,13 +465,13 @@ fn cancel_stops_waiting_and_the_late_callback_is_refused() {
     p.begin_login().unwrap();
     p.cancel_login();
     assert_eq!(p.view().status, Status::SignedOut);
-    assert!(p.handle_auth_link("figcraft://auth?code=abc"));
+    assert!(p.handle_auth_link("figiran://auth?code=abc"));
     assert!(matches!(p.view().status, Status::Failed(_)));
     assert!(fake.calls().is_empty());
 }
 
 fn temp_dir(name: &str) -> std::path::PathBuf {
-    let dir = std::env::temp_dir().join(format!("figcraft-portal-session-{name}-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("figiran-portal-session-{name}-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     dir
 }
@@ -492,7 +492,7 @@ fn a_new_copy_started_by_the_link_finishes_the_login_for_the_waiting_copy() {
     push(&fake.projects, Ok(vec![project(1)]));
     let challenge = challenge_of(&first.begin_login().unwrap());
     // The system starts the second copy with the link; the first is still waiting.
-    assert!(second.handle_auth_link("figcraft://auth?code=c1"));
+    assert!(second.handle_auth_link("figiran://auth?code=c1"));
     assert_eq!(second.view().status, Status::SignedIn);
     assert_eq!(first.view().status, Status::WaitingForBrowser);
     first.poll_handoff();
@@ -511,7 +511,7 @@ fn a_failure_in_the_new_copy_reaches_the_waiting_copy() {
     let (first, second) = (copy_of(&fake, &store, &dir), copy_of(&fake, &store, &dir));
     push(&fake.exchange, Err(PortalError::Unauthorized("Code is invalid.".into())));
     first.begin_login().unwrap();
-    second.handle_auth_link("figcraft://auth?code=c1");
+    second.handle_auth_link("figiran://auth?code=c1");
     assert_eq!(second.view().status, Status::Failed("Code is invalid.".into()));
     first.poll_handoff();
     assert_eq!(first.view().status, Status::Failed("Code is invalid.".into()));
@@ -524,7 +524,7 @@ fn a_new_copy_with_no_note_has_no_login_to_answer() {
     let dir = temp_dir("handoff-none");
     let (fake, store) = (Arc::new(Fake::default()), Arc::new(MemoryStore::default()));
     let second = copy_of(&fake, &store, &dir);
-    second.handle_auth_link("figcraft://auth?code=c1");
+    second.handle_auth_link("figiran://auth?code=c1");
     assert!(matches!(second.view().status, Status::Failed(m) if m.contains("No login is waiting")));
     assert!(fake.calls().is_empty());
     assert_eq!(crate::handoff::read(&dir), None);
@@ -540,7 +540,7 @@ fn an_old_note_is_refused_by_the_new_copy() {
     let Some(crate::handoff::Note::Waiting { verifier, .. }) = crate::handoff::read(&dir) else { panic!("no note") };
     let started = crate::handoff::now() - LOGIN_WAIT.as_secs() - 5;
     crate::handoff::write(&dir, &crate::handoff::Note::Waiting { verifier, started }).unwrap();
-    second.handle_auth_link("figcraft://auth?code=c1");
+    second.handle_auth_link("figiran://auth?code=c1");
     assert!(matches!(second.view().status, Status::Failed(m) if m.contains("took too long")));
     first.poll_handoff();
     assert!(matches!(first.view().status, Status::Failed(m) if m.contains("took too long")));
@@ -555,7 +555,7 @@ fn a_refresh_uses_the_newest_token_in_the_credential_store() {
     push(&fake.refresh, Ok(login("AT2", "RT2", 0)));
     push(&fake.projects, Ok(vec![]));
     p.begin_login().unwrap();
-    p.handle_auth_link("figcraft://auth?code=abc");
+    p.handle_auth_link("figiran://auth?code=abc");
     // Another copy of the app rotated the token since.
     store.save("RT9").unwrap();
     push(&fake.refresh, Ok(login("AT3", "RT3", 3600)));

@@ -3,7 +3,7 @@
 //! A layer's `style` lists `fills` and `borders` (each a colour, gradient or, for fills, an image
 //! pattern, with its own `contextSettings` opacity and blend mode), `borderOptions` (dashes, caps,
 //! joins), `shadows`, `innerShadows`, one `blur` and the layer's own `contextSettings`. Every
-//! border has its own thickness and position; FigCraft strokes share one, so the first enabled
+//! border has its own thickness and position; FigIran strokes share one, so the first enabled
 //! border's is used.
 
 use serde_json::{Map as JsonMap, Value, json};
@@ -67,7 +67,7 @@ pub(crate) fn clear(node: &mut JsonMap<String, Value>) {
     }
 }
 
-/// One fill or border as a REST paint; `None` for kinds FigCraft doesn't have (with a warning).
+/// One fill or border as a REST paint; `None` for kinds FigIran doesn't have (with a warning).
 fn paint(cx: &mut Cx, f: &Value, w: f64, h: f64) -> Option<Value> {
     let mut p = match f.get("fillType").and_then(Value::as_i64).unwrap_or(0) {
         0 => json!({"type": "SOLID", "color": f.get("color").and_then(color).unwrap_or_else(|| json!({"r": 0.0, "g": 0.0, "b": 0.0, "a": 1.0}))}),
@@ -135,7 +135,7 @@ fn gradient(g: &Value, w: f64, h: f64) -> Option<(Value, bool)> {
         .iter()
         .filter_map(|s| Some(json!({"position": num(s, "position")?.clamp(0.0, 1.0), "color": s.get("color").and_then(color)?})))
         .collect();
-    // `colorInterpolation` 1 mixes in OKLab, 2 in OKLCH (the shorter way round the hue); FigCraft
+    // `colorInterpolation` 1 mixes in OKLab, 2 in OKLCH (the shorter way round the hue); FigIran
     // mixes in sRGB, so stops in between carry the curve.
     let (stops, resampled) = match g.get("colorInterpolation").and_then(Value::as_i64) {
         Some(mode @ (1 | 2)) => (oklab::resample(&stops, mode == 2), true),
@@ -150,7 +150,7 @@ fn gradient(g: &Value, w: f64, h: f64) -> Option<(Value, bool)> {
         }
         // Sketch starts on the right and turns clockwise; from/to don't change it.
         2 => ("GRADIENT_ANGULAR", json!([pt((0.5, 0.5)), pt((1.0, 0.5)), pt((0.5, 1.0))])),
-        // Square to the line in pixels, as Sketch draws it (FigCraft's default is square in 0–1).
+        // Square to the line in pixels, as Sketch draws it (FigIran's default is square in 0–1).
         _ => {
             let (dx, dy) = ((to.0 - from.0) * w, (to.1 - from.1) * h);
             let across = if w > 0.0 && h > 0.0 { (from.0 - dy / w, from.1 + dx / h) } else { (from.0 - (to.1 - from.1), from.1 + (to.0 - from.0)) };
@@ -274,7 +274,7 @@ pub(crate) fn effects(cx: &mut Cx, style: &Value) -> Vec<Value> {
     for b in one.chain(many).filter(|b| b.get("isEnabled").and_then(Value::as_bool) == Some(true)) {
         let radius = num(b, "radius").unwrap_or(0.0).clamp(0.0, 1e6);
         // Sketch's blur radius is the blur's standard deviation (Gaussian, background and motion
-        // blurs alike); FigCraft's is twice it.
+        // blurs alike); FigIran's is twice it.
         let deviation = radius * 2.0;
         match b.get("type").and_then(Value::as_i64).unwrap_or(0) {
             0 => out.push(json!({"type": "LAYER_BLUR", "visible": true, "radius": deviation})),
@@ -329,8 +329,8 @@ pub(crate) fn color_controls(cx: &mut Cx, style: Option<&Value>) -> Option<Value
         cx.warn("hue changes of bitmaps were skipped");
     }
     // Sketch scales about mid-grey by the contrast and then adds the brightness,
-    // (v - 0.5)·C + 0.5 + b; FigCraft multiplies by the exposure E first, (v·E - 0.5)·c + 0.5.
-    // The two agree for c = C - 2b and E = C / c within FigCraft's ranges (c in 0..=2, E in
+    // (v - 0.5)·C + 0.5 + b; FigIran multiplies by the exposure E first, (v·E - 0.5)·c + 0.5.
+    // The two agree for c = C - 2b and E = C / c within FigIran's ranges (c in 0..=2, E in
     // 1/4..=4); past them the slope C stays exact and the offset gives.
     let (b, contrast) = (get("brightness", 0.0).clamp(-1.0, 1.0), get("contrast", 1.0).clamp(0.0, 2.0));
     let c = (contrast - 2.0 * b).clamp(1e-6, 2.0);

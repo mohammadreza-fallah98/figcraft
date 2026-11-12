@@ -1,7 +1,7 @@
 //! The line breaks a `.fig` file saved with its text (`derivedTextData`) come across as the text's
 //! saved breaks, on messages built in code.
 
-use figcraft_doc::{Document, TextData};
+use figiran_doc::{Document, TextData};
 
 use super::kiwi::Kv;
 

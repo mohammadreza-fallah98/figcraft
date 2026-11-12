@@ -4,7 +4,7 @@
 
 use std::sync::Arc;
 
-use figcraft_doc::{TextAutoResize, TextData};
+use figiran_doc::{TextAutoResize, TextData};
 
 use super::{db, layout, layout_cached, scan_system_fonts};
 

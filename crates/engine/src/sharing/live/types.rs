@@ -6,10 +6,10 @@ use super::{
 /// The server files are shared through online unless Preferences name another: the only place
 /// its address is written.
 ///
-/// A build can ship another one, or none: set `FIGCRAFT_DEFAULT_SERVER` when compiling to a
-/// server's address (`wss://host/`), or to nothing (`FIGCRAFT_DEFAULT_SERVER=`) for a build whose
+/// A build can ship another one, or none: set `FIGIRAN_DEFAULT_SERVER` when compiling to a
+/// server's address (`wss://host/`), or to nothing (`FIGIRAN_DEFAULT_SERVER=`) for a build whose
 /// online sharing stays off until the user enters a server in Preferences.
-pub const DEFAULT_SERVER: &str = match option_env!("FIGCRAFT_DEFAULT_SERVER") {
+pub const DEFAULT_SERVER: &str = match option_env!("FIGIRAN_DEFAULT_SERVER") {
     Some(server) => server,
     None => "wss://collab.craftapps.dev/",
 };
@@ -17,7 +17,7 @@ pub const DEFAULT_SERVER: &str = match option_env!("FIGCRAFT_DEFAULT_SERVER") {
 /// Most selected ids one presence update carries (the rest aren't shown to others).
 pub const MAX_SELECTION: usize = 10_000;
 
-pub use figcraft_collab::message::MAX_PEERS;
+pub use figiran_collab::message::MAX_PEERS;
 
 /// Longest name shown to others (characters).
 pub const MAX_NAME: usize = Signal::MAX_NAME;
@@ -109,7 +109,7 @@ pub struct SessionInfo {
     /// The shared file's name and pages (the host's).
     pub file_name: String,
     pub pages: Vec<PageInfo>,
-    /// The invite link (`figcraft://join?host=…&file=…&token=…`) and the same as a plain
+    /// The invite link (`figiran://join?host=…&file=…&token=…`) and the same as a plain
     /// WebSocket URL. Both carry the session's secret token: share them only with people you
     /// invite.
     pub link: String,
@@ -260,7 +260,7 @@ pub fn join_target(server: &str, typed: &str) -> std::result::Result<String, Str
     match code::parse(typed)? {
         Code::Local(local) => Ok(local.link()),
         Code::Online(_) if server.trim().is_empty() => Err(format!("that is an online join code, and {ONLINE_OFF}")),
-        Code::Online(code) => Ok(format!("figcraft://join?server={}&code={code}", server.trim())),
+        Code::Online(code) => Ok(format!("figiran://join?server={}&code={code}", server.trim())),
     }
 }
 

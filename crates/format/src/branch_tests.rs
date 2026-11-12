@@ -1,9 +1,9 @@
-//! Branches in `.figcraft` files: round trips, files from before branches, damaged entries.
+//! Branches in `.figiran` files: round trips, files from before branches, damaged entries.
 
 use std::io::Write;
 use std::sync::Arc;
 
-use figcraft_doc::{Document, NodeKind};
+use figiran_doc::{Document, NodeKind};
 
 use super::*;
 

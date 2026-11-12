@@ -54,15 +54,15 @@ pub(crate) fn on_dark_background(doc: &Document, parent: NodeId) -> bool {
 /// The fill new text takes to be readable where it is drawn, in `parent`: white on a dark
 /// background (None: the model's default, black). For text made in the app: by the Text tool, or
 /// by a command that names no fill while the interface is up.
-pub(crate) fn readable_text_fills(doc: &Document, parent: NodeId) -> Option<Vec<figcraft_color::Paint>> {
-    on_dark_background(doc, parent).then(|| vec![figcraft_color::Paint::solid(figcraft_color::Color::WHITE)])
+pub(crate) fn readable_text_fills(doc: &Document, parent: NodeId) -> Option<Vec<figiran_color::Paint>> {
+    on_dark_background(doc, parent).then(|| vec![figiran_color::Paint::solid(figiran_color::Color::WHITE)])
 }
 
 /// The colour the Pencil draws with in `parent`: [`PENCIL_STROKE`]'s black, or white on a dark
 /// background by the rule text follows (#1741; "in black, unless you're sketching on a dark canvas
 /// or frame").
-pub(crate) fn pencil_color(doc: &Document, parent: NodeId) -> figcraft_color::Color {
-    if on_dark_background(doc, parent) { figcraft_color::Color::WHITE } else { PENCIL_STROKE.0 }
+pub(crate) fn pencil_color(doc: &Document, parent: NodeId) -> figiran_color::Color {
+    if on_dark_background(doc, parent) { figiran_color::Color::WHITE } else { PENCIL_STROKE.0 }
 }
 
 const ANCHORS: [&str; 9] = ["tl", "t", "tr", "l", "c", "r", "bl", "b", "br"];
@@ -95,7 +95,7 @@ pub(super) fn path_candidates(doc: &Document, id: NodeId, p: Point, reach: f64, 
     for c in n.paint_order().rev() {
         let before = out.len();
         path_candidates(doc, c, p, reach, depth + 1, out);
-        if out.len() > before && figcraft_doc::geometry::masked_out(doc, n, c, p) {
+        if out.len() > before && figiran_doc::geometry::masked_out(doc, n, c, p) {
             out.truncate(before);
         }
     }
@@ -127,7 +127,7 @@ pub fn selection_frame(doc: &Document, sel: &[NodeId]) -> Option<(Affine, f64, f
     let inv = rot.inverse();
     let b = ids
         .iter()
-        .filter_map(|i| Some(figcraft_geom::transform_rect_bbox(inv * doc.world_transform(*i), doc.node(*i)?.local_rect())))
+        .filter_map(|i| Some(figiran_geom::transform_rect_bbox(inv * doc.world_transform(*i), doc.node(*i)?.local_rect())))
         .reduce(|a, b| a.union(b))?;
     Some((rot * Affine::translate((b.x0, b.y0)), b.width(), b.height()))
 }
@@ -208,7 +208,7 @@ pub(super) fn on_corner_square(doc: &Document, sel: &[NodeId], p: Point, zoom: f
 pub const SMALL_BOX_PX: f64 = 16.0;
 
 /// The stroke the Pencil draws: its colour and weight (the canvas previews it the same).
-pub const PENCIL_STROKE: (figcraft_color::Color, f64) = (figcraft_color::Color::BLACK, 2.0);
+pub const PENCIL_STROKE: (figiran_color::Color, f64) = (figiran_color::Color::BLACK, 2.0);
 
 /// The shorter and longer sides, in screen pixels, of the box with `corners` (tl, tr, br, bl).
 pub fn box_sides_px(corners: &[Point; 4], zoom: f64) -> (f64, f64) {
@@ -239,10 +239,10 @@ pub fn handle_at_corners(corners: &[Point; 4], p: Point, zoom: f64, is_line: boo
         return corner;
     }
     if !is_line {
-        use figcraft_geom::kurbo::ParamCurveNearest;
+        use figiran_geom::kurbo::ParamCurveNearest;
         let edge = nearest(&mut (0..4).filter_map(|i| {
             let (a, b) = (corners.get(i)?, corners.get((i + 1) % 4)?);
-            let near = figcraft_geom::kurbo::Line::new(*a, *b).nearest(p, 0.001);
+            let near = figiran_geom::kurbo::Line::new(*a, *b).nearest(p, 0.001);
             let d = near.distance_sq.sqrt();
             (d <= edge_reach && near.t > 0.05 && near.t < 0.95).then_some((d, Handle::Edge(i as u8)))
         }));
@@ -276,7 +276,7 @@ pub(crate) fn handle_cursor(c: &[Point; 4], h: Handle) -> Cursor {
             let b = c.get((i as usize + 2) % 4).copied().unwrap_or_default();
             // Along the box's own axes at 45°, not the diagonal, so wide or tall boxes still get a
             // diagonal cursor. A box with no width or height falls back to the diagonal.
-            let unit = |v: figcraft_geom::kurbo::Vec2| {
+            let unit = |v: figiran_geom::kurbo::Vec2| {
                 let len = v.hypot();
                 (len.is_finite() && len > 1e-9).then(|| v / len)
             };

@@ -1,6 +1,6 @@
 //! A control request naming its `document` acts on that file, and the tab in front stays in front.
 
-use figcraft_engine::Session;
+use figiran_engine::Session;
 use serde_json::{Value, json};
 
 use crate::{FigApp, NoServices};
@@ -36,8 +36,8 @@ fn a_call_naming_the_back_file_edits_it_and_leaves_the_front_one_alone() {
     assert_eq!(listed[0]["id"], json!(back));
     assert!(handle(&mut app, "ui.render", json!({"document": back})).is_ok());
     // An open file's path names it too.
-    app.session.docs[0].path = Some("/work/back.figcraft".into());
-    let doc = handle(&mut app, "document.inspect", json!({"depth": 0, "document": "/work/back.figcraft"})).unwrap();
+    app.session.docs[0].path = Some("/work/back.figiran".into());
+    let doc = handle(&mut app, "document.inspect", json!({"depth": 0, "document": "/work/back.figiran"})).unwrap();
     assert_eq!(doc["id"], json!(back));
     assert_eq!(app.session.active, 1);
 }

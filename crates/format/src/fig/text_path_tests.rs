@@ -21,7 +21,7 @@ message SymbolData GUID symbolID, float uniformScaleFactor
 message NodeChange GUID guid, ParentIndex parentIndex, NodeType type, string name, Vector size, Matrix transform, TextData textData, float fontSize, FontName fontName, TextPathStart textPathStart, VectorData vectorData, StyleType styleType, StyleId styleIdForText, TextDecoration textDecoration, SymbolData symbolData
 message Message NodeChange[] nodeChanges, Blob[] blobs
 ";
-use figcraft_doc::{NodeKind, TextPath};
+use figiran_doc::{NodeKind, TextPath};
 
 fn o(fields: Vec<(&'static str, Kv<'static>)>) -> Kv<'static> {
     Kv::Object(fields)

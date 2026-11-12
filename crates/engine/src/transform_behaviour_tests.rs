@@ -13,8 +13,8 @@ use serde_json::{Value, json};
 use crate::Session;
 use crate::params::id_of;
 use crate::tools::{Cursor, Handle, PointerEvent, PointerKind, handle_at, handle_cursor, resized_box, selection_box};
-use figcraft_doc::{NodeId, TextAutoResize};
-use figcraft_geom::{Point, Rect, is_flipped, rotation_degrees};
+use figiran_doc::{NodeId, TextAutoResize};
+use figiran_geom::{Point, Rect, is_flipped, rotation_degrees};
 
 fn ex(s: &mut Session, cmd: &str, p: Value) -> Value {
     s.execute(cmd, &p).unwrap_or_else(|e| panic!("{cmd}: {e}"))
@@ -116,7 +116,7 @@ fn command_resize_crops_image_pixels_and_round_trips() {
     let mut s = session();
     let layer = image_layer(&mut s);
     let original = s.doc().unwrap().clone();
-    let before = figcraft_render::render_node(&original, layer, 1.0).unwrap();
+    let before = figiran_render::render_node(&original, layer, 1.0).unwrap();
     let steps = undo_steps(&s);
     // Public crop documentation: Command (macOS) / Ctrl (elsewhere) quickly crops an image.
     // Moving the right edge must keep the left half's pixels, not recenter or scale them.
@@ -126,7 +126,7 @@ fn command_resize_crops_image_pixels_and_round_trips() {
     }
     s.pointer(&ev(PointerKind::Up, Point::new(100.0, 50.0), CMD)).unwrap();
     assert_eq!(size(&s, layer), (100.0, 100.0));
-    let after = figcraft_render::render_node(s.doc().unwrap(), layer, 1.0).unwrap();
+    let after = figiran_render::render_node(s.doc().unwrap(), layer, 1.0).unwrap();
     for y in 0..100usize {
         assert_eq!(&after.data()[y * 400..(y + 1) * 400], &before.data()[y * 800..y * 800 + 400], "row {y}: the image stays put");
     }
@@ -137,20 +137,20 @@ fn command_resize_crops_image_pixels_and_round_trips() {
     assert_eq!(s.doc().unwrap(), &original);
     ex(&mut s, "edit.redo", json!({}));
     assert_eq!(s.doc().unwrap(), &cropped);
-    let path = std::env::temp_dir().join(format!("figcraft-command-crop-{}.figcraft", std::process::id()));
+    let path = std::env::temp_dir().join(format!("figiran-command-crop-{}.figiran", std::process::id()));
     ex(&mut s, "file.saveAs", json!({"path": path}));
     let mut reopened = session();
     ex(&mut reopened, "file.open", json!({"path": path}));
     assert_eq!(reopened.doc().unwrap().node(layer), cropped.node(layer));
     assert_eq!(reopened.doc().unwrap().images, cropped.images);
-    assert_eq!(figcraft_render::render_node(reopened.doc().unwrap(), layer, 1.0).unwrap().data(), after.data());
+    assert_eq!(figiran_render::render_node(reopened.doc().unwrap(), layer, 1.0).unwrap().data(), after.data());
     std::fs::remove_file(path).unwrap();
 }
 
 #[test]
 fn command_crop_keeps_image_placement_in_the_layers_axes() {
-    use figcraft_doc::color::{ImageScaleMode, PaintKind};
-    use figcraft_geom::Affine;
+    use figiran_doc::color::{ImageScaleMode, PaintKind};
+    use figiran_geom::Affine;
     // Each row exercises a distinct placement: Fill, Fit, and an existing affine Crop.
     // Geometry follows the existing resize rules; image pixels stay fixed in page space.
     let rows = [
@@ -219,7 +219,7 @@ fn ordinary_resize_and_scale_keep_image_fill_settings() {
 
 #[test]
 fn command_crop_preserves_each_image_fill_and_leaves_tiles() {
-    use figcraft_doc::color::{Color, ImageScaleMode, Paint, PaintKind};
+    use figiran_doc::color::{Color, ImageScaleMode, Paint, PaintKind};
     let mut s = session();
     let layer = image_layer(&mut s);
     let image = s.doc().unwrap().node(layer).unwrap().fills[0].clone();
@@ -297,7 +297,7 @@ fn image_crop_detaches_a_bound_size_and_crops() {
             ex(&mut s, "variable.create", json!({"collection": "Tokens", "name": "bound", "type": "number", "value": value}));
             ex(&mut s, "variable.bind", json!({"ids": [layer], "field": field, "variable": "bound"}));
             let before = s.doc().unwrap().clone();
-            let pixels = figcraft_render::render_node(&before, layer, 1.0).unwrap();
+            let pixels = figiran_render::render_node(&before, layer, 1.0).unwrap();
             drag(&mut s, from, to, mods);
             let doc = s.doc().unwrap();
             let n = doc.node(layer).unwrap();
@@ -305,7 +305,7 @@ fn image_crop_detaches_a_bound_size_and_crops() {
             assert_eq!(doc.variables, before.variables, "{field}: do not edit the variable");
             assert_eq!((n.width, n.height), (w as f64, h as f64), "{field}");
             if mods.cmd {
-                let after = figcraft_render::render_node(doc, layer, 1.0).unwrap();
+                let after = figiran_render::render_node(doc, layer, 1.0).unwrap();
                 for y in 0..h {
                     assert_eq!(&after.data()[y * w * 4..(y + 1) * w * 4], &pixels.data()[y * 800..y * 800 + w * 4], "{field}: the image stays put");
                 }
@@ -361,7 +361,7 @@ fn resizing_and_flipping_one_layer() {
     ex(&mut s, "select.set", json!({"ids": [t]}));
     let (c, from) = (Point::new(50.0, 250.0), Point::new(110.0, 190.0));
     let a = (from - c).atan2() + 37f64.to_radians();
-    let to = c + figcraft_geom::Vec2::from_angle(a) * 80.0;
+    let to = c + figiran_geom::Vec2::from_angle(a) * 80.0;
     drag(&mut s, from, to, NONE);
     assert!(near(rotation(&s, t).abs(), 37.0), "a free turn: {}", rotation(&s, t));
     ex(&mut s, "edit.undo", json!({}));

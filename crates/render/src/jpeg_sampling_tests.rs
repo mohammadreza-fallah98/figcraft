@@ -5,7 +5,7 @@
 
 use crate::images;
 
-// The fixtures live with the header check in `figcraft-format` (`jpeg.rs`), which tests it there.
+// The fixtures live with the header check in `figiran-format` (`jpeg.rs`), which tests it there.
 include!("../../format/src/jpeg_fixtures.rs");
 
 #[test]

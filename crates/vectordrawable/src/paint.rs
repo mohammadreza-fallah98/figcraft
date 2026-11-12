@@ -10,8 +10,8 @@
 //! and the path mapped back by the group's inverse. A sweep turns with `θ`: its stops are
 //! shifted by `θ / 2π` instead.
 
-use figcraft_color::{Color, Gradient};
-use figcraft_geom::{Affine, BezPath, Vec2};
+use figiran_color::{Color, Gradient};
+use figiran_geom::{Affine, BezPath, Vec2};
 
 use crate::model::{Grad, GradKind, GroupXf};
 
@@ -86,7 +86,7 @@ pub(crate) fn turn_stops(stops: &[(f64, Color)], shift: f64) -> Vec<(f64, Color)
 /// Gradient `g` on a `w`×`h` layer drawn through `to_view` (local → viewport), its stops faded by
 /// `opacity`. `radial` draws an angular or diamond gradient as radial (callers decide when).
 pub(crate) fn gradient(g: &Gradient, opacity: f32, to_view: Affine, w: f64, h: f64, radial: bool) -> GradOut {
-    use figcraft_color::GradientKind;
+    use figiran_color::GradientKind;
     let stops: Vec<(f64, Color)> =
         g.sorted_stops().iter().map(|s| (f64::from(s.position), s.color.with_alpha(s.color.a * opacity.clamp(0.0, 1.0)))).collect();
     match stops.as_slice() {
@@ -130,7 +130,7 @@ pub(crate) fn gradient(g: &Gradient, opacity: f32, to_view: Affine, w: f64, h: f
 /// of its arrangement, each an outer contour with its holes wound the other way. `None` when the
 /// path ops can't take it.
 pub(crate) fn nonzero(path: &BezPath) -> Option<BezPath> {
-    let faces = figcraft_pathops::faces(&[(path.clone(), true)]).ok()?;
+    let faces = figiran_pathops::faces(&[(path.clone(), true)]).ok()?;
     let mut out = BezPath::new();
     for f in faces {
         out.extend(f.path.elements().iter().copied());

@@ -3,7 +3,7 @@
 
 use std::io::Write;
 
-use figcraft_doc::{NodeKind, VariableType};
+use figiran_doc::{NodeKind, VariableType};
 use serde_json::Value;
 
 use super::kiwi::{Def, Field, Kind, Kv, Schema, Type, encode};
@@ -392,7 +392,7 @@ fn fixture() -> Vec<u8> {
     zip_file(&canvas(&schema(), &message()))
 }
 
-fn named<'d>(doc: &'d figcraft_doc::Document, name: &str) -> &'d figcraft_doc::Node {
+fn named<'d>(doc: &'d figiran_doc::Document, name: &str) -> &'d figiran_doc::Node {
     doc.nodes().find(|n| n.name == name).unwrap_or_else(|| panic!("no layer {name}"))
 }
 
@@ -487,17 +487,17 @@ fn grid_tracks_import_by_guid_and_keep_track_order() {
     let bytes = canvas(&grid_schema(), &o(vec![("nodeChanges", arr(nodes))]));
     let (doc, warnings) = import(&bytes, "Grid tracks").unwrap();
     let grid = named(&doc, "Grid").layout.as_ref().unwrap();
-    assert_eq!((grid.mode, grid.grid_columns, grid.grid_rows, grid.gap, grid.cross_gap), (figcraft_doc::LayoutMode::Grid, 4, 2, 10.0, 12.0));
+    assert_eq!((grid.mode, grid.grid_columns, grid.grid_rows, grid.gap, grid.cross_gap), (figiran_doc::LayoutMode::Grid, 4, 2, 10.0, 12.0));
     assert_eq!(
         grid.column_tracks,
         vec![
-            figcraft_doc::GridTrack::fixed(120.0),
-            figcraft_doc::GridTrack::hug(),
-            figcraft_doc::GridTrack::fill(1.0),
-            figcraft_doc::GridTrack::fill(2.0),
+            figiran_doc::GridTrack::fixed(120.0),
+            figiran_doc::GridTrack::hug(),
+            figiran_doc::GridTrack::fill(1.0),
+            figiran_doc::GridTrack::fill(2.0),
         ]
     );
-    assert_eq!(grid.row_tracks, vec![figcraft_doc::GridTrack::fixed(50.0), figcraft_doc::GridTrack::hug()]);
+    assert_eq!(grid.row_tracks, vec![figiran_doc::GridTrack::fixed(50.0), figiran_doc::GridTrack::hug()]);
     let child = &named(&doc, "Hug child").child_layout;
     assert_eq!((child.grid_column, child.grid_row, child.grid_column_span, child.grid_row_span), (Some(1), Some(1), 2, 1));
     assert!(!warnings.iter().any(|w| w.contains("grid track")), "{warnings:?}");
@@ -532,7 +532,7 @@ fn malformed_grid_tracks_warn_and_keep_equal_track_fallbacks() {
     let bytes = canvas(&grid_schema(), &o(vec![("nodeChanges", arr(nodes))]));
     let (doc, warnings) = import(&bytes, "Malformed grid tracks").unwrap();
     let layout = named(&doc, "Grid").layout.as_ref().unwrap();
-    assert_eq!(layout.column_tracks, vec![figcraft_doc::GridTrack::default(); 4]);
+    assert_eq!(layout.column_tracks, vec![figiran_doc::GridTrack::default(); 4]);
     assert!(warnings.iter().any(|w| w.contains("grid track sizing is unsupported or malformed")), "{warnings:?}");
     assert!(warnings.iter().any(|w| w.contains("stale or invalid grid track sizing entries")), "{warnings:?}");
 }
@@ -658,14 +658,14 @@ fn assert_fixture_layers(doc: &Document) {
     assert_eq!(names, ["Photo", "Title", "Group", "Styled", "Card", "Button copy", "Note"]);
     // Image fill from the archive.
     let photo = named(doc, "Photo");
-    let figcraft_doc::color::PaintKind::Image(img) = &photo.fills[0].kind else { panic!("not an image fill") };
+    let figiran_doc::color::PaintKind::Image(img) = &photo.fills[0].kind else { panic!("not an image fill") };
     assert_eq!(doc.images.get(&img.image).map(|i| (i.width, i.height)), Some((2, 1)));
     assert_eq!((photo.corners.radii[0], photo.stroke.weight), (6.0, 2.0));
     // Text with a bold run over "the".
     let NodeKind::Text(t) = &named(doc, "Title").kind else { panic!("not text") };
     assert_eq!(t.characters, "Hi there");
     assert_eq!(t.style.font_size, 16.0);
-    assert_eq!(t.leading_trim, figcraft_doc::LeadingTrim::CapHeight, "vertical trim (#466)");
+    assert_eq!(t.leading_trim, figiran_doc::LeadingTrim::CapHeight, "vertical trim (#466)");
     assert_eq!(t.runs.len(), 1);
     assert_eq!((t.runs[0].start, t.runs[0].end, t.runs[0].style.font_style.as_str()), (3, 6, "Bold"));
     // The group's children keep their place on the page (group at 100, 100).
@@ -681,7 +681,7 @@ fn assert_fixture_styles(doc: &Document) {
     let styled = named(doc, "Styled");
     assert_eq!(styled.styles.fill.as_deref(), Some("1:3"));
     assert!(doc.styles.iter().any(|s| s.name == "Brand"));
-    let figcraft_doc::color::PaintKind::Solid { color } = styled.fills[0].kind else { panic!("not solid") };
+    let figiran_doc::color::PaintKind::Solid { color } = styled.fills[0].kind else { panic!("not solid") };
     assert_eq!((color.r, color.g, color.b), (0.0, 0.0, 1.0));
 }
 
@@ -709,7 +709,7 @@ fn assert_fixture_prototype(doc: &Document, warnings: &[String]) {
     let button = named(doc, "Button");
     let screen = named(doc, "Screen");
     let it = &named(doc, "Photo").interactions[0];
-    assert!(matches!(it.actions[0], figcraft_doc::proto::Action::Navigate { dest, .. } if dest == button.id));
+    assert!(matches!(it.actions[0], figiran_doc::proto::Action::Navigate { dest, .. } if dest == button.id));
     assert_eq!(it.duration_ms, 250);
     let Some(NodeKind::Page { flows, .. }) = doc.node(doc.pages[0]).map(|p| &p.kind) else { panic!("no page") };
     assert_eq!((flows[0].name.as_str(), flows[0].start), ("Main flow", screen.id));
@@ -774,7 +774,7 @@ fn a_bare_canvas_reads_images_carried_in_its_blobs() {
     let c = canvas(&schema(), &message_with_image_in_blobs(0));
     let (doc, warnings) = import(&c, "Pasted").unwrap();
     let photo = named(&doc, "Photo");
-    let figcraft_doc::color::PaintKind::Image(img) = &photo.fills[0].kind else { panic!("not an image fill") };
+    let figiran_doc::color::PaintKind::Image(img) = &photo.fills[0].kind else { panic!("not an image fill") };
     assert_eq!(doc.images.get(&img.image).map(|i| (i.width, i.height)), Some((2, 1)));
     assert!(!warnings.iter().any(|w| w.contains("isn't in the file")), "{warnings:?}");
 }
@@ -825,7 +825,7 @@ fn hashes_naming_one_blob_are_imported_once() {
     assert_eq!(doc.images.len(), 1);
     let key = doc.images.keys().next().unwrap();
     for i in 2..42 {
-        let figcraft_doc::color::PaintKind::Image(img) = &named(&doc, &format!("R{i}")).fills[0].kind else { panic!("not an image fill") };
+        let figiran_doc::color::PaintKind::Image(img) = &named(&doc, &format!("R{i}")).fills[0].kind else { panic!("not an image fill") };
         assert_eq!(&img.image, key);
     }
 }
@@ -879,7 +879,7 @@ mod image_budget {
 
     fn bytes(doc: &Document, index: usize) -> &[u8] {
         let node = named(doc, &format!("Image {index}"));
-        let figcraft_doc::color::PaintKind::Image(fill) = &node.fills[0].kind else { panic!("not an image fill") };
+        let figiran_doc::color::PaintKind::Image(fill) = &node.fills[0].kind else { panic!("not an image fill") };
         &doc.images[&fill.image].bytes
     }
 
@@ -1047,7 +1047,7 @@ mod image_budget {
         for bytes in [&canvas, &zip_file(&canvas)] {
             let (doc, warnings) = import_with_image_limit(bytes, "Images", 0).unwrap();
             let photo = named(&doc, "Photo");
-            let figcraft_doc::color::PaintKind::Image(fill) = &photo.fills[0].kind else { panic!("not an image fill") };
+            let figiran_doc::color::PaintKind::Image(fill) = &photo.fills[0].kind else { panic!("not an image fill") };
             assert_eq!(*doc.images[&fill.image].bytes, png());
             assert!(!warnings.iter().any(|w| w.contains("isn't in the file")), "{warnings:?}");
             assert_eq!(budget_warnings(&warnings).len(), usize::from(bytes.starts_with(b"PK")), "{warnings:?}");
@@ -1072,7 +1072,7 @@ mod image_budget {
 fn other_files_are_not_fig() {
     assert!(try_import(b"{\"document\": {}}", "x").is_none());
     assert!(try_import(b"", "x").is_none());
-    let native = crate::save_bytes(&figcraft_doc::Document::new("N"), None).unwrap();
+    let native = crate::save_bytes(&figiran_doc::Document::new("N"), None).unwrap();
     assert!(try_import(&native, "x").is_none());
 }
 
@@ -1525,7 +1525,7 @@ fn nested_instances_resized_again_drop_the_layout_derived_for_their_old_size() {
     assert_eq!(width("Wide slider"), (250.0, 250.0));
     // What else the derived data gives (the colour a variable resolves to, say) still holds.
     let fill = doc.node(doc.node(named(&doc, "Wide slider").children[0]).unwrap().children[0]).unwrap();
-    assert!(matches!(fill.fills.first().map(|p| &p.kind), Some(figcraft_doc::color::PaintKind::Solid { color }) if color.r == 1.0 && color.g == 0.0));
+    assert!(matches!(fill.fills.first().map(|p| &p.kind), Some(figiran_doc::color::PaintKind::Solid { color }) if color.r == 1.0 && color.g == 0.0));
 }
 
 #[path = "tail_tests.rs"]
@@ -1540,14 +1540,14 @@ mod text_list;
 #[path = "text_direction_tests.rs"]
 mod text_direction;
 
-/// `.fig` files in the folder `FIGCRAFT_FIG_SAMPLES` names (none when it's unset).
+/// `.fig` files in the folder `FIGIRAN_FIG_SAMPLES` names (none when it's unset).
 pub(super) fn samples() -> Vec<std::path::PathBuf> {
-    let Some(dir) = std::env::var_os("FIGCRAFT_FIG_SAMPLES") else { return Vec::new() };
+    let Some(dir) = std::env::var_os("FIGIRAN_FIG_SAMPLES") else { return Vec::new() };
     let dir = std::fs::read_dir(dir).into_iter().flatten().flatten();
     dir.map(|e| e.path()).filter(|p| p.extension().is_some_and(|x| x == "fig")).collect()
 }
 
-/// Local only (`FIGCRAFT_FIG_SAMPLES`): every file imports without warnings.
+/// Local only (`FIGIRAN_FIG_SAMPLES`): every file imports without warnings.
 #[test]
 fn local_samples_import() {
     for p in samples() {
@@ -1733,7 +1733,7 @@ fn library_copies_of_several_versions_become_the_newest() {
     assert_eq!(var.collection, products.id);
     // The newest copy's values: Purple included (a mode only it has), Legacy filled from the default.
     assert_eq!(var.values.len(), 3, "{:?}", var.values);
-    assert!(matches!(var.values.get("1:92"), Some(figcraft_doc::VariableValue::Color(c)) if (c.r - 0.5).abs() < 1e-6), "{:?}", var.values);
+    assert!(matches!(var.values.get("1:92"), Some(figiran_doc::VariableValue::Color(c)) if (c.r - 0.5).abs() < 1e-6), "{:?}", var.values);
     let page = doc.nodes().find(|n| n.name == "Page").unwrap();
     assert_eq!(page.var_modes.get(&products.id).map(String::as_str), Some("1:92"));
     let button = named(&doc, "Button");

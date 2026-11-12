@@ -119,7 +119,7 @@ pub(crate) const SCRIPT_FAMILIES: [&str; 46] = [
 /// Ethiopic and the other scripts in [`SCRIPT_SAMPLES`] drew as boxes in the panels (a String
 /// variable's Amharic value, #2014) until the system face for each was taken too. Bengali and
 /// Thai keep [`crate::cjk`]'s choice, made after this list.
-pub fn script_fallbacks(have: &dyn Fn(char) -> bool, taken: &mut Vec<Arc<figcraft_text::Face>>) -> Vec<(String, egui::FontData)> {
+pub fn script_fallbacks(have: &dyn Fn(char) -> bool, taken: &mut Vec<Arc<figiran_text::Face>>) -> Vec<(String, egui::FontData)> {
     crate::theme::system_fallbacks(SCRIPT_SAMPLES, &SCRIPT_FAMILIES, have, taken)
 }
 

@@ -1,7 +1,7 @@
 //! Mind map layout (`board_mindmap`): columns 88 apart, siblings 48 apart, stacks centred on their
 //! parents (#2226).
 
-use figcraft_geom::{Point, Rect};
+use figiran_geom::{Point, Rect};
 
 use crate::NodeId;
 use crate::board_mindmap::{MIND_GAP_X, MIND_GAP_Y, MIND_MAX_NODES, MindBox, mind_layout};

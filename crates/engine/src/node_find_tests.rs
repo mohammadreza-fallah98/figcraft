@@ -1,6 +1,6 @@
 //! Finding layers without changing the selection, page or edit history (#996).
 
-use figcraft_doc::*;
+use figiran_doc::*;
 use serde_json::{Value, json};
 use std::sync::Arc;
 
@@ -213,7 +213,7 @@ fn node_set_rejects_non_boolean_flags() {
     let r = s.execute("node.set", &json!({"ids": [sec], "props": {"sectionContentsHidden": "yes"}}));
     assert!(r.is_err(), "sectionContentsHidden accepted a non-boolean");
     let doc = s.doc().unwrap();
-    assert!(matches!(doc.get(sec).unwrap().kind, figcraft_doc::NodeKind::Section { contents_hidden: true }));
+    assert!(matches!(doc.get(sec).unwrap().kind, figiran_doc::NodeKind::Section { contents_hidden: true }));
     assert!(doc.get(rect).unwrap().is_mask && doc.get(rect).unwrap().constrain_proportions);
     let l = doc.get(frame).unwrap();
     let l = l.layout.as_ref().unwrap();

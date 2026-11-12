@@ -3,7 +3,7 @@
 //! search and then closes the menu, and Up, Down and Enter pick a match.
 
 use egui::{Event, Key, Modifiers, Pos2};
-use figcraft_doc::{NodeId, NodeKind};
+use figiran_doc::{NodeId, NodeKind};
 use serde_json::json;
 
 use crate::component_swap_default_tests::{centre, click, default_combo, setup, tree};

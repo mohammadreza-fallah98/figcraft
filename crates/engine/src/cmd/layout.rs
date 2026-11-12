@@ -1,7 +1,7 @@
 //! Auto layout commands beyond `layout.add` / `layout.remove` (in `structure`) and the layout
 //! keys of `node.set` (gap, padding, alignment, sizing, min/max, absolute, grid cells): grid tracks.
 
-use figcraft_doc::{GridTrack, LayoutMode, Sizing};
+use figiran_doc::{GridTrack, LayoutMode, Sizing};
 use serde_json::Value;
 
 use super::props::sizing;
@@ -36,7 +36,7 @@ fn set_track(s: &mut Session, p: &Value) -> Result<Value> {
     let doc = s.doc_mut()?;
     for id in ids {
         // Current track sizes (switching to Fixed keeps the size the track has now).
-        let tracks_now = figcraft_layout::grid_geometry(doc, id).map(|g| if columns { g.columns } else { g.rows }).unwrap_or_default();
+        let tracks_now = figiran_layout::grid_geometry(doc, id).map(|g| if columns { g.columns } else { g.rows }).unwrap_or_default();
         let n = doc.get_mut(id)?;
         let Some(l) = n.layout.as_mut().filter(|l| l.mode == LayoutMode::Grid) else {
             return Err(bad(CMD, format!("node {id} is not a grid auto layout frame")));
@@ -67,7 +67,7 @@ fn set_track(s: &mut Session, p: &Value) -> Result<Value> {
 
 #[cfg(test)]
 mod tests {
-    use figcraft_doc::{CrossAlign, Document, GridTrack, LayoutMode, Node, NodeId, Sizing};
+    use figiran_doc::{CrossAlign, Document, GridTrack, LayoutMode, Node, NodeId, Sizing};
     use serde_json::{Value, json};
 
     use crate::{EngineError, Session, params};
@@ -202,8 +202,7 @@ mod tests {
         let big = id(&ex(&mut s, "text.create", json!({"text": "Big", "x": 0, "y": 0, "parent": f, "props": {"fontSize": 48}})));
         ex(&mut s, "node.set", json!({"id": f, "props": {"crossAlign": "baseline"}}));
         assert_eq!(node(&s, f).layout.unwrap().cross_align, CrossAlign::Baseline);
-        let base =
-            |s: &Session, t: NodeId| figcraft_text::layout_node(&node(s, t)).and_then(|(l, dy)| l.lines.first().map(|line| line.baseline + dy));
+        let base = |s: &Session, t: NodeId| figiran_text::layout_node(&node(s, t)).and_then(|(l, dy)| l.lines.first().map(|line| line.baseline + dy));
         // Only meaningful when the text was measured (fonts available).
         if let (Some(bs), Some(bb)) = (base(&s, small), base(&s, big))
             && (bb - bs).abs() > 1.0
@@ -225,7 +224,7 @@ mod tests {
         let icon = id(&ex(&mut s, "shape.rectangle", json!({"x": 0, "y": 0, "width": 16, "height": 16, "parent": f})));
         let home = id(&ex(&mut s, "text.create", json!({"text": "Home", "x": 0, "y": 0, "parent": f, "props": {"fontSize": 48}})));
         ex(&mut s, "node.set", json!({"id": f, "props": {"crossAlign": "baseline"}}));
-        let base = figcraft_text::layout_node(&node(&s, home)).and_then(|(l, dy)| l.lines.first().map(|line| line.baseline + dy));
+        let base = figiran_text::layout_node(&node(&s, home)).and_then(|(l, dy)| l.lines.first().map(|line| line.baseline + dy));
         // Only meaningful when the text was measured (fonts available) and its baseline is below
         // the icon's height.
         if let Some(b) = base

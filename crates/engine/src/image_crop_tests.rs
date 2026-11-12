@@ -4,8 +4,8 @@
 //! without an image fill, or several layers, are refused with a reason and nothing changes.
 
 use base64::Engine as _;
-use figcraft_color::{ImageScaleMode, Paint, PaintKind};
-use figcraft_doc::NodeId;
+use figiran_color::{ImageScaleMode, Paint, PaintKind};
+use figiran_doc::NodeId;
 use serde_json::{Value, json};
 
 use crate::Session;
@@ -39,7 +39,7 @@ fn set_mode(s: &mut Session, id: NodeId, mode: ImageScaleMode) {
 }
 
 fn pixels(s: &Session, id: NodeId) -> Vec<u8> {
-    figcraft_render::render_node(s.doc().unwrap(), id, 1.0).unwrap().data().to_vec()
+    figiran_render::render_node(s.doc().unwrap(), id, 1.0).unwrap().data().to_vec()
 }
 
 fn undo_steps(s: &Session) -> usize {
@@ -80,7 +80,7 @@ fn crop_image_takes_the_top_visible_image_fill_or_the_one_named() {
     let mut hidden = image.clone();
     hidden.visible = false;
     // Bottom to top: image, image, solid, hidden image.
-    f = vec![image.clone(), image, Paint::solid(figcraft_color::Color::BLACK), hidden];
+    f = vec![image.clone(), image, Paint::solid(figiran_color::Color::BLACK), hidden];
     ex(&mut s, "node.set", json!({"ids": [layer], "props": {"fills": f}}));
     assert_eq!(ex(&mut s, "image.crop", json!({"ids": [layer]}))["index"], 1, "the top visible image fill");
     let modes =

@@ -1,7 +1,7 @@
 //! A board's timer and votes: the commands, what undo leaves alone, saving, live sessions, clicks
 //! that vote, and junk parameters.
 
-use figcraft_doc::{BoardTimer, NodeId, VoteScope};
+use figiran_doc::{BoardTimer, NodeId, VoteScope};
 use serde_json::{Value, json};
 
 use crate::board_tests::{board, id};
@@ -202,18 +202,18 @@ fn the_timer_and_votes_save_and_old_files_open() {
     ex(&mut s, "board.vote", json!({"action": "start", "on": "stickies"}));
     ex(&mut s, "board.vote", json!({"action": "cast", "id": a}));
     let doc = s.doc().unwrap().clone();
-    let bytes = figcraft_format::save_bytes(&doc, None).unwrap();
-    let (back, _) = figcraft_format::load_bytes(&bytes).unwrap();
+    let bytes = figiran_format::save_bytes(&doc, None).unwrap();
+    let (back, _) = figiran_format::load_bytes(&bytes).unwrap();
     assert_eq!((back.timer, &back.vote, &back.votes), (doc.timer, &doc.vote, &doc.votes));
     // A file from before: none of the fields.
-    let mut v = figcraft_format::to_json(&doc).unwrap();
+    let mut v = figiran_format::to_json(&doc).unwrap();
     for k in ["timer", "vote", "votes"] {
         assert!(v.as_object_mut().unwrap().remove(k).is_some(), "{k} is saved");
     }
-    let (old, _) = figcraft_format::from_json(&v.to_string()).unwrap();
+    let (old, _) = figiran_format::from_json(&v.to_string()).unwrap();
     assert!(old.timer.is_none() && old.vote.is_none() && old.votes.is_empty());
     // Design files don't write them.
-    let plain = figcraft_format::to_json(&figcraft_doc::Document::new("D")).unwrap();
+    let plain = figiran_format::to_json(&figiran_doc::Document::new("D")).unwrap();
     assert!(plain.get("timer").is_none() && plain.get("vote").is_none() && plain.get("votes").is_none());
 }
 
@@ -243,7 +243,7 @@ fn everyone_in_a_live_session_shares_the_timer_and_the_vote() {
     // Who voted shows by the names people go by in the session, kept with the results when it
     // ends (this room delivers no join messages, so peer 2 is added as one would add them).
     let me = room.s(0).live_mut().and_then(|l| l.info.as_ref()).map(|i| i.name.clone()).expect("in the session");
-    let peer2 = figcraft_collab::Peer { client_id: 2, name: "Grace".into(), color: "#00AA88".into() };
+    let peer2 = figiran_collab::Peer { client_id: 2, name: "Grace".into(), color: "#00AA88".into() };
     room.s(0).live_mut().expect("in the session").peers.insert(2, peer2);
     ex(room.s(0), "board.vote", json!({"action": "end"}));
     room.settle();

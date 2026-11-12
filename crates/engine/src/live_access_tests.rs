@@ -6,8 +6,8 @@
 
 use std::sync::{Arc, Mutex};
 
-use figcraft_collab::message::{ClientMsg, ServerMsg};
-use figcraft_collab::{Client, NoRecompute, Outgoing};
+use figiran_collab::message::{ClientMsg, ServerMsg};
+use figiran_collab::{Client, NoRecompute, Outgoing};
 use serde_json::json;
 
 use crate::live::{Access, Event, PUBLISHING, Published, Role, Status, VIEW_ONLY};
@@ -70,14 +70,14 @@ fn publishing_makes_the_open_tab_the_server_file() {
     // Edits sync through the server.
     let rect = s.execute("shape.rectangle", &json!({"x": 100, "y": 0, "width": 20, "height": 20})).unwrap()["id"].as_u64().unwrap();
     let answers = relay(&script, &mut server, id);
-    assert!(server.document().contains(figcraft_doc::NodeId(rect)));
+    assert!(server.document().contains(figiran_doc::NodeId(rect)));
     push(&script, answers);
     s.live_poll();
     assert_eq!(s.undo_depth(), (1, 0));
     // Leaving keeps the file open, yours to edit.
     s.execute("collab.leave", &json!({})).unwrap();
     assert_eq!(s.docs.len(), 1);
-    assert!(s.doc().unwrap().contains(figcraft_doc::NodeId(rect)));
+    assert!(s.doc().unwrap().contains(figiran_doc::NodeId(rect)));
     assert_eq!(s.message.as_deref(), Some("You left the session; your copy stays open here"));
     assert!(s.execute("shape.ellipse", &json!({"x": 0, "y": 0, "width": 5, "height": 5})).is_ok());
 }
@@ -86,10 +86,10 @@ fn publishing_makes_the_open_tab_the_server_file() {
 fn a_view_link_makes_the_file_read_only() {
     let (mut s, script) = session();
     s.execute("tool.set", &json!({"tool": "rectangle"})).unwrap();
-    s.execute("collab.join", &json!({"link": "figcraft://join?host=a:1&file=f&token=t"})).unwrap();
-    let mut doc = figcraft_doc::Document::new("Shared");
+    s.execute("collab.join", &json!({"link": "figiran://join?host=a:1&file=f&token=t"})).unwrap();
+    let mut doc = figiran_doc::Document::new("Shared");
     let page = doc.first_page().unwrap();
-    let card = doc.create(page, figcraft_doc::NodeKind::Rectangle, "Card", 0.0, 0.0, 10.0, 10.0).unwrap();
+    let card = doc.create(page, figiran_doc::NodeKind::Rectangle, "Card", 0.0, 0.0, 10.0, 10.0).unwrap();
     let (mut server, id, welcome) = serve_as(&doc, Access::View);
     let mut me = info(Role::Guest, id);
     me.access = Access::View;
@@ -106,7 +106,7 @@ fn a_view_link_makes_the_file_read_only() {
     refused(&mut s, "node.set", json!({"ids": [card.0], "props": {"name": "Mine"}}), VIEW_ONLY);
     refused(&mut s, "edit.delete", json!({"ids": [card.0]}), VIEW_ONLY);
     // Refused before it makes copies or writes files, which no rollback takes back.
-    let dir = std::env::temp_dir().join(format!("figcraft-view-fill-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("figiran-view-fill-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     refused(&mut s, "data.fill", json!({"id": card.0, "rows": [{"name": "Copy"}], "dir": dir.to_string_lossy()}), VIEW_ONLY);
@@ -144,7 +144,7 @@ fn a_view_link_makes_the_file_read_only() {
 }
 
 fn saved_file(s: &mut Session) -> std::path::PathBuf {
-    let path = std::env::temp_dir().join(format!("figcraft-live-revert-{}-{}.figcraft", std::process::id(), s.ds().unwrap().uid));
+    let path = std::env::temp_dir().join(format!("figiran-live-revert-{}-{}.figiran", std::process::id(), s.ds().unwrap().uid));
     s.execute("file.saveVersion", &json!({"name": "Saved"})).unwrap();
     s.execute("file.save", &json!({"path": path})).unwrap();
     s.execute("file.rename", &json!({"name": "Unsaved"})).unwrap();

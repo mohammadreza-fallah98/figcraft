@@ -1,7 +1,7 @@
 //! Node geometry: local outline paths, and hit testing with Figma's click-target rules.
 
 use crate::{Document, Node, NodeId, NodeKind};
-use figcraft_geom::{BezPath, Point, Rect, Shape};
+use figiran_geom::{BezPath, Point, Rect, Shape};
 
 /// The node's outline in its local space (`None` for groups, booleans, text and pages, whose
 /// geometry comes from children or glyphs).
@@ -14,12 +14,12 @@ pub fn shape_path(n: &Node) -> Option<BezPath> {
         | NodeKind::Component { .. }
         | NodeKind::ComponentSet { .. }
         | NodeKind::Instance { .. }
-        | NodeKind::Section { .. } => figcraft_geom::rounded_rect(w, h, c.radii, c.smoothing),
-        NodeKind::Slice => figcraft_geom::rounded_rect(w, h, [0.0; 4], 0.0),
-        NodeKind::Ellipse { start, sweep, inner } => figcraft_geom::ellipse(w, h, *start, *sweep, *inner),
-        NodeKind::Polygon { count } => figcraft_geom::smoothed_polygon(&figcraft_geom::polygon_points(w, h, *count), c.radii[0], c.smoothing),
+        | NodeKind::Section { .. } => figiran_geom::rounded_rect(w, h, c.radii, c.smoothing),
+        NodeKind::Slice => figiran_geom::rounded_rect(w, h, [0.0; 4], 0.0),
+        NodeKind::Ellipse { start, sweep, inner } => figiran_geom::ellipse(w, h, *start, *sweep, *inner),
+        NodeKind::Polygon { count } => figiran_geom::smoothed_polygon(&figiran_geom::polygon_points(w, h, *count), c.radii[0], c.smoothing),
         NodeKind::Star { count, inner_ratio } => {
-            figcraft_geom::smoothed_polygon(&figcraft_geom::star_points(w, h, *count, *inner_ratio), c.radii[0], c.smoothing)
+            figiran_geom::smoothed_polygon(&figiran_geom::star_points(w, h, *count, *inner_ratio), c.radii[0], c.smoothing)
         }
         NodeKind::Line => {
             let mut p = BezPath::new();
@@ -32,7 +32,7 @@ pub fn shape_path(n: &Node) -> Option<BezPath> {
             let f = net.fill_path();
             if f.elements().is_empty() { net.stroke_path() } else { f }
         }
-        NodeKind::Text(_) => figcraft_geom::rounded_rect(w, h, [0.0; 4], 0.0),
+        NodeKind::Text(_) => figiran_geom::rounded_rect(w, h, [0.0; 4], 0.0),
         NodeKind::Page { .. } | NodeKind::Group | NodeKind::BooleanOp { .. } => return None,
     })
 }
@@ -144,7 +144,7 @@ fn hits_result(doc: &Document, id: NodeId, n: &Node, pt: Point, tol: f64, result
 }
 
 fn near_path(path: &BezPath, p: Point, dist: f64) -> bool {
-    use figcraft_geom::kurbo::ParamCurveNearest;
+    use figiran_geom::kurbo::ParamCurveNearest;
     path.segments().any(|s| s.nearest(p, 0.01).distance_sq <= dist * dist)
 }
 

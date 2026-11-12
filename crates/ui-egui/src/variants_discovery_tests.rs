@@ -3,8 +3,8 @@
 //! a lone one, and the canvas / layers context menu lists Combine only when it applies.
 
 use egui::Pos2;
-use figcraft_doc::{NodeId, NodeKind};
-use figcraft_engine::Session;
+use figiran_doc::{NodeId, NodeKind};
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::layers_drag_tests::Ui;

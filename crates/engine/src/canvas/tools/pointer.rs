@@ -48,7 +48,7 @@ impl Session {
     pub(crate) fn marquee_selection(&self, r: Rect, within: Option<NodeId>, deep: bool, base: &[NodeId], additive: bool) -> Result<Vec<NodeId>> {
         let (doc, page) = (self.doc()?, self.page()?);
         let mut hits =
-            if deep { figcraft_doc::geometry::marquee_deep(doc, page, r) } else { figcraft_doc::geometry::marquee_select(doc, page, r, within) };
+            if deep { figiran_doc::geometry::marquee_deep(doc, page, r) } else { figiran_doc::geometry::marquee_select(doc, page, r, within) };
         if let Some(f) = self.ds()?.focused() {
             hits.retain(|h| *h != f && doc.is_ancestor(f, *h));
         }

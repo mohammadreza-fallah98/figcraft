@@ -2,8 +2,8 @@
 //! have (sticky notes, shapes with text, connectors, tables) and variable prototype actions, on
 //! fixtures built in code with the parent module's helpers.
 
-use figcraft_doc::proto::Action;
-use figcraft_doc::{HandleMirroring, StrokeCap, StrokeJoin, WindingRule};
+use figiran_doc::proto::Action;
+use figiran_doc::{HandleMirroring, StrokeCap, StrokeJoin, WindingRule};
 
 use super::super::network::{self, Network, Region, Segment, Vertex};
 use super::*;
@@ -337,10 +337,10 @@ fn vector_region_fills_import_from_style_table() {
     let wire = region_canvas(Some(vec![solid, gradient, image]), 1);
     let (doc, warnings) = import(&wire, "Region fills").unwrap();
     let fills = network_of(&doc, "Wave").regions[0].fills.as_ref().unwrap();
-    let figcraft_doc::color::PaintKind::Solid { color } = &fills[0].kind else { panic!("{fills:?}") };
+    let figiran_doc::color::PaintKind::Solid { color } = &fills[0].kind else { panic!("{fills:?}") };
     assert_eq!((color.r, color.g, color.b, fills[0].opacity, fills[0].visible), (0.2, 0.4, 0.8, 0.25, false));
-    assert!(matches!(&fills[1].kind, figcraft_doc::color::PaintKind::Gradient(g) if g.stops.len() == 2 && g.stops[1].color.a == 0.25));
-    let figcraft_doc::color::PaintKind::Image(imported_image) = &fills[2].kind else { panic!("{fills:?}") };
+    assert!(matches!(&fills[1].kind, figiran_doc::color::PaintKind::Gradient(g) if g.stops.len() == 2 && g.stops[1].color.a == 0.25));
+    let figiran_doc::color::PaintKind::Image(imported_image) = &fills[2].kind else { panic!("{fills:?}") };
     let image_key = imported_image.image.clone();
     assert!(doc.images.contains_key(&image_key), "image reference must retain its image placeholder");
     assert!(!warnings.iter().any(|warning| warning.contains("their own fill use the layer's fill")), "{warnings:?}");
@@ -366,7 +366,7 @@ fn vector_region_linked_fill_uses_style_paints_without_recording_definition() {
     let wire = region_canvas_with_link(Some(own), Some(50), linked);
     let (doc, _) = import(&wire, "Linked region style").unwrap();
     let fills = network_of(&doc, "Wave").regions[0].fills.as_ref().unwrap();
-    let figcraft_doc::color::PaintKind::Solid { color } = &fills[0].kind else { panic!("{fills:?}") };
+    let figiran_doc::color::PaintKind::Solid { color } = &fills[0].kind else { panic!("{fills:?}") };
     assert_eq!((color.r, color.g, color.b), (0.9, 0.1, 0.2));
     assert!(doc.nodes().all(|node| node.name != "Linked Fill"), "style lookup must not add a style as a layer");
     let archive = Archive::open(&wire).unwrap();
@@ -382,7 +382,7 @@ fn vector_region_variable_bound_own_fill_wins_over_linked_style() {
         o(vec![("type", e("SOLID")), ("color", o(vec![("r", f(0.1)), ("g", f(0.2)), ("b", f(0.9)), ("a", f(1.0))])), ("colorVar", alias_data(41))]);
     let (doc, _) = import(&region_canvas_with_link(Some(own), Some(50), solid(0.9, 0.1, 0.2)), "Bound region style").unwrap();
     let fills = network_of(&doc, "Wave").regions[0].fills.as_ref().unwrap();
-    let figcraft_doc::color::PaintKind::Solid { color } = &fills[0].kind else { panic!("{fills:?}") };
+    let figiran_doc::color::PaintKind::Solid { color } = &fills[0].kind else { panic!("{fills:?}") };
     assert_eq!((color.r, color.g, color.b), (0.1, 0.2, 0.9));
 }
 
@@ -394,7 +394,7 @@ fn vector_region_missing_fills_inherit_and_unresolved_link_keeps_own_fill() {
     let own = solid(0.1, 0.2, 0.9);
     let (fallback, _) = import(&region_canvas_with_link(Some(own), Some(999), solid(0.9, 0.1, 0.2)), "Unresolved linked region").unwrap();
     let fills = network_of(&fallback, "Wave").regions[0].fills.as_ref().unwrap();
-    let figcraft_doc::color::PaintKind::Solid { color } = &fills[0].kind else { panic!("{fills:?}") };
+    let figiran_doc::color::PaintKind::Solid { color } = &fills[0].kind else { panic!("{fills:?}") };
     assert_eq!((color.r, color.g, color.b), (0.1, 0.2, 0.9));
 }
 
@@ -403,7 +403,7 @@ fn vector_region_link_to_non_fill_style_keeps_own_fill() {
     let own = solid(0.1, 0.2, 0.9);
     let (doc, _) = import(&region_canvas_with_typed_link(Some(own), Some(50), "TEXT", solid(0.9, 0.1, 0.2)), "Text-linked region").unwrap();
     let fills = network_of(&doc, "Wave").regions[0].fills.as_ref().unwrap();
-    let figcraft_doc::color::PaintKind::Solid { color } = &fills[0].kind else { panic!("{fills:?}") };
+    let figiran_doc::color::PaintKind::Solid { color } = &fills[0].kind else { panic!("{fills:?}") };
     assert_eq!((color.r, color.g, color.b), (0.1, 0.2, 0.9));
 }
 
@@ -466,7 +466,7 @@ fn vector_regions_keep_distinct_solid_paints() {
     let regions = &network_of(&doc, "Wave").regions;
     assert_eq!(regions.len(), 2);
     let color = |index: usize| match &regions[index].fills.as_ref().unwrap()[0].kind {
-        figcraft_doc::color::PaintKind::Solid { color } => (color.r, color.g, color.b),
+        figiran_doc::color::PaintKind::Solid { color } => (color.r, color.g, color.b),
         paint => panic!("{paint:?}"),
     };
     assert_eq!(color(0), (0.1, 0.2, 0.9));
@@ -489,7 +489,7 @@ fn vector_region_gradient_limit_warns_instead_of_silently_truncating() {
         let (doc, warnings) = import(&region_canvas(Some(vec![gradient]), 1), "Bounded region gradient").unwrap();
         let fills = &network_of(&doc, "Wave").regions[0].fills;
         if count == 256 {
-            let figcraft_doc::color::PaintKind::Gradient(g) = &fills.as_ref().unwrap()[0].kind else { panic!() };
+            let figiran_doc::color::PaintKind::Gradient(g) = &fills.as_ref().unwrap()[0].kind else { panic!() };
             assert_eq!(g.stops.len(), 256);
             assert_eq!(g.stops.last().unwrap().color.r, 1.0);
             assert!(!warnings.iter().any(|w| w.contains("vector region paint data exceeded")));
@@ -514,7 +514,7 @@ fn vector_region_invalid_paints_and_style_refs_warn() {
     assert!(warnings.iter().any(|warning| warning.contains("vector region references a missing fill style")), "{warnings:?}");
 }
 
-fn network_of<'d>(doc: &'d figcraft_doc::Document, name: &str) -> &'d figcraft_doc::VectorNetwork {
+fn network_of<'d>(doc: &'d figiran_doc::Document, name: &str) -> &'d figiran_doc::VectorNetwork {
     match &named(doc, name).kind {
         NodeKind::Vector { network } => network,
         k => panic!("{name} is {k:?}"),
@@ -610,7 +610,7 @@ fn other_layer_kinds_import_as_the_closest_layers() {
     // A shape with text: its outline as a vector (with the paint), then the text.
     let bubble = named(&doc, "Bubble");
     assert!(bubble.fills.is_empty());
-    let kids: Vec<&figcraft_doc::Node> = bubble.children.iter().map(|c| doc.node(*c).unwrap()).collect();
+    let kids: Vec<&figiran_doc::Node> = bubble.children.iter().map(|c| doc.node(*c).unwrap()).collect();
     assert!(matches!(kids[0].kind, NodeKind::Vector { .. }) && kids[0].fills.len() == 1);
     assert_eq!(text_of(bubble.children[1]), "Hi");
     // An elbowed connector from a free point to a sibling: in right angles, into the side of the
@@ -618,7 +618,7 @@ fn other_layer_kinds_import_as_the_closest_layers() {
     let link = named(&doc, "Link");
     let world = doc.world_transform(link.id);
     let ends: Vec<(f64, f64)> =
-        network_of(&doc, "Link").vertices.iter().map(|v| world * figcraft_doc::geom::Point::new(v.x, v.y)).map(|p| (p.x, p.y)).collect();
+        network_of(&doc, "Link").vertices.iter().map(|v| world * figiran_doc::geom::Point::new(v.x, v.y)).map(|p| (p.x, p.y)).collect();
     assert_eq!(ends, [(0.0, 300.0), (198.0, 300.0), (198.0, 50.0), (396.0, 50.0)]);
     assert_eq!(link.stroke.cap_end, StrokeCap::TriangleArrow);
     // A table: a frame.
@@ -655,15 +655,15 @@ fn connectors_without_a_saved_path_follow_their_line_style() {
     let world = |name: &str| doc.world_transform(named(&doc, name).id);
     // Curved: one curve from A's right side to B's left, leaving and arriving level.
     let curve = network_of(&doc, "Curve");
-    let ends: Vec<_> = curve.vertices.iter().map(|v| world("Curve") * figcraft_doc::geom::Point::new(v.x, v.y)).collect();
+    let ends: Vec<_> = curve.vertices.iter().map(|v| world("Curve") * figiran_doc::geom::Point::new(v.x, v.y)).collect();
     assert_eq!(ends.iter().map(|p| (p.x, p.y)).collect::<Vec<_>>(), [(104.0, 650.0), (296.0, 650.0)], "END_GAP outside the sides");
     assert_eq!(curve.segments.len(), 1);
     assert_eq!((curve.segments[0].ta, curve.segments[0].tb), ((96.0, 0.0), (-96.0, 0.0)), "the curve leaves and arrives along the sides");
     // Straight: unchanged, to the points the file gives on the layers.
     let line: Vec<_> =
-        network_of(&doc, "Line").vertices.iter().map(|v| world("Line") * figcraft_doc::geom::Point::new(v.x, v.y)).map(|p| (p.x, p.y)).collect();
+        network_of(&doc, "Line").vertices.iter().map(|v| world("Line") * figiran_doc::geom::Point::new(v.x, v.y)).map(|p| (p.x, p.y)).collect();
     assert_eq!(line, [(100.0, 650.0), (300.0, 650.0)]);
-    assert!(warnings.iter().any(|w| w.contains("FigCraft's own routing")), "{warnings:?}");
+    assert!(warnings.iter().any(|w| w.contains("FigIran's own routing")), "{warnings:?}");
 }
 
 /// #1909: a connector end whose magnet is `AUTO` (FigJam picks the side when it draws) or `CENTER`
@@ -702,7 +702,7 @@ fn connectors_with_an_automatic_side_leave_the_side_facing_the_target() {
     let ends = |name: &str| -> ((f64, f64), (f64, f64)) {
         let world = doc.world_transform(named(&doc, name).id);
         let pts: Vec<(f64, f64)> =
-            network_of(&doc, name).vertices.iter().map(|v| world * figcraft_doc::geom::Point::new(v.x, v.y)).map(|p| (p.x, p.y)).collect();
+            network_of(&doc, name).vertices.iter().map(|v| world * figiran_doc::geom::Point::new(v.x, v.y)).map(|p| (p.x, p.y)).collect();
         (pts[0], pts[pts.len() - 1])
     };
     // From A's right side (facing B) to B's left side (facing A), not from the stale left point; each
@@ -741,13 +741,13 @@ fn a_labelled_connector_without_a_snapshot_keeps_its_label() {
     let says = named(&doc, "Says");
     assert!(matches!(says.kind, NodeKind::Frame), "{:?}", says.kind);
     assert!(says.fills.is_empty() && says.strokes.is_empty(), "the frame only holds the line and the label");
-    let kids: Vec<&figcraft_doc::Node> = says.children.iter().map(|c| doc.node(*c).unwrap()).collect();
+    let kids: Vec<&figiran_doc::Node> = says.children.iter().map(|c| doc.node(*c).unwrap()).collect();
     assert_eq!(kids.len(), 2);
     assert!(matches!(kids[0].kind, NodeKind::Vector { .. }) && kids[0].strokes.len() == 1, "the line keeps its stroke");
     assert!(matches!(&kids[1].kind, NodeKind::Text(t) if t.characters == "yes"), "{:?}", kids[1].kind);
     assert_eq!(kids[1].fills.len(), 1, "black when the connector gives no paint");
     // Centred on the line's middle, (200, 650) on the page.
-    let label = doc.world_transform(kids[1].id) * figcraft_doc::geom::Point::new(kids[1].width / 2.0, kids[1].height / 2.0);
+    let label = doc.world_transform(kids[1].id) * figiran_doc::geom::Point::new(kids[1].width / 2.0, kids[1].height / 2.0);
     assert!((label.x - 200.0).abs() < 1e-6 && (label.y - 650.0).abs() < 1e-6, "{label:?}");
     assert!(warnings.iter().any(|w| w.contains("centred on the line")), "{warnings:?}");
     assert!(!warnings.iter().any(|w| w.contains("connector labels were skipped")), "{warnings:?}");
@@ -939,18 +939,18 @@ fn an_elbow_connector_saved_with_its_path_keeps_it() {
     let (doc, warnings) = import(&canvas(&schema(), &message), "Saved path").unwrap();
     let world = doc.world_transform(named(&doc, "Saved").id);
     let line: Vec<_> =
-        network_of(&doc, "Saved").vertices.iter().map(|v| world * figcraft_doc::geom::Point::new(v.x, v.y)).map(|p| (p.x, p.y)).collect();
+        network_of(&doc, "Saved").vertices.iter().map(|v| world * figiran_doc::geom::Point::new(v.x, v.y)).map(|p| (p.x, p.y)).collect();
     // Each end starts `END_GAP` (4) outside its side's border.
     assert_eq!(line, [(50.0, 704.0), (50.0, 740.0), (200.0, 740.0), (200.0, 850.0), (296.0, 850.0)]);
     // The fixture's own Link, saved without a path, is routed here: the note counts it alone.
-    let routed: Vec<_> = warnings.iter().filter(|w| w.contains("FigCraft's own routing")).collect();
+    let routed: Vec<_> = warnings.iter().filter(|w| w.contains("FigIran's own routing")).collect();
     assert_eq!(routed.len(), 1, "{warnings:?}");
     assert!(!routed[0].contains('×'), "a connector with its path isn't counted among those routed here: {routed:?}");
 }
 
 /// Saved control points that don't make a path from the connector's sides (#1910): a first run
 /// that would leave the bottom sideways, a point off both axes, or two runs in a row the same way
-/// leave the connector to FigCraft's routing, as one saved without a path is.
+/// leave the connector to FigIran's routing, as one saved without a path is.
 #[test]
 fn an_elbow_whose_saved_path_doesnt_fit_its_sides_is_routed_here() {
     let mut message = tail_message();
@@ -984,12 +984,12 @@ fn an_elbow_whose_saved_path_doesnt_fit_its_sides_is_routed_here() {
     let (doc, warnings) = import(&canvas(&schema(), &message), "Unfit paths").unwrap();
     let line = |name: &str| -> Vec<(f64, f64)> {
         let world = doc.world_transform(named(&doc, name).id);
-        network_of(&doc, name).vertices.iter().map(|v| world * figcraft_doc::geom::Point::new(v.x, v.y)).map(|p| (p.x, p.y)).collect()
+        network_of(&doc, name).vertices.iter().map(|v| world * figiran_doc::geom::Point::new(v.x, v.y)).map(|p| (p.x, p.y)).collect()
     };
     let plain = line("Plain");
     assert!(plain.len() >= 3, "routed in right angles: {plain:?}");
     for name in ["Sideways", "Askew", "Repeated", "Backwards", "Inside"] {
         assert_eq!(line(name), plain, "{name} is routed as one without a path");
     }
-    assert!(warnings.iter().any(|w| w.contains("FigCraft's own routing")), "{warnings:?}");
+    assert!(warnings.iter().any(|w| w.contains("FigIran's own routing")), "{warnings:?}");
 }

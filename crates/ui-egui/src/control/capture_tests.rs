@@ -5,8 +5,8 @@
 
 use std::sync::Arc;
 
-use figcraft_doc::NodeId;
-use figcraft_engine::Session;
+use figiran_doc::NodeId;
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::control::{CaptureSpec, ControlReply, ControlRequest};
@@ -88,7 +88,7 @@ fn a_cancelled_capture_never_replies_or_writes() {
 
 /// A unique directory for a commit test; the caller removes it.
 fn commit_dir(tag: &str) -> std::path::PathBuf {
-    let dir = std::env::temp_dir().join(format!("figcraft-capture-commit-{tag}-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("figiran-capture-commit-{tag}-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).expect("temp dir");
     dir
@@ -617,7 +617,7 @@ fn injected_text_lands_once_across_a_discarded_sizing_pass() {
     let mut s = Session::new();
     let id = NodeId(s.execute("text.create", &json!({"text": "X", "x": 40, "y": 40})).unwrap()["id"].as_u64().unwrap());
     let mut u = Ui::new(s);
-    figcraft_engine::textedit::begin(&mut u.app.session, id, Some(1), false).unwrap();
+    figiran_engine::textedit::begin(&mut u.app.session, id, Some(1), false).unwrap();
     let (tx, rx) = std::sync::mpsc::channel();
     u.app.control_queue.push(ControlRequest {
         id: json!(22),
@@ -648,7 +648,7 @@ fn injected_text_lands_once_across_a_discarded_sizing_pass() {
     out.textures_delta.clear();
     assert_eq!(passes, 2, "egui reran the frame");
     let typed = match &app.session.doc().expect("a file").node(id).expect("the text layer").kind {
-        figcraft_doc::NodeKind::Text(t) => t.characters.clone(),
+        figiran_doc::NodeKind::Text(t) => t.characters.clone(),
         _ => panic!("not text"),
     };
     assert_eq!(typed, "Xabc", "the discarded pass's text was not applied twice");

@@ -6,7 +6,7 @@ use super::{
 
 /// One group of inspected properties: label, value (with a swatch for colours) and the style or
 /// variable it comes from. Clicking a row copies its value.
-pub(crate) fn inspect_section(app: &mut FigApp, ui: &mut Ui, s: &figcraft_engine::devinspect::Section) {
+pub(crate) fn inspect_section(app: &mut FigApp, ui: &mut Ui, s: &figiran_engine::devinspect::Section) {
     let t = Tokens::get(ui.ctx());
     widgets::separator(ui);
     let (hr, _) = ui.allocate_exact_size(vec2(ui.available_width(), 32.0), Sense::hover());
@@ -19,7 +19,7 @@ pub(crate) fn inspect_section(app: &mut FigApp, ui: &mut Ui, s: &figcraft_engine
 
 /// An inspected property row: label, value (with a swatch for colours) and the style or variable
 /// it comes from as a chip. Clicking it copies the value.
-pub(crate) fn prop_row(app: &mut FigApp, ui: &mut Ui, p: &figcraft_engine::devinspect::Prop) {
+pub(crate) fn prop_row(app: &mut FigApp, ui: &mut Ui, p: &figiran_engine::devinspect::Prop) {
     let t = Tokens::get(ui.ctx());
     let (r, resp) = ui.allocate_exact_size(vec2(ui.available_width(), 26.0), Sense::click());
     let resp = resp.tip(trf("Copy {value}", &[("value", &p.value)]));
@@ -52,7 +52,7 @@ pub(crate) fn prop_row(app: &mut FigApp, ui: &mut Ui, p: &figcraft_engine::devin
         right = chip.min.x - 6.0;
     }
     let mut x = r.min.x + 96.0;
-    if let Some(c) = p.color.as_deref().and_then(figcraft_color::Color::from_hex) {
+    if let Some(c) = p.color.as_deref().and_then(figiran_color::Color::from_hex) {
         let sw = Rect::from_min_size(pos2(x, r.center().y - 6.0), vec2(12.0, 12.0));
         widgets::paint_swatch(painter, sw, &Paint::solid(c));
         x += 18.0;
@@ -82,7 +82,7 @@ const ASSET_THUMB: f32 = 40.0;
 /// The selection's assets (layers with export settings, icons, images) as a list of a preview, a
 /// name and a format: click one to export it in that format, or export them all with their own
 /// export settings.
-fn inspect_assets(app: &mut FigApp, ui: &mut Ui, doc: &Document, assets: &[figcraft_engine::devinspect::Asset]) {
+fn inspect_assets(app: &mut FigApp, ui: &mut Ui, doc: &Document, assets: &[figiran_engine::devinspect::Asset]) {
     let t = Tokens::get(ui.ctx());
     widgets::separator(ui);
     let export_all = [(Icon::Export, tr("Export all"))];
@@ -206,7 +206,7 @@ pub(super) fn inspect(app: &mut FigApp, ui: &mut Ui) {
     crate::dev_mode::annotations_section(app, ui, &doc, first);
     crate::dev_mode::dev_resources_section(app, ui, &doc, first);
     crate::dev_mode::measurements_section(app, ui, &doc, &sel);
-    use figcraft_engine::devinspect::ColorFormat;
+    use figiran_engine::devinspect::ColorFormat;
     let fmt_id = Id::unique("inspect_color_format");
     let fmt = ui.data(|d| d.get_temp::<usize>(fmt_id)).and_then(|i| ColorFormat::ALL.get(i).copied()).unwrap_or_default();
     row(ui, 32.0, |ui| {
@@ -221,11 +221,11 @@ pub(super) fn inspect(app: &mut FigApp, ui: &mut Ui) {
             }
         });
     });
-    for s in figcraft_engine::devinspect::properties_with(&doc, first, fmt) {
+    for s in figiran_engine::devinspect::properties_with(&doc, first, fmt) {
         inspect_section(app, ui, &s);
     }
-    inspect_assets(app, ui, &doc, &figcraft_engine::devinspect::assets(&doc, &sel));
-    use figcraft_engine::codegen::CodeLang;
+    inspect_assets(app, ui, &doc, &figiran_engine::devinspect::assets(&doc, &sel));
+    use figiran_engine::codegen::CodeLang;
     let lang_id = Id::unique("inspect_lang");
     let lang = ui.data(|d| d.get_temp::<usize>(lang_id)).and_then(|i| CodeLang::ALL.get(i).copied()).unwrap_or_default();
     // A component tried with other property values: its code replaces the layer's below.
@@ -259,7 +259,7 @@ pub(super) fn inspect(app: &mut FigApp, ui: &mut Ui) {
         }
     });
     let code = played.unwrap_or_else(|| crate::dev_mode::code(app, ui, first, lang));
-    let code = if rem { figcraft_engine::codegen::px_to_rem(&code, 16.0) } else { code };
+    let code = if rem { figiran_engine::codegen::px_to_rem(&code, 16.0) } else { code };
     egui::Frame::NONE
         .fill(t.field)
         .corner_radius(CornerRadius::same(6))

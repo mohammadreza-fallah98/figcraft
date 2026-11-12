@@ -1,6 +1,6 @@
-# FigCraft MCP server
+# FigIran MCP server
 
-FigCraft ships a [Model Context Protocol](https://modelcontextprotocol.io) server so AI agents can
+FigIran ships a [Model Context Protocol](https://modelcontextprotocol.io) server so AI agents can
 design with it: create and edit layers, run any menu command, inspect the result as JSON and look at
 it as a PNG. It speaks newline-delimited JSON-RPC 2.0 over stdio (MCP protocol `2025-06-18`;
 `2025-03-26` and `2024-11-05` clients are accepted too).
@@ -10,16 +10,16 @@ enforced while reading: an oversized or unterminated frame stops at the first ex
 JSON-RPC error `-32600` (`message too large`, null id), and closes the stdio session without reading
 the rest or dispatching later requests. Lines within the limit keep the same JSON-RPC behavior.
 
-The server lives in `crates/mcp` (`figcraft-mcp`) and is started by the CLI:
+The server lives in `crates/mcp` (`figiran-mcp`) and is started by the CLI:
 
 | Command | Backend |
 |---|---|
-| `figcraft-cli mcp` | **Headless**: an in-process engine session with one untitled document. No window; renders with the CPU renderer. |
-| `figcraft-cli mcp --attach <port>` | **Attached**: drives a running FigCraft app through its control channel (`figcraft --control <port>`). The user sees every change live. |
+| `figiran-cli mcp` | **Headless**: an in-process engine session with one untitled document. No window; renders with the CPU renderer. |
+| `figiran-cli mcp --attach <port>` | **Attached**: drives a running FigIran app through its control channel (`figiran --control <port>`). The user sees every change live. |
 
 `--attach` also takes `host:port`. The control channel only listens on 127.0.0.1. The app takes up
 to 60 s over each request; `--timeout SECONDS` (1–600) raises that for a client that sends big
-batches: `figcraft-cli mcp --attach 7979 --timeout 300`. Headless has no such limit.
+batches: `figiran-cli mcp --attach 7979 --timeout 300`. Headless has no such limit.
 
 While an attached agent works, the app shows where, as it shows a person in a live session: its
 avatar, in a colour of its own and named as its comments are signed ("Claude (agent)", see
@@ -49,16 +49,16 @@ of the window itself (`screenshot` with `window`) needs it on screen: it is then
 
 ### Confining file access
 
-The roots below belong to the **headless** side: the session `figcraft-cli mcp` runs itself, with
+The roots below belong to the **headless** side: the session `figiran-cli mcp` runs itself, with
 no window. A server attached with `--attach` runs the commands inside the app instead, so the app
 confines them — from the flags it was started with, not from anything passed to the CLI.
 
 ```sh
-figcraft-cli mcp --automation-read-root /work/project --automation-write-root /work/project/out
+figiran-cli mcp --automation-read-root /work/project --automation-write-root /work/project/out
 ```
 
 ```json
-{"mcpServers": {"figcraft": {"command": "/path/to/figcraft-cli",
+{"mcpServers": {"figiran": {"command": "/path/to/figiran-cli",
   "args": ["mcp", "--automation-read-root", "/work/project", "--automation-write-root", "/work/project/out"]}}}
 ```
 
@@ -96,7 +96,7 @@ Each may be given more than once, as `--flag DIR` or `--flag=DIR`:
   compared by whole names: `/work2/x` is not inside `/work`. On Windows the case comes from the disk (`C:\WORK\x` is
   inside `C:\work`), `\\?\` and UNC (`\\server\share\…`) paths are resolved like drive-letter ones,
   and new names that are devices (`CON`, `NUL`, `COM1`…) or streams (`a.png:x`) are refused.
-- **The network:** a confined call reaches no FigCraft or plugin server, so it can't send a
+- **The network:** a confined call reaches no FigIran or plugin server, so it can't send a
   document anywhere through one. Hosting, joining, publishing and sharing a file (`collab.host`,
   `collab.join`, `collab.publish`, `collab.share` …), team libraries on a server (`library.check`
   refuses, and `library.updates` / `library.list` report the refusal for each instead of the last
@@ -109,7 +109,7 @@ Each may be given more than once, as `--flag DIR` or `--flag=DIR`:
 - Not confined: the app's own folders, which no tool names (preferences, Data Recovery copies,
   plugins installed from a plugin directory, the system fonts).
 - `--attach` with either flag is a usage error: the app runs the commands, so only the app can
-  confine them. Start it with the same flags, `figcraft --control 7979 --automation-read-root DIR
+  confine them. Start it with the same flags, `figiran --control 7979 --automation-read-root DIR
   --automation-write-root DIR` (see [Control protocol](control-protocol.md#confining-file-access)),
   then attach as usual. The attached `screenshot` gets its PNGs from the app as data, so no
   temporary file is written anywhere.
@@ -119,28 +119,28 @@ Each may be given more than once, as `--flag DIR` or `--flag=DIR`:
 
 ### Fonts
 
-The headless server lays text out with the same fonts as the app: the fonts built into FigCraft
+The headless server lays text out with the same fonts as the app: the fonts built into FigIran
 plus the installed system fonts, indexed once, the first time text is laid out (a session that
 never touches text never pays for it). So text sizes, auto layout and exports match what users see
 in the app. For renders that come out the same on every machine (CI), start it with
-`figcraft-cli mcp --no-system-fonts` or set `FIGCRAFT_NO_SYSTEM_FONTS=1`: text then uses only the
+`figiran-cli mcp --no-system-fonts` or set `FIGIRAN_NO_SYSTEM_FONTS=1`: text then uses only the
 built-in fonts. Attached, the app's own fonts apply. The browser build has no system fonts.
 
 ## Configure a client
 
-Build the CLI first (`cargo build --release -p figcraft-cli`) and use the absolute path to
-`target/release/figcraft-cli`.
+Build the CLI first (`cargo build --release -p figiran-cli`) and use the absolute path to
+`target/release/figiran-cli`.
 
-The Linux AppImage bundles the CLI: `FigCraft.AppImage cli <args>` runs `figcraft-cli <args>`, so
-`/path/to/FigCraft.AppImage cli mcp` works wherever `/path/to/figcraft-cli mcp` appears below.
+The Linux AppImage bundles the CLI: `FigIran.AppImage cli <args>` runs `figiran-cli <args>`, so
+`/path/to/FigIran.AppImage cli mcp` works wherever `/path/to/figiran-cli mcp` appears below.
 
 ### Claude Code
 
 ```sh
 # headless
-claude mcp add figcraft -- /path/to/figcraft-cli mcp
-# drive the running app (start it with: figcraft --control 7979)
-claude mcp add figcraft-app -- /path/to/figcraft-cli mcp --attach 7979
+claude mcp add figiran -- /path/to/figiran-cli mcp
+# drive the running app (start it with: figiran --control 7979)
+claude mcp add figiran-app -- /path/to/figiran-cli mcp --attach 7979
 ```
 
 Or in a project's `.mcp.json`:
@@ -148,7 +148,7 @@ Or in a project's `.mcp.json`:
 ```json
 {
   "mcpServers": {
-    "figcraft": { "command": "/path/to/figcraft-cli", "args": ["mcp"] }
+    "figiran": { "command": "/path/to/figiran-cli", "args": ["mcp"] }
   }
 }
 ```
@@ -160,8 +160,8 @@ Or in a project's `.mcp.json`:
 ```json
 {
   "mcpServers": {
-    "figcraft": { "command": "/path/to/figcraft-cli", "args": ["mcp"] },
-    "figcraft-app": { "command": "/path/to/figcraft-cli", "args": ["mcp", "--attach", "7979"] }
+    "figiran": { "command": "/path/to/figiran-cli", "args": ["mcp"] },
+    "figiran-app": { "command": "/path/to/figiran-cli", "args": ["mcp", "--attach", "7979"] }
   }
 }
 ```
@@ -233,7 +233,7 @@ Or in a project's `.mcp.json`:
   else on the selection. New layers become the selection.
 - Colours are `"#RRGGBB"` or `"#RRGGBBAA"`. Inside fills and strokes, `color` may also be a hex
   string and gradients can be written `{"type": "linearGradient", "stops": ["#7048E8", "#1098AD"]}`;
-  the engine reads them as its paint JSON, so `run_command`, `figcraft-cli run` and the control
+  the engine reads them as its paint JSON, so `run_command`, `figiran-cli run` and the control
   channel take them too. Effects passed through the MCP tools may use hex `color` strings as well.
 - **Blend modes**: `blend` on a layer (`node.set`) or a paint (`fill.set` / `stroke.set`) is a
   menu label or CSS keyword (`"Normal"`, `"pass through"`, `"multiply"`, `"plusDarker"`, ...;
@@ -382,7 +382,7 @@ a later step can use `{"$step": 0, "field": "ids/0"}` to target the first match.
 | `select {ids}` | Replace the selection (`[]` deselects). |
 | `export {ids, format, scale \| size, path?, bleed?, cropMarks?, bleedMarks?, cmyk?, contentsOnly?, includeBoundingBox?, svgOutlineText?, svgIdAttribute?, svgSimplifyStroke?, vdCompat?, colorProfile?, quality?}` | png, jpg, svg, webp, pdf, xml (an Android Vector Drawable: `svgIdAttribute` writes `android:name`, `vdCompat` is `bestEffort` (default: approximated with a warning), `exact` (left out with a warning) or `ignore` (no warnings: overlapping layer opacity dropped, even-odd fills kept as `fillType="evenOdd"`, diamond gradients left out), and the result lists `warnings` for what was changed or left out), or `fig`: the whole file as `.fig`, experimental (see Exporting `.fig` files below); `size` is `2x`, `512w` or `512h`; `quality` is the JPG quality, 1 to 100 (default 90). The image covers what the layers paint (shadows towards their offset, strokes, unclipped children, a mask group's mask; hidden layers take no room; a slice is its area with everything under it, or only the frame or group it sits in while `contentsOnly` is on); `contentsOnly: false` also draws every other layer showing in that area, `includeBoundingBox` exports the layers' own boxes; SVG: `svgOutlineText: false` keeps `<text>`, `svgIdAttribute` writes unique ids from layer names, `svgSimplifyStroke: false` writes every stroke as an outline; png, jpg and webp: `colorProfile` is `sameAsFile` (default: the document's profile), `srgb` or `displayP3`, the pixels converted (out-of-gamut colors clip) and the file tagged for it (SVG, PDF and XML are always sRGB). The same options go in export settings (`export.add` / `export.update`). PDF: frames one page each (sized in points), anything else together on one page; print options: `bleed` (points or a length like `"3mm"`, `"0.125in"`), crop and bleed marks, CMYK colour (see Exports below), also taken by `file.export`, `file.exportLayers`, `file.exportFramesPdf` and stored per export setting by `export.add` / `export.update`; `run_command` `file.exportFramesPdf {page?, path?}` writes every top-level frame of a page. Without `path`, images come back as MCP image content, SVG as text, XML as text followed by `{format, bytes, warnings}`. Layers' own export settings: `run_command` with `export.add` / `export.update {index, size?, suffix?, format?}` / `export.remove` and `file.exportLayers {ids?, dir?, assets?}` (every layer once per setting, named `<layer><suffix>.<format>`, a slash in a layer name making a folder; `assets: true` exports the Inspect tab's assets instead: icons as SVG, images as PNG). |
 | `screenshot {ids?, scale?, maxSize?, window?}` | PNG of the page (with background) or of layers, scaled to fit `maxSize` (default 1600). `window: true` captures the app window in front when attached, a window id (see Windows below) that window. |
-| `open_file {path, variables?, reload?}` / `save_file {path?}` | Open `.figcraft`, `.json` (FigCraft JSON or REST API file JSON with its variables, see below), `.fig` or FigJam `.jam` (best effort, see below), `.sketch` (Sketch 48 and newer, best effort), `.svg` (see Importing SVG below) or an image; save as `.figcraft`. `open_file` returns `opened` (for a file opened anew, a `summary` of `name`, `pages`, `layers` and `images`, and `warnings` or `repairs`; a file that was already open gives its `index`, with `stale: true` when the file changed on disk since that tab read or saved it; `reload: true` reads it again into the tab, refused while the tab has unsaved changes) and the document's `document` outline. |
+| `open_file {path, variables?, reload?}` / `save_file {path?}` | Open `.figiran`, `.json` (FigIran JSON or REST API file JSON with its variables, see below), `.fig` or FigJam `.jam` (best effort, see below), `.sketch` (Sketch 48 and newer, best effort), `.svg` (see Importing SVG below) or an image; save as `.figiran`. `open_file` returns `opened` (for a file opened anew, a `summary` of `name`, `pages`, `layers` and `images`, and `warnings` or `repairs`; a file that was already open gives its `index`, with `stale: true` when the file changed on disk since that tab read or saved it; `reload: true` reads it again into the tab, refused while the tab has unsaved changes) and the document's `document` outline. |
 | `undo` / `redo` | Step through history. |
 | `pointer {kind, x, y, to?, steps?, tool?, shift, alt, cmd, pressure?, pressureTo?}` | Mouse gestures in page coordinates with the current tool: `click`, `double`, `drag`, `down`, `move`, `up`, `hover`. A dragged layer drops into the frame or auto layout slot under the pointer, except one inside a group, a boolean group or an instance (outside its slots), which only moves. `pressure` (0–1) is pen pressure; a drag goes from `pressure` to `pressureTo` (see Brushes and pen pressure). |
 | `key {key, shift, alt, cmd}` | A shortcut or key as if typed on the canvas (every default shortcut, tool keys, Escape, Delete, arrows, number keys for opacity, arrows that pan the view when nothing is selected; while editing text, the text shortcuts and then text editing keys). Keys are names like `A`, `0`, `Enter`, `ArrowLeft`, `=`, `/`, or egui's (`Plus`, `Questionmark`); `cmd` is Cmd on macOS and Ctrl elsewhere. |
@@ -618,7 +618,7 @@ frame around flows that way (a list of rows: Down moves an item into the row bel
 
 ### Keyboard shortcuts
 
-The default shortcuts live in one table (`figcraft_engine::keymap`), grouped like the public shortcut
+The default shortcuts live in one table (`figiran_engine::keymap`), grouped like the public shortcut
 reference (Essential, Tools, View, Zoom, Text, Shape, Selection, Edit, Transform, Arrange,
 Components, Prototype) with the macOS keys and, where they differ, the Windows/Linux keys (for
 example Use as mask is ⌃⌘M on macOS and Ctrl+Alt+M elsewhere; Bring to front ⌥⌘] and
@@ -912,8 +912,8 @@ flow with its description.
 
 ### Local libraries
 
-A `.figcraft` file can be published as a library and used from other files (library files here;
-libraries kept on a `figcraft-server` for a team: [Team libraries](#team-libraries); the browser
+A `.figiran` file can be published as a library and used from other files (library files here;
+libraries kept on a `figiran-server` for a team: [Team libraries](#team-libraries); the browser
 build has no file system, so there the commands that read library files return an error).
 
 - **Publish** (in the library file): `library.publish {description?, include?, exclude?}` publishes
@@ -976,7 +976,7 @@ name and sets them this way);
 
 ### Team libraries
 
-A file kept on a `figcraft-server` ([`server.md`](server.md#team-libraries)) can hold a library that
+A file kept on a `figiran-server` ([`server.md`](server.md#team-libraries)) can hold a library that
 other files use through one of its share links. Each call waits for the server (a few seconds at
 most when it can't be reached).
 
@@ -1098,7 +1098,7 @@ updates the group's result on every pointer move, one undo step per gesture; a d
 stays in its group. Clicks and `select.layersAt` hit a boolean group where its result is (a click in
 a subtracted hole reaches what's behind it); while the group or one of its operands is selected, its
 operands are hit instead, so each can be picked. `bool.flatten` bakes the result. Only the operands from the edited one up are
-recombined during a drag (`figcraft_render::boolean`; timed by `cargo xtask bench`).
+recombined during a drag (`figiran_render::boolean`; timed by `cargo xtask bench`).
 
 ### Shape builder
 
@@ -1195,7 +1195,7 @@ import uses: the layer tree, geometry, paints with image bytes, strokes, effects
 runs, vector networks, auto layout, constraints, components, sets, instances with their overrides
 and property values, variable collections with their modes, variables and bindings, shared styles
 with their layer links, and prototype interactions. `warnings` lists what was left out (comments,
-Developer Mode data, some bindings and settings and the like). Round trips through FigCraft's own
+Developer Mode data, some bindings and settings and the like). Round trips through FigIran's own
 importer are tested, and the example documents and small test files were opened in other software
 (`docs/file-format-parity.md` says what was checked); other apps may not open every file. Without
 `path` the file comes back as base64 `data`. Check one by opening it again:
@@ -1236,7 +1236,7 @@ per-side stroke weights, visibility, text, font properties, single solid fills a
 link to them, so switching a mode with `variable.setMode` restyles the layers (`mode: null` sets a
 frame back to Auto, inheriting its parent's mode).
 
-The same JSON carries variables between FigCraft files: `variable.export {collections?, format?,
+The same JSON carries variables between FigIran files: `variable.export {collections?, format?,
 path?}` writes this file's collections (default: all but library copies) as a local variables
 response (`format: "json"`, the default; colour calculations as the colour they show in each mode,
 other collections in their default modes) or as CSS custom properties (`format: "css"`: the default
@@ -1309,14 +1309,14 @@ those `mentions` report it, combined with the other filters: `{"mentions": "Clau
 "unread"}` is the unread threads that tag Claude. `@Ada Lovelace` mentions "Ada Lovelace", not
 "Ada", when the file knows Ada Lovelace; a name nobody in the file has can still be several words
 (`"Zoe Smith"` finds `@Zoe Smith`). Links are
-`figcraft://comment/<id>`: `comment.link {id}` returns one, `comment.open {id | link, view?}` goes
+`figiran://comment/<id>`: `comment.link {id}` returns one, `comment.open {id | link, view?}` goes
 to its page, zooms to its frame (`fit`, the default; `center` keeps the zoom; `keep` doesn't move)
 and opens it in the app, and `comment.next {id?, dir?, …list params}` (`mentions` too) steps to the
 next or previous thread of a list the same way. Both return the thread as `comment.list` lists it,
 with each message's `mentions`. `comment.zoom {ids}` zooms in on a group of pins. Comment ids made in
 a live session are large numbers (their creator's id space): pass them back as given.
 
-An agent can read every open thread as one resource (`figcraft://comments`) or call
+An agent can read every open thread as one resource (`figiran://comments`) or call
 `comment.list`; `comment.prompt {ids?, page? (default "all"), filter? (default open), sort?,
 query?, includeResolved?}` returns `{count, truncated, text, comments}`, where `text` is a Markdown
 task brief with the document, each thread's page, frame, anchor, point, messages, replies and link,
@@ -1340,7 +1340,7 @@ window. Headless returns immediately; the control method behind it is `events.po
 
 ### Version history
 
-Named snapshots of the document, kept in the `.figcraft` file (they persist once the file is saved;
+Named snapshots of the document, kept in the `.figiran` file (they persist once the file is saved;
 a new, renamed or deleted version marks the file as changed). Driven with `run_command`:
 `file.saveVersion {name?, description?}` (returns `{id, index, name, description, time}`; untitled
 versions are named "Version N"), `version.list` (oldest first; `time` is Unix seconds),
@@ -1365,7 +1365,7 @@ Versions stay with the person who saved them: in a live session they aren't shar
 ### Branches
 
 A branch is a copy of the file to try changes in, reviewed against the main file and merged back.
-Branches are kept in the main `.figcraft` file (saving either tab saves the main file with its
+Branches are kept in the main `.figiran` file (saving either tab saves the main file with its
 branches). Driven with `run_command`:
 
 - `branch.create {name?}` copies the file into a new branch tab and returns `{id, name, index}`.
@@ -1468,7 +1468,7 @@ only: a host stops hosting it, a guest leaves it.
 - `collab.share {via?, access?, server?, name?, port?, bind?}` shares the active document with a
   **join code**, the short way to do what `collab.publish` and `collab.host` do. `via: "online"`
   (the default) publishes it to the server in Preferences (`pref.publishServer {url?}`: the
-  FigCraft server unless changed; `{url: ""}` turns online sharing off, `{}` goes back to the
+  FigIran server unless changed; `{url: ""}` turns online sharing off, `{}` goes back to the
   built-in one; `server` names another for this call, with `?key=…` when it needs its key) and
   returns `status: "connecting"`; once `collab.peers` says `"live"`, `code` is the code to give
   others (`K7M-2QX-9TD`) and `share` is `{via, access, shared, editCode, viewCode, commentCode, editLink,
@@ -1494,12 +1494,12 @@ only: a host stops hosting it, a guest leaves it.
   machine, the default), `"lan"` (the local network) or an interface address; the port is 47900,
   or any free one when it's taken, as it is for a second hosted document (`port` picks one, 0
   any). Returns the session as
-  `collab.peers` does, with `link` (`figcraft://join?host=…&file=…&token=…`) and `url`
+  `collab.peers` does, with `link` (`figiran://join?host=…&file=…&token=…`) and `url`
   (`ws://…/?file=…&token=…`): both carry the session's secret, so share them only with people you
   invite. `collab.stop {}` ends the active document's session.
 - `collab.join {code}` or `collab.join {link}` (a join code of either kind: spaces, dashes and
   case don't matter, `O` reads as `0` and `I` or `L` as `1`; or a link in any form: an app's
-  invite, a `figcraft-server` share link, or the `ws(s)://…?file=…&token=…` URL; either parameter
+  invite, a `figiran-server` share link, or the `ws(s)://…?file=…&token=…` URL; either parameter
   takes either) returns at once with the new session (`session`, `status:
   "connecting"`) and touches no other document's session. Its file opens as a new document, which
   becomes the active one: poll
@@ -1509,16 +1509,16 @@ only: a host stops hosting it, a guest leaves it.
   code has expired or its sharing was stopped", "Couldn't reach the server (…)", too many wrong
   codes from your address, a wrong token, a full
   session, a revoked link, an unreachable host, a `wss://` server whose certificate isn't trusted:
-  see `FIGCRAFT_CA_FILE` in [`server.md`](server.md#behind-a-reverse-proxy-tls)). `collab.leave {}`
+  see `FIGIRAN_CA_FILE` in [`server.md`](server.md#behind-a-reverse-proxy-tls)). `collab.leave {}`
   leaves the active document's session (or ends a join started from it that is still on its way
   or failed), and `collab.leave {session}` the session with that id (from `sessions`), whichever
   document is active; the synced document stays open as your copy. `collab.reconnect {}` acts on
   the active document's lost session: a reconnect that is waiting tries now, and a session you
   joined that couldn't go on is joined again in its tab. A dropped connection keeps reconnecting
   until you leave (see *Reconnect* in [`collab-protocol.md`](collab-protocol.md)).
-- `collab.publish {server, name?, key?}` puts the active document on a `figcraft-server`
+- `collab.publish {server, name?, key?}` puts the active document on a `figiran-server`
   ([`server.md`](server.md)) and syncs it from there (as that document's session; others go on): `server` is the address
-  `figcraft-server key` prints (`ws://host:47900/?key=…`; or give `key` separately), `name` the
+  `figiran-server key` prints (`ws://host:47900/?key=…`; or give `key` separately), `name` the
   file's name (default: the document's). It returns at once with `status: "connecting"`; the
   document is read-only until the upload is done, then `collab.peers` has `published: {server,
   file, name, edit, view}` with the file's first edit link and view link (they carry their
@@ -1527,7 +1527,7 @@ only: a host stops hosting it, a guest leaves it.
   With a comment link (`access: "comment"`) the comment commands work and sync, and every other edit
   is refused with "Can comment: …".
   On a server open to the public ([`server.md`](server.md#running-a-public-server)) `server` needs no
-  key (`wss://figcraft.example.com/`): `published` then also has `owner` (the owner token, shown this
+  key (`wss://figiran.example.com/`): `published` then also has `owner` (the owner token, shown this
   once: keep it) and `expires` (when the server deletes the file unless someone opens it, seconds
   since 1970), and `hosting` says who runs the server. A server that isn't open answers that it
   takes files only with its key (`reason` in `collab.peers`).
@@ -1639,16 +1639,16 @@ only: a host stops hosting it, a guest leaves it.
   session's message. While the connection is reconnecting, editing goes on; the edits go out when
   it is back (the same client, catching up with what it missed).
 - `collab.registerLinks {on?}` → `{on, registered}` makes the desktop app the opener of
-  `figcraft://` invite links, or stops (no `on`: switch). Only where the app registers them itself
+  `figiran://` invite links, or stops (no `on`: switch). Only where the app registers them itself
   (Windows, per user); elsewhere it reports the command unavailable. It also sets the
-  Preferences checkbox. Starting the app with an invite link (`figcraft "figcraft://join?…"`)
+  Preferences checkbox. Starting the app with an invite link (`figiran "figiran://join?…"`)
   joins that session.
 
 ### Plugins
 
 Sandboxed WebAssembly plugins act through the same commands (see [`plugins.md`](plugins.md) for the
 manifest, the ABI and the Rust SDK). Driven with `run_command`: `plugin.import {path}` (a
-`figcraft-plugin.json` or its folder) or `plugin.import {manifest, wasm}` (the manifest as an
+`figiran-plugin.json` or its folder) or `plugin.import {manifest, wasm}` (the manifest as an
 object or JSON text and the module as base64, for this session only), `plugin.list`,
 `plugin.remove {id}`, and `plugin.run {id, command?, params?, fuel?}`, which returns
 `{plugin, command, output, logs, calls, fuel, panel}`. A run is one undo step and is rolled back when it
@@ -1665,9 +1665,9 @@ returns like `plugin.run`, with the updated `panel`), and `plugin.close {id}` en
 Plugin settings are kept per plugin with the preferences (in a headless session, for the session).
 
 ```json
-{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"run_command","arguments":{"command":"plugin.run","params":{"id":"org.figcraft.examples.swatch-grid","command":"panel"}}}}
-{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"run_command","arguments":{"command":"plugin.event","params":{"id":"org.figcraft.examples.swatch-grid","control":"palette","value":"Forest"}}}}
-{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"run_command","arguments":{"command":"plugin.event","params":{"id":"org.figcraft.examples.swatch-grid","control":"generate"}}}}
+{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"run_command","arguments":{"command":"plugin.run","params":{"id":"org.figiran.examples.swatch-grid","command":"panel"}}}}
+{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"run_command","arguments":{"command":"plugin.event","params":{"id":"org.figiran.examples.swatch-grid","control":"palette","value":"Forest"}}}}
+{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"run_command","arguments":{"command":"plugin.event","params":{"id":"org.figiran.examples.swatch-grid","control":"generate"}}}}
 ```
 
 Widgets (API 3 and 4, layers on the canvas a plugin draws) are driven the same way: `widget.insert
@@ -1685,14 +1685,14 @@ callback can open its plugin's panel: `plugin.ui` shows it (`command` is `widget
 layer data, so it is saved, undone and synced with the file.
 
 ```json
-{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"run_command","arguments":{"command":"widget.insert","params":{"plugin":"org.figcraft.examples.counter"}}}}
+{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"run_command","arguments":{"command":"widget.insert","params":{"plugin":"org.figiran.examples.counter"}}}}
 {"jsonrpc":"2.0","id":5,"method":"tools/call","params":{"name":"run_command","arguments":{"command":"widget.click","params":{"id":12,"target":"increment"}}}}
 {"jsonrpc":"2.0","id":6,"method":"tools/call","params":{"name":"run_command","arguments":{"command":"widget.list","params":{}}}}
 {"jsonrpc":"2.0","id":7,"method":"tools/call","params":{"name":"run_command","arguments":{"command":"widget.setText","params":{"id":12,"field":"label","value":"Votes"}}}}
 {"jsonrpc":"2.0","id":8,"method":"tools/call","params":{"name":"run_command","arguments":{"command":"widget.menu","params":{"id":12,"item":"big"}}}}
 ```
 
-Plugins from a `figcraft-server`'s plugin directory ([`plugins.md`](plugins.md#plugin-directories)):
+Plugins from a `figiran-server`'s plugin directory ([`plugins.md`](plugins.md#plugin-directories)):
 `plugin.directory.list {server?, query?}` lists the latest version of each plugin with the
 permissions it asks for (`access`, `commands`), its size and SHA-256, and `installed` / `update`;
 `plugin.directory.install {id, version?, confirm: true, sha256?}` downloads it, checks the SHA-256 and
@@ -1703,7 +1703,7 @@ permissions: without it nothing is downloaded); `plugin.directory.publish {path 
 
 ```json
 {"jsonrpc":"2.0","id":7,"method":"tools/call","params":{"name":"run_command","arguments":{"command":"plugin.directory.list","params":{"server":"ws://127.0.0.1:47900/"}}}}
-{"jsonrpc":"2.0","id":8,"method":"tools/call","params":{"name":"run_command","arguments":{"command":"plugin.directory.install","params":{"id":"org.figcraft.examples.swatch-grid","confirm":true}}}}
+{"jsonrpc":"2.0","id":8,"method":"tools/call","params":{"name":"run_command","arguments":{"command":"plugin.directory.install","params":{"id":"org.figiran.examples.swatch-grid","confirm":true}}}}
 ```
 
 ### Developer Mode
@@ -1775,7 +1775,7 @@ permissions: without it nothing is downloaded); `plugin.directory.publish {path 
   now"}</Button>`. `codeConnect.remove {id?, language?}` (no language: all). `codeConnect.export
   {path?}` → `{text, links}` (or writes the file): `{version: 1, links: [{component, language,
   importPath, name, template}]}`, sorted, meant to live in the code repository as
-  `figcraft.connect.json`; `codeConnect.import {json | path}` → `{linked, warnings}` links each
+  `figiran.connect.json`; `codeConnect.import {json | path}` → `{linked, warnings}` links each
   entry to every component or set with that name (one undo step; at most 5,000 links and 4 MB;
   templates up to 4,000 characters, names 100, import paths 300; invalid entries are skipped with a
   warning). `get_node` lists a component's links as `codeLinks`. In the app, the Inspect tab's
@@ -1850,7 +1850,7 @@ permissions: without it nothing is downloaded); `plugin.directory.publish {path 
   the toolbar goes back to the design, and the layers panel only selects and expands. Commands sent over MCP or the control channel aren't affected.
 - **Compare changes:** when a layer marked Ready for dev first changes (it turns "Changed"), the
   file keeps a copy of it and everything in it as it was just before that edit (saved in the
-  `.figcraft` file only while there is a change; resolving the change, marking it again, another
+  `.figiran` file only while there is a change; resolving the change, marking it again, another
   status or deleting it drops the copy, so the next change compares with that state).
   `dev.compare {id?, version?, show?}` → `{id, name, changed, snapshot, added, removed, modified,
   truncated, version: {id, name, time} | null, changes: [{id, name, type, change: added|removed|changed, depth, layers, properties?: [{section,
@@ -1917,7 +1917,7 @@ through the outlines of its layers.
   gradient stops, images and rasterised effects) from sRGB with `K = 1 − max(R, G, B)`,
   `C = (1 − R − K) / (1 − K)` (M and Y alike), deterministic and profile-free: the file is
   DeviceCMYK without an output intent, because embedding one needs a CMYK ICC profile and none
-  ships with FigCraft. Soft masks stay RGB (they aren't printed) and transparency groups blend in
+  ships with FigIran. Soft masks stay RGB (they aren't printed) and transparency groups blend in
   RGB, as the PDF writer declares them.
 
 ### Brushes and pen pressure
@@ -2098,11 +2098,11 @@ A name a tool or command doesn't take (`run_command {args}` for `params`, a step
 
 | URI | Content |
 |---|---|
-| `figcraft://document` | The active document (like `inspect_document` at depth 8). |
-| `figcraft://commands` | The command catalog. |
-| `figcraft://comments` | Every open comment thread on every page, as JSON. |
-| `figcraft://node/{id}` (template) | One layer with children to depth 2. |
-| `figcraft://command/{id}` (template) | One command's docs, e.g. `figcraft://command/layout.add`. |
+| `figiran://document` | The active document (like `inspect_document` at depth 8). |
+| `figiran://commands` | The command catalog. |
+| `figiran://comments` | Every open comment thread on every page, as JSON. |
+| `figiran://node/{id}` (template) | One layer with children to depth 2. |
+| `figiran://command/{id}` (template) | One command's docs, e.g. `figiran://command/layout.add`. |
 
 ## Prompts
 

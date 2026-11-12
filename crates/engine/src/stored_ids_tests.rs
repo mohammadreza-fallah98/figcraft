@@ -3,8 +3,8 @@
 //! before one named like it, and the Tailwind export and expressions read the stored id. Names still
 //! work where a person types them.
 
-use figcraft_doc::VariableValue;
-use figcraft_doc::proto::Expr;
+use figiran_doc::VariableValue;
+use figiran_doc::proto::Expr;
 use serde_json::{Value, json};
 
 use crate::Session;

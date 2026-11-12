@@ -345,7 +345,7 @@ pub(super) fn input(p: &mut Presenter, ctx: &egui::Context, l: &Layout, mode: In
             }
             // A widget's clickable part calls its plugin back (after the frame, with the session).
             if let Some(q) = pos
-                && let Some(t) = layer_at(doc, root, &place, q).and_then(|hit| figcraft_engine::widgets::target_at(doc, hit, place.page(q)))
+                && let Some(t) = layer_at(doc, root, &place, q).and_then(|hit| figiran_engine::widgets::target_at(doc, hit, place.page(q)))
             {
                 p.widget_clicks.push(t);
                 return;

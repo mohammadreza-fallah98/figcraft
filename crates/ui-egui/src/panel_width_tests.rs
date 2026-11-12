@@ -7,7 +7,7 @@
 use std::sync::{Arc, Mutex};
 
 use egui::{Event, Pos2, RawInput, Rect, pos2, vec2};
-use figcraft_engine::{Prefs, Session};
+use figiran_engine::{Prefs, Session};
 use serde_json::json;
 
 use crate::layers_drag_tests::Ui;
@@ -348,12 +348,12 @@ fn a_narrow_window_shows_one_side_panel_at_a_time() {
 }
 
 /// Five frames side by side at 46% zoom with the interface minimized and nothing selected.
-fn minimized_row() -> (Ui, Vec<figcraft_doc::NodeId>) {
+fn minimized_row() -> (Ui, Vec<figiran_doc::NodeId>) {
     let mut s = Session::new();
     let mut ids = Vec::new();
     for k in 0..5 {
         let r = s.execute("frame.create", &json!({"x": k * 470, "y": 0, "width": 400, "height": 600})).unwrap();
-        ids.push(figcraft_engine::params::id_of(&r["id"]).unwrap());
+        ids.push(figiran_engine::params::id_of(&r["id"]).unwrap());
     }
     s.execute("select.set", &json!({"ids": []})).unwrap();
     let mut u = Ui::new(s);
@@ -365,7 +365,7 @@ fn minimized_row() -> (Ui, Vec<figcraft_doc::NodeId>) {
     (u, ids)
 }
 
-fn frame_x(u: &Ui, id: figcraft_doc::NodeId) -> f64 {
+fn frame_x(u: &Ui, id: figiran_doc::NodeId) -> f64 {
     u.app.session.doc().unwrap().world_bounds(id).unwrap().x0
 }
 

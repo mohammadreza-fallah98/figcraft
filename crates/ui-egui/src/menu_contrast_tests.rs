@@ -5,8 +5,8 @@
 use egui::accesskit::Node;
 use egui::epaint::ColorMode;
 use egui::{Color32, Event, Order, PointerButton, Pos2, RawInput, Rect, Shape, pos2, vec2};
-use figcraft_doc::BoardShape;
-use figcraft_engine::Session;
+use figiran_doc::BoardShape;
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::present_tests::Ui;
@@ -22,8 +22,8 @@ fn press(p: Pos2, pressed: bool) -> Vec<Event> {
     vec![Event::PointerMoved(p), Event::PointerButton { pos: p, button: PointerButton::Primary, pressed, modifiers: Default::default() }]
 }
 
-fn color(x: Color32) -> figcraft_color::Color {
-    figcraft_color::Color::new(f32::from(x.r()) / 255.0, f32::from(x.g()) / 255.0, f32::from(x.b()) / 255.0, 1.0)
+fn color(x: Color32) -> figiran_color::Color {
+    figiran_color::Color::new(f32::from(x.r()) / 255.0, f32::from(x.g()) / 255.0, f32::from(x.b()) / 255.0, 1.0)
 }
 
 /// The text painted on the foreground (menu) layers: (text, colour).

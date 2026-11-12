@@ -5,7 +5,7 @@
 use std::collections::HashMap;
 
 use egui::{Align2, CornerRadius, Pos2, Rect, Sense, Stroke, StrokeKind, Ui, pos2, vec2};
-use figcraft_engine::board_templates::TEMPLATES;
+use figiran_engine::board_templates::TEMPLATES;
 use serde_json::json;
 
 use crate::FigApp;
@@ -49,14 +49,14 @@ fn area_id() -> egui::Id {
 
 /// A template's picture: the template built on a board of its own and drawn small.
 fn picture(ctx: &egui::Context, id: &str) -> Option<egui::TextureHandle> {
-    let doc = figcraft_engine::board_templates::preview(id).ok()?;
+    let doc = figiran_engine::board_templates::preview(id).ok()?;
     let layers = doc.node(doc.first_page()?)?.children.clone();
-    let b = layers.iter().filter_map(|l| figcraft_render::export_bounds(&doc, *l)).reduce(|a, b| a.union(b))?;
+    let b = layers.iter().filter_map(|l| figiran_render::export_bounds(&doc, *l)).reduce(|a, b| a.union(b))?;
     if !(b.width() > 0.0 && b.height() > 0.0) {
         return None;
     }
     let fit = (f64::from(CARD.x - 16.0) / b.width()).min(f64::from(PICTURE_H - 12.0) / b.height());
-    let pix = figcraft_render::render_area(&doc, &layers, b, (fit * f64::from(ctx.pixels_per_point())).min(1.0))?;
+    let pix = figiran_render::render_area(&doc, &layers, b, (fit * f64::from(ctx.pixels_per_point())).min(1.0))?;
     let image = crate::render_worker::screen_image(&pix, doc.color_profile);
     Some(ctx.load_texture(format!("board-template-{id}"), image, egui::TextureOptions::LINEAR))
 }
@@ -99,7 +99,7 @@ fn picker(app: &mut FigApp, ui: &mut Ui, anchor: Rect, bottom: f32, t: &Tokens) 
                 p.rect_filled(r, CornerRadius::same(8), t.menu_hover);
             }
             let pic = Rect::from_min_size(r.min + vec2(4.0, 4.0), vec2(CARD.x - 8.0, PICTURE_H));
-            p.rect_filled(pic, CornerRadius::same(6), crate::theme::c32(figcraft_doc::BOARD_PAGE));
+            p.rect_filled(pic, CornerRadius::same(6), crate::theme::c32(figiran_doc::BOARD_PAGE));
             p.rect_stroke(pic, CornerRadius::same(6), Stroke::new(1.0, t.border), StrokeKind::Inside);
             match tpl.and_then(|tpl| pictures.0.get(tpl.id)).and_then(Option::as_ref) {
                 Some(tex) => {

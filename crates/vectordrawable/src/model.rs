@@ -1,7 +1,7 @@
 //! What the walk produces before it's written: paths and groups in viewport coordinates.
 
-use figcraft_color::Color;
-use figcraft_geom::{BezPath, Rect};
+use figiran_color::Color;
+use figiran_geom::{BezPath, Rect};
 
 /// A gradient in the coordinates of the path it fills.
 #[derive(Clone, Debug, PartialEq)]

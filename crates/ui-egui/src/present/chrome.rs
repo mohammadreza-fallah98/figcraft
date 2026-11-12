@@ -248,7 +248,7 @@ fn poll_pads(app: &mut FigApp, p: &mut Presenter, ctx: &egui::Context) {
     let down = held & !p.pads_held;
     p.pads_held = held;
     // Each press once, in layout order.
-    let pressed = (0..u32::BITS as usize).filter(|i| down & (1 << i) != 0).filter_map(figcraft_doc::proto::gamepad_button);
+    let pressed = (0..u32::BITS as usize).filter(|i| down & (1 << i) != 0).filter_map(figiran_doc::proto::gamepad_button);
     p.pads.extend(pressed.map(str::to_string));
     crate::repaint_in(ctx, PAD_POLL_SECS);
 }
@@ -288,7 +288,7 @@ fn open_link(app: &mut FigApp, url: &str, new_tab: bool) {
 }
 
 /// Whether `url` is an `http` or `https` link (of the openable URLs, the others are `mailto:`;
-/// [`figcraft_engine::doc_urls`]).
+/// [`figiran_engine::doc_urls`]).
 fn goes_to_a_website(url: &str) -> bool {
     url.trim().split_once(':').is_some_and(|(scheme, _)| scheme.eq_ignore_ascii_case("http") || scheme.eq_ignore_ascii_case("https"))
 }
@@ -347,7 +347,7 @@ fn inspect_panel(app: &mut FigApp, ui: &mut Ui, pres: &Presenter) {
             return;
         };
         widgets::section_header(ui, &name, &[], false);
-        for section in figcraft_engine::devinspect::properties(doc, id) {
+        for section in figiran_engine::devinspect::properties(doc, id) {
             crate::right::inspect_section(app, ui, &section);
         }
     });
@@ -381,12 +381,12 @@ pub struct Pane {
 }
 
 /// The top-level frame of the editor's first selected layer.
-fn selected_frame(ds: &figcraft_engine::DocState) -> Option<NodeId> {
+fn selected_frame(ds: &figiran_engine::DocState) -> Option<NodeId> {
     ds.selection.first().and_then(|i| ds.doc.top_level_frame(*i))
 }
 
 impl Pane {
-    pub fn new(start: NodeId, session: &figcraft_engine::Session) -> Self {
+    pub fn new(start: NodeId, session: &figiran_engine::Session) -> Self {
         let (doc_uid, selected) = session.ds().map(|ds| (ds.uid, selected_frame(ds))).unwrap_or((0, None));
         Pane { player: Presenter::new(start), doc_uid, selected }
     }

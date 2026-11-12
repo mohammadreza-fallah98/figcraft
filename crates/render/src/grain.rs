@@ -5,8 +5,8 @@
 //! hashed from its position and the layer: they stay put when the canvas pans or renders in pieces,
 //! scale with the layer when zooming, and every export draws the same grains.
 
-use figcraft_doc::{Noise, NoiseMode, Texture};
-use figcraft_geom::Affine;
+use figiran_doc::{Noise, NoiseMode, Texture};
+use figiran_geom::Affine;
 use tiny_skia::Pixmap;
 
 /// A well-mixed 64-bit hash of a grain cell.

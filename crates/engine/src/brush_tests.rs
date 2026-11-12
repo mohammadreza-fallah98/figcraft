@@ -6,8 +6,8 @@ use serde_json::{Value, json};
 use crate::Session;
 use crate::params::id_of;
 use crate::tools::{PointerEvent, PointerKind, pressure_profile};
-use figcraft_doc::{NodeId, NodeKind};
-use figcraft_geom::Point;
+use figiran_doc::{NodeId, NodeKind};
+use figiran_geom::Point;
 
 fn id(v: Value) -> NodeId {
     id_of(&v["id"]).unwrap()
@@ -23,9 +23,9 @@ fn line(s: &mut Session) -> NodeId {
 /// The alpha of the page's layers at page point (`x`, `y`), rendered at 1x without the page colour.
 fn alpha(s: &Session, x: f64, y: f64) -> u8 {
     let doc = s.doc().unwrap();
-    let view = figcraft_render::View { origin: (x - 1.0, y - 1.0), scale: 1.0, width: 3, height: 3 };
-    let mut pix = figcraft_render::Pixmap::new(3, 3).unwrap();
-    figcraft_render::render_nodes_into(doc, &doc.node(s.page().unwrap()).unwrap().children, &view, &mut pix);
+    let view = figiran_render::View { origin: (x - 1.0, y - 1.0), scale: 1.0, width: 3, height: 3 };
+    let mut pix = figiran_render::Pixmap::new(3, 3).unwrap();
+    figiran_render::render_nodes_into(doc, &doc.node(s.page().unwrap()).unwrap().children, &view, &mut pix);
     pix.data()[(3 + 1) * 4 + 3]
 }
 
@@ -60,8 +60,8 @@ fn brushes_draw_along_the_stroke_and_outline_to_vectors() {
     // Exports draw it too.
     s.execute("stroke.brush", &json!({"ids": [v], "preset": "stars"})).unwrap();
     let doc = s.doc().unwrap();
-    assert!(figcraft_svg::export_svg(doc, &[v], &figcraft_svg::SvgOptions::default()).unwrap().contains("<path"));
-    assert!(figcraft_pdf::export_nodes_pdf(doc, &[v]).is_ok());
+    assert!(figiran_svg::export_svg(doc, &[v], &figiran_svg::SvgOptions::default()).unwrap().contains("<path"));
+    assert!(figiran_pdf::export_nodes_pdf(doc, &[v]).is_ok());
 }
 
 #[test]
@@ -113,7 +113,7 @@ fn the_pencil_records_pressure_and_its_brush() {
 /// frame"), and the stroke in progress previews in that colour.
 #[test]
 fn the_pencil_draws_white_on_a_dark_background() {
-    use figcraft_color::Color;
+    use figiran_color::Color;
     let mut s = Session::new();
     s.execute("tool.set", &json!({"tool": "pencil"})).unwrap();
     // A stroke from (x, y); its colour, and the preview colour the overlay carried while drawing.

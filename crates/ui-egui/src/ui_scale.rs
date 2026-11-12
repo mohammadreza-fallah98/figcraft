@@ -49,7 +49,7 @@ pub fn percent(scale: f32) -> u32 {
 
 /// The sizes Preferences offers, relative to the system's scale (`pref.uiScale` takes up to 3);
 /// the interface size keys step through the same list.
-pub const SIZES: [f64; 8] = figcraft_engine::UI_SCALE_SIZES;
+pub const SIZES: [f64; 8] = figiran_engine::UI_SCALE_SIZES;
 
 #[cfg(test)]
 mod tests {

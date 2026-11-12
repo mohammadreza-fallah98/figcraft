@@ -3,8 +3,8 @@
 //! the board colours; the colour wheel only when the selection is all connectors.
 
 use egui::{Event, Modifiers, PointerButton, Pos2, Rect, pos2};
-use figcraft_doc::{NodeId, Routing, StrokeCap};
-use figcraft_engine::Session;
+use figiran_doc::{NodeId, Routing, StrokeCap};
+use figiran_engine::Session;
 use serde_json::{Value, json};
 
 use crate::layers_drag_tests::Ui;
@@ -76,7 +76,7 @@ fn the_connector_bar_sets_its_ends_dashes_and_weight() {
     let r = bar(&u).unwrap();
     click(&mut u, pos2(r.min.x + 232.0 + 14.0, r.center().y));
     let routing = |u: &Ui| match &u.app.session.doc().unwrap().node(c).unwrap().board {
-        Some(figcraft_doc::BoardItem::Connector(k)) => k.routing,
+        Some(figiran_doc::BoardItem::Connector(k)) => k.routing,
         _ => panic!("not a connector"),
     };
     assert_eq!(routing(&u), Routing::Straight);
@@ -115,7 +115,7 @@ fn path_dots(u: &mut Ui) -> usize {
 #[test]
 fn a_selected_connector_shows_path_handles_to_drag() {
     let (mut u, c, _) = connector();
-    let handles = |u: &Ui| figcraft_engine::board::selected_connector_handles(u.app.session.doc().unwrap(), &[c], 1.0);
+    let handles = |u: &Ui| figiran_engine::board::selected_connector_handles(u.app.session.doc().unwrap(), &[c], 1.0);
     let n = handles(&u).len();
     assert!(n >= 2, "{n}");
     assert_eq!(path_dots(&mut u), n);
@@ -123,7 +123,7 @@ fn a_selected_connector_shows_path_handles_to_drag() {
     let from = u.app.to_screen(at.x, at.y);
     u.drag_to(from, from + egui::vec2(40.0, 30.0));
     let doc = u.app.session.doc().unwrap();
-    let Some(figcraft_doc::BoardItem::Connector(k)) = &doc.node(c).unwrap().board else { panic!("no connector") };
+    let Some(figiran_doc::BoardItem::Connector(k)) = &doc.node(c).unwrap().board else { panic!("no connector") };
     assert!(k.path.is_some(), "the drag reshaped it");
     u.app.ui.right_tab = crate::RightTab::Inspect;
     assert_eq!(path_dots(&mut u), 0);

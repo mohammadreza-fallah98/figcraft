@@ -3,7 +3,7 @@
 //! and bad values refused.
 
 use base64::Engine as _;
-use figcraft_doc::*;
+use figiran_doc::*;
 use serde_json::{Value, json};
 
 use crate::Session;
@@ -54,7 +54,7 @@ fn a_one_off_export_returns_the_drawable_and_its_warnings() {
 #[test]
 fn a_path_ending_in_xml_picks_the_format() {
     let (mut s, f) = session();
-    let dir = std::env::temp_dir().join(format!("figcraft-vd-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("figiran-vd-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let path = dir.join("badge.xml");
     let r = s.execute("file.export", &json!({"ids": [f], "path": path.to_string_lossy()})).unwrap();
@@ -74,8 +74,8 @@ fn export_settings_keep_their_compatibility_mode() {
     assert_eq!((v["format"].as_str(), v["vdCompat"].as_str()), (Some("vectorDrawable"), Some("exact")));
     assert!(serde_json::to_value(ExportSetting::default()).unwrap().get("vdCompat").is_none());
     // Saved and loaded.
-    let bytes = figcraft_format::save_bytes(s.doc().unwrap(), None).unwrap();
-    let (back, _) = figcraft_format::load_bytes(&bytes).unwrap();
+    let bytes = figiran_format::save_bytes(s.doc().unwrap(), None).unwrap();
+    let (back, _) = figiran_format::load_bytes(&bytes).unwrap();
     assert_eq!(back.node(f).unwrap().exports[0], e);
     // Edited and undone.
     s.execute("export.update", &json!({"ids": [f], "index": 0, "vdCompat": "ignore"})).unwrap();

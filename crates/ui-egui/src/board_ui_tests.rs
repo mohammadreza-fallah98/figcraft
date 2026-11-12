@@ -5,9 +5,9 @@
 //! and the marks design files and boards get.
 
 use egui::{Event, Modifiers, PointerButton, Pos2, Rect, pos2};
-use figcraft_doc::{BoardItem, BoardShape, FileKind, NodeId, Routing, Stamp, board_color};
-use figcraft_engine::Session;
-use figcraft_engine::tools::ToolId;
+use figiran_doc::{BoardItem, BoardShape, FileKind, NodeId, Routing, Stamp, board_color};
+use figiran_engine::Session;
+use figiran_engine::tools::ToolId;
 use serde_json::{Value, json};
 
 use crate::layers_drag_tests::Ui;
@@ -70,7 +70,7 @@ fn bar(u: &Ui) -> Option<Rect> {
 #[test]
 fn the_board_toolbar_picks_tools_with_their_colours_shapes_and_stamps() {
     let mut u = board();
-    pick_option(&mut u, 2, 5, figcraft_doc::BOARD_COLORS.len());
+    pick_option(&mut u, 2, 5, figiran_doc::BOARD_COLORS.len());
     assert_eq!(u.app.session.tool.tool, ToolId::Sticky);
     assert_eq!(Some(u.app.session.tool.board.sticky), board_color("blue"));
     pick_option(&mut u, 3, 3, BoardShape::ALL.len());
@@ -129,7 +129,7 @@ fn the_selection_bar_recolours_reshapes_and_restyles() {
     // Text size L: after the colours (208) and the shape menu (52), the third of the 30-wide cells.
     let r = bar(&u).unwrap();
     click(&mut u, pos2(r.min.x + 208.0 + 52.0 + 2.0 * 30.0 + 14.0, cy));
-    let text = figcraft_engine::board::text_of(u.app.session.doc().unwrap(), shape).unwrap();
+    let text = figiran_engine::board::text_of(u.app.session.doc().unwrap(), shape).unwrap();
     assert_eq!(u.app.session.doc().unwrap().node(text).unwrap().kind.text().unwrap().style.font_size, 24.0);
     // The shape menu is a grid of the outlines, named for hover and screen readers.
     u.ctx.enable_accesskit();
@@ -179,7 +179,7 @@ fn a_board_you_only_view_offers_no_bar() {
     let st = id(&h.app.session.execute("board.sticky", &json!({"x": 0, "y": 0})).unwrap());
     h.frames(2);
     assert!(bar_shown(&h.ctx), "the bar shows for the selected sticky");
-    crate::live_server_tests::joined(&mut h, figcraft_engine::live::Access::View);
+    crate::live_server_tests::joined(&mut h, figiran_engine::live::Access::View);
     h.app.session.execute("select.set", &json!({"ids": [st]})).unwrap();
     h.frames(2);
     assert!(h.app.session.active_read_only().is_some());
@@ -219,7 +219,7 @@ fn the_next_sticky_from_the_keyboard_goes_on_typing() {
     crate::menus::invoke(&mut u.app, "board.nextSticky");
     let doc = u.app.session.doc().unwrap();
     let te = u.app.session.ds().unwrap().text_edit.clone().expect("typing in the new sticky");
-    let owner = figcraft_engine::board::owner_of_text(doc, te.id).unwrap();
+    let owner = figiran_engine::board::owner_of_text(doc, te.id).unwrap();
     assert_eq!(doc.node(owner).unwrap().transform.translation().x, 224.0);
 }
 
@@ -231,11 +231,11 @@ fn the_next_shape_from_the_keyboard_comes_connected_and_goes_on_typing() {
     crate::menus::invoke(&mut u.app, "board.nextSticky");
     let doc = u.app.session.doc().unwrap();
     let te = u.app.session.ds().unwrap().text_edit.clone().expect("typing in the new shape");
-    let b = figcraft_engine::board::owner_of_text(doc, te.id).unwrap();
+    let b = figiran_engine::board::owner_of_text(doc, te.id).unwrap();
     assert!(matches!(doc.node(b).unwrap().board, Some(BoardItem::Shape { shape: BoardShape::Diamond })));
     let joined = doc.nodes().any(|n| {
-        matches!(&n.board, Some(BoardItem::Connector(k)) if k.from == figcraft_doc::End::Node { node: a, side: figcraft_doc::Side::Right, at: None }
-            && k.to == figcraft_doc::End::Node { node: b, side: figcraft_doc::Side::Left, at: None })
+        matches!(&n.board, Some(BoardItem::Connector(k)) if k.from == figiran_doc::End::Node { node: a, side: figiran_doc::Side::Right, at: None }
+            && k.to == figiran_doc::End::Node { node: b, side: figiran_doc::Side::Left, at: None })
     });
     assert!(joined, "a connector from the first shape's right side to the new one's left");
 }
@@ -247,15 +247,15 @@ fn a_board_page_has_a_dot_grid_under_its_layers_thinned_out_zoomed_out() {
     u.app.session.execute("view.zoom100", &json!({})).unwrap();
     u.frame(vec![]);
     let t = crate::theme::Tokens::get(&u.ctx);
-    let page = figcraft_doc::BOARD_PAGE;
+    let page = figiran_doc::BOARD_PAGE;
     let bg = egui::Color32::from_rgb((page.r * 255.0).round() as u8, (page.g * 255.0).round() as u8, (page.b * 255.0).round() as u8);
     let dots = crate::board_bar::dots(&u.app, bg, &t).expect("a board has dots");
     assert!(dots.color.a > 0.0 && dots.color.r < 0.5, "dark dots on the light page: {:?}", dots.color);
     // The canvas render draws them on the page, and the layers over them.
     let ds = u.app.session.ds().unwrap();
-    let view = figcraft_render::View { origin: (-60.0, -60.0), scale: 1.0, width: 400, height: 400 };
-    let opts = figcraft_render::Options { dots: Some(dots), ..Default::default() };
-    let pix = figcraft_render::render_view(&ds.doc, ds.page, &view, &opts).unwrap();
+    let view = figiran_render::View { origin: (-60.0, -60.0), scale: 1.0, width: 400, height: 400 };
+    let opts = figiran_render::Options { dots: Some(dots), ..Default::default() };
+    let pix = figiran_render::render_view(&ds.doc, ds.page, &view, &opts).unwrap();
     let at = |x: f64, y: f64| {
         let p = pix.pixel((x + 60.0) as u32, (y + 60.0) as u32).unwrap();
         [p.red(), p.green(), p.blue()]
@@ -352,7 +352,7 @@ fn preferences_set_the_board_grid_and_the_default_dots_keep_their_size() {
     assert!(has_text(&shapes, "Board grid") && has_text(&shapes, "Spacing"));
     assert!(!has_text(&shapes, "Strong line every") && !has_text(&shapes, "Reset grid"), "dots, as usual");
     click(&mut u, text_center(&shapes, "Graph paper"));
-    assert_eq!(u.app.session.prefs.board_grid.style, figcraft_engine::board_grid::GridStyle::Graph);
+    assert_eq!(u.app.session.prefs.board_grid.style, figiran_engine::board_grid::GridStyle::Graph);
     let shapes = flat(&u.frame_output(vec![]).shapes);
     assert!(has_text(&shapes, "Strong line every"), "graph paper's cells per strong line");
     click(&mut u, text_center(&shapes, "Reset grid"));
@@ -391,10 +391,10 @@ fn cmd_while_moving_a_connector_end_places_it_on_the_object() {
         u.frame_with(vec![], mods);
     };
     drag(&mut u, Modifiers::COMMAND);
-    assert_eq!(end(&u), figcraft_doc::End::Node { node: b, side: figcraft_doc::Side::Auto, at: Some([0.75, 0.25]) });
+    assert_eq!(end(&u), figiran_doc::End::Node { node: b, side: figiran_doc::Side::Auto, at: Some([0.75, 0.25]) });
     u.app.run("edit.undo", json!({}));
     u.app.run("select.set", json!({"ids": [k]}));
     u.frame(vec![]);
     drag(&mut u, Modifiers::NONE);
-    assert!(matches!(end(&u), figcraft_doc::End::Node { at: None, side: figcraft_doc::Side::Right, .. }), "{:?}", end(&u));
+    assert!(matches!(end(&u), figiran_doc::End::Node { at: None, side: figiran_doc::Side::Right, .. }), "{:?}", end(&u));
 }

@@ -20,7 +20,7 @@ const PREVIEW_ROWS: usize = 5;
 /// Open the Rename layers dialog for `ids` (several layers: Cmd/Ctrl+R, F2, the context menu).
 pub(crate) fn open_batch_rename(app: &mut FigApp, ids: &[NodeId]) {
     let Ok(doc) = app.session.doc() else { return };
-    let ids = figcraft_engine::cmd::edit::z_sorted(doc, ids);
+    let ids = figiran_engine::cmd::edit::z_sorted(doc, ids);
     app.ui.batch_rename = Some(BatchRenameUi { ids, start: 1, ..Default::default() });
 }
 
@@ -42,7 +42,7 @@ pub(super) fn batch_rename_dialog(app: &mut FigApp, ctx: &Context) {
     let Some(mut b) = app.ui.batch_rename.clone() else { return };
     let t = Tokens::get(ctx);
     let find = (!b.find.is_empty()).then_some(b.find.as_str());
-    let rename = figcraft_engine::rename::BatchRename::new(find, b.regex, &b.to, find.is_none().then_some(b.to.as_str()), Some(f64::from(b.start)));
+    let rename = figiran_engine::rename::BatchRename::new(find, b.regex, &b.to, find.is_none().then_some(b.to.as_str()), Some(f64::from(b.start)));
     let n = b.ids.len();
     let ready = rename.is_ok() && !(b.find.is_empty() && b.to.is_empty());
     let preview: Vec<(String, String)> = match (&rename, app.session.doc()) {

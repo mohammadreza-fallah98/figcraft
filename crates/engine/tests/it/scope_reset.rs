@@ -1,4 +1,4 @@
-use figcraft_engine::Session;
+use figiran_engine::Session;
 use serde_json::json;
 
 fn scopes(session: &Session, variable: &str) -> Option<Vec<String>> {

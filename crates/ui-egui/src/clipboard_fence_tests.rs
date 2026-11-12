@@ -1,13 +1,13 @@
 //! Programmatic gestures never replace the user's system clipboard: keys and clicks injected
-//! through the control channel (`ui.input`, `ui.menu.invoke`, …) may copy inside FigCraft but the
+//! through the control channel (`ui.input`, `ui.menu.invoke`, …) may copy inside FigIran but the
 //! OS clipboard is the user's. Every copy command goes through `FigApp::clipboard_set_text` /
 //! `FigApp::clipboard_set_png`, which drop the write while the frame's input is synthetic.
 
 use std::sync::{Arc, Mutex};
 
 use egui::{Event, Pos2, RawInput, Rect, vec2};
-use figcraft_doc::{NodeId, NodeKind};
-use figcraft_engine::Session;
+use figiran_doc::{NodeId, NodeKind};
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::control::ControlRequest;
@@ -137,7 +137,7 @@ fn a_copy_command_invoked_for_a_synthetic_click_still_keeps_the_clipboard() {
 fn a_synthetic_ui_menu_invoke_copy_link_keeps_the_clipboard_then_a_user_copy_writes_the_link() {
     let mut w = Win::new();
     let selected = *w.app.session.selection().first().expect("a selected layer");
-    let link = format!("figcraft://node/{}", selected.0);
+    let link = format!("figiran://node/{}", selected.0);
 
     let (tx, rx) = std::sync::mpsc::channel();
     w.app.control_queue.push(ControlRequest {
@@ -177,8 +177,8 @@ fn a_synthetic_cut_deletes_the_selection_but_leaves_the_users_clipboard_alone() 
     let mut s = Session::new();
     let id = NodeId(s.execute("text.create", &json!({"text": "abc", "x": 40, "y": 40})).unwrap()["id"].as_u64().unwrap());
     let mut w = Win::with_session(s);
-    figcraft_engine::textedit::begin(&mut w.app.session, id, Some(3), false).unwrap();
-    figcraft_engine::textedit::set_caret(&mut w.app.session, 0, true).unwrap();
+    figiran_engine::textedit::begin(&mut w.app.session, id, Some(3), false).unwrap();
+    figiran_engine::textedit::set_caret(&mut w.app.session, 0, true).unwrap();
 
     // A control-channel gesture is fenced from the OS clipboard, but its Cut still edits the
     // document: the selection is deleted exactly as a user's Cut would delete it.
@@ -197,8 +197,8 @@ fn a_synthetic_cut_deletes_the_selection_but_leaves_the_users_clipboard_alone() 
 #[test]
 fn a_programmatic_copy_does_not_let_a_stale_mirror_hide_the_users_paste() {
     let mut s = Session::new();
-    let hello = figcraft_doc::NodeId(s.execute("text.create", &json!({"text": "hello", "x": 10, "y": 10})).unwrap()["id"].as_u64().unwrap());
-    let other = figcraft_doc::NodeId(s.execute("text.create", &json!({"text": "other", "x": 10, "y": 80})).unwrap()["id"].as_u64().unwrap());
+    let hello = figiran_doc::NodeId(s.execute("text.create", &json!({"text": "hello", "x": 10, "y": 10})).unwrap()["id"].as_u64().unwrap());
+    let other = figiran_doc::NodeId(s.execute("text.create", &json!({"text": "other", "x": 10, "y": 80})).unwrap()["id"].as_u64().unwrap());
     s.execute("select.set", &json!({"ids": [hello]})).unwrap();
     let mut w = Win::with_session(s);
 

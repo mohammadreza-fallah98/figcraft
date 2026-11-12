@@ -7,9 +7,9 @@
 // The tables read best as tuples.
 #![allow(clippy::type_complexity)]
 
-use figcraft_doc::{HandleMirroring, NodeId, NodeKind, Region, Segment, VectorNetwork, WindingRule};
-use figcraft_geom::kurbo::ParamCurve;
-use figcraft_geom::{BezPath, Point, Shape};
+use figiran_doc::{HandleMirroring, NodeId, NodeKind, Region, Segment, VectorNetwork, WindingRule};
+use figiran_geom::kurbo::ParamCurve;
+use figiran_geom::{BezPath, Point, Shape};
 use serde_json::{Value, json};
 
 use crate::Session;
@@ -22,13 +22,13 @@ fn region_paints_survive_simplify_offset_and_bucket_normalization() {
     let mut s = Session::new();
     let id = square(&mut s, false);
     ex_to_vector(s.doc_mut().unwrap(), id);
-    let mut gradient = figcraft_color::Gradient::default_for(figcraft_color::GradientKind::Linear, figcraft_color::Color::BLACK);
+    let mut gradient = figiran_color::Gradient::default_for(figiran_color::GradientKind::Linear, figiran_color::Color::BLACK);
     gradient.from = (0.2, 0.1);
     gradient.to = (0.8, 0.9);
     let fills = vec![
-        figcraft_color::Paint::gradient(gradient),
-        figcraft_color::Paint::image("test-image", figcraft_color::ImageScaleMode::Crop),
-        figcraft_color::Paint::pattern(123),
+        figiran_color::Paint::gradient(gradient),
+        figiran_color::Paint::image("test-image", figiran_color::ImageScaleMode::Crop),
+        figiran_color::Paint::pattern(123),
     ];
     {
         let doc = s.doc_mut().unwrap();
@@ -135,12 +135,12 @@ fn flatten_keeps_inherited_region_paints_inherited() {
     let flattened_plain = id_of(&ex(&mut s, "vector.flatten", json!({"ids": [group]}))["id"]).unwrap();
     assert!(net(&s, flattened_plain).regions.iter().all(|region| region.fills.is_none()), "plain shapes inherit the flattened node's fill");
     assert_eq!(s.doc().unwrap().get(flattened_plain).unwrap().fills, plain_fills);
-    let edited_fills = vec![figcraft_color::Paint::solid(figcraft_color::Color::BLACK)];
+    let edited_fills = vec![figiran_color::Paint::solid(figiran_color::Color::BLACK)];
     s.doc_mut().unwrap().get_mut(flattened_plain).unwrap().fills = edited_fills.clone();
     assert_eq!(net(&s, flattened_plain).regions[0].fills, None, "changing the flattened node fill updates inherited geometry");
 
     let different_source = square(&mut s, false);
-    s.doc_mut().unwrap().get_mut(different_source).unwrap().fills = vec![figcraft_color::Paint::solid(figcraft_color::Color::BLACK)];
+    s.doc_mut().unwrap().get_mut(different_source).unwrap().fills = vec![figiran_color::Paint::solid(figiran_color::Color::BLACK)];
     ex_to_vector(s.doc_mut().unwrap(), different_source);
     let source_fills = s.doc().unwrap().get(different_source).unwrap().fills.clone();
     if let NodeKind::Vector { network } = &mut s.doc_mut().unwrap().get_mut(different_source).unwrap().kind {
@@ -156,10 +156,10 @@ fn flatten_keeps_inherited_region_paints_inherited() {
 fn legacy_offset_preserves_the_gradients_world_paint_frame() {
     let mut s = Session::new();
     let legacy_gradient = square(&mut s, false);
-    let mut gradient = figcraft_color::Gradient::default_for(figcraft_color::GradientKind::Linear, figcraft_color::Color::BLACK);
+    let mut gradient = figiran_color::Gradient::default_for(figiran_color::GradientKind::Linear, figiran_color::Color::BLACK);
     gradient.from = (0.2, 0.1);
     gradient.to = (0.8, 0.9);
-    s.doc_mut().unwrap().get_mut(legacy_gradient).unwrap().fills = vec![figcraft_color::Paint::gradient(gradient)];
+    s.doc_mut().unwrap().get_mut(legacy_gradient).unwrap().fills = vec![figiran_color::Paint::gradient(gradient)];
     ex_to_vector(s.doc_mut().unwrap(), legacy_gradient);
     if let NodeKind::Vector { network } = &mut s.doc_mut().unwrap().get_mut(legacy_gradient).unwrap().kind {
         network.regions[0].fills = None;
@@ -248,7 +248,7 @@ fn legacy_evenodd_holes_survive_bucket_offset_and_flatten() {
     {
         let doc = s.doc_mut().unwrap();
         let NodeKind::Vector { network } = &mut doc.get_mut(id).unwrap().kind else { panic!("expected vector fixture") };
-        network.regions[0].winding = figcraft_doc::WindingRule::EvenOdd;
+        network.regions[0].winding = figiran_doc::WindingRule::EvenOdd;
     }
     assert!(!net(&s, id).fill_contains(Point::new(100.0, 100.0)), "center starts as an even-odd hole");
     ex(&mut s, "vector.edit.begin", json!({"id": id}));
@@ -262,7 +262,7 @@ fn legacy_evenodd_holes_survive_bucket_offset_and_flatten() {
     {
         let doc = s.doc_mut().unwrap();
         if let NodeKind::Vector { network } = &mut doc.get_mut(flatten_source).unwrap().kind {
-            network.regions[0].winding = figcraft_doc::WindingRule::EvenOdd;
+            network.regions[0].winding = figiran_doc::WindingRule::EvenOdd;
         }
     }
     let group = id_of(&ex(&mut s, "object.group", json!({"ids": [flatten_source]}))["id"]).unwrap();
@@ -282,8 +282,8 @@ fn legacy_evenodd_holes_survive_bucket_offset_and_flatten() {
 fn simplify_and_offset_keep_a_closed_vectors_smoothed_corners() {
     // A closed 100 × 100 vector with radius 20 on every point and corner smoothing 0.6 draws a
     // smoothed rectangle's outline; simplify and offset rebuild it from that outline.
-    let drawn = figcraft_geom::rounded_rect(100.0, 100.0, [20.0; 4], 0.6);
-    let plain = figcraft_geom::rounded_rect(100.0, 100.0, [20.0; 4], 0.0).area().abs();
+    let drawn = figiran_geom::rounded_rect(100.0, 100.0, [20.0; 4], 0.6);
+    let plain = figiran_geom::rounded_rect(100.0, 100.0, [20.0; 4], 0.0).area().abs();
     let (area, d) = (drawn.area().abs(), 2.0);
     // Offsetting a convex outline by d adds its perimeter times d and a circle of radius d.
     let grown = area + drawn.perimeter(1e-6) * d + std::f64::consts::PI * d * d;
@@ -305,7 +305,7 @@ fn simplify_and_offset_keep_a_closed_vectors_smoothed_corners() {
         if painted {
             let doc = s.doc_mut().unwrap();
             let NodeKind::Vector { network } = &mut doc.get_mut(id).unwrap().kind else { panic!("expected vector fixture") };
-            network.regions[0].fills = Some(vec![figcraft_color::Paint::solid(figcraft_color::Color::BLACK)]);
+            network.regions[0].fills = Some(vec![figiran_color::Paint::solid(figiran_color::Color::BLACK)]);
         }
         params["ids"] = json!([id]);
         ex(&mut s, cmd, params);
@@ -318,11 +318,11 @@ fn simplify_and_offset_keep_a_closed_vectors_smoothed_corners() {
 }
 
 /// Give vector `id` a painted region, converting a plain shape to a vector first.
-fn ex_to_vector(doc: &mut figcraft_doc::Document, id: NodeId) {
+fn ex_to_vector(doc: &mut figiran_doc::Document, id: NodeId) {
     let n = doc.get(id).unwrap();
-    let (path, _) = figcraft_render::node_outline(doc, n).unwrap();
+    let (path, _) = figiran_render::node_outline(doc, n).unwrap();
     let mut network = VectorNetwork::from_path(&path);
-    network.regions[0].fills = Some(vec![figcraft_color::Paint::solid(figcraft_color::Color::BLACK)]);
+    network.regions[0].fills = Some(vec![figiran_color::Paint::solid(figiran_color::Color::BLACK)]);
     doc.get_mut(id).unwrap().kind = NodeKind::Vector { network };
 }
 
@@ -433,12 +433,12 @@ fn entering_and_leaving_vector_edit_mode() {
     let id = square(&mut s, false);
     ex(&mut s, "node.set", json!({"ids": [id], "props": {"cornerRadius": 20, "fill": "#336699", "stroke": "#000000"}}));
     let before = s.doc().unwrap().node(id).unwrap().clone();
-    let outline = figcraft_doc::geometry::shape_path(&before).unwrap();
+    let outline = figiran_doc::geometry::shape_path(&before).unwrap();
     ex(&mut s, "vector.edit.begin", json!({"id": id}));
     let after = s.doc().unwrap().node(id).unwrap().clone();
     assert!(matches!(after.kind, NodeKind::Vector { .. }), "the shape is a vector now");
     assert_eq!((after.fills.clone(), after.strokes.clone()), (before.fills, before.strokes), "fills and strokes are kept");
-    let (path, _) = figcraft_render::node_outline(s.doc().unwrap(), &after).unwrap();
+    let (path, _) = figiran_render::node_outline(s.doc().unwrap(), &after).unwrap();
     assert!((path.area().abs() - outline.area().abs()).abs() < 0.5, "the outline is kept, rounded corners included");
     s.undo().unwrap();
     assert!(matches!(s.doc().unwrap().node(id).unwrap().kind, NodeKind::Rectangle), "converting is one undo step");

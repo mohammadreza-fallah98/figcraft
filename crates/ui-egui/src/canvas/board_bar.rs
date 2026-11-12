@@ -3,9 +3,9 @@
 //! board tools' flyouts share.
 
 use egui::{Color32, CornerRadius, Pos2, Rect, Sense, Stroke, StrokeKind, Ui, pos2, vec2};
-use figcraft_doc::{BOARD_COLORS, BoardItem, BoardShape, NodeId, NodeKind, Routing, Stamp, StrokeCap};
-use figcraft_engine::board::{BoardTool, TEXT_SIZES};
-use figcraft_engine::board_grid::GridStyle;
+use figiran_doc::{BOARD_COLORS, BoardItem, BoardShape, NodeId, NodeKind, Routing, Stamp, StrokeCap};
+use figiran_engine::board::{BoardTool, TEXT_SIZES};
+use figiran_engine::board_grid::GridStyle;
 use serde_json::{Value, json};
 
 use crate::FigApp;
@@ -17,7 +17,7 @@ use crate::toolbar::Options;
 
 /// What a swatch shows.
 pub(crate) enum Mark {
-    Color(figcraft_color::Color),
+    Color(figiran_color::Color),
     Shape(BoardShape),
     Stamp(Stamp),
 }
@@ -72,20 +72,20 @@ pub(crate) fn paint_choice(p: &egui::Painter, r: Rect, mark: &Mark, ink: Color32
         }
         Mark::Shape(s) => {
             let path = s.path(14.0, 14.0);
-            let path = figcraft_geom::Affine::translate((1.0, 1.0)) * path;
+            let path = figiran_geom::Affine::translate((1.0, 1.0)) * path;
             icons::paint_outlines(p, r, 16.0, &[(&path, false)], ink, 1.2);
         }
         Mark::Stamp(s) => {
             p.circle_filled(r.center(), r.width().min(r.height()) / 2.0, c32(s.color()));
-            let parts: Vec<(figcraft_geom::BezPath, bool)> =
-                s.mark().iter().filter_map(|m| figcraft_geom::BezPath::from_svg(m.d).ok().map(|b| (b, m.filled))).collect();
-            let refs: Vec<(&figcraft_geom::BezPath, bool)> = parts.iter().map(|(b, f)| (b, *f)).collect();
-            icons::paint_outlines(p, r, figcraft_doc::STAMP_SIZE, &refs, Color32::WHITE, 3.0);
+            let parts: Vec<(figiran_geom::BezPath, bool)> =
+                s.mark().iter().filter_map(|m| figiran_geom::BezPath::from_svg(m.d).ok().map(|b| (b, m.filled))).collect();
+            let refs: Vec<(&figiran_geom::BezPath, bool)> = parts.iter().map(|(b, f)| (b, *f)).collect();
+            icons::paint_outlines(p, r, figiran_doc::STAMP_SIZE, &refs, Color32::WHITE, 3.0);
         }
     }
 }
 
-fn c32(c: figcraft_color::Color) -> Color32 {
+fn c32(c: figiran_color::Color) -> Color32 {
     let [r, g, b, a] = c.to_rgba8();
     Color32::from_rgba_unmultiplied(r, g, b, a)
 }
@@ -195,7 +195,7 @@ pub(crate) fn place(sel: Rect, size: egui::Vec2, canvas: Rect) -> Pos2 {
 /// the file can be edited.
 pub fn show(app: &mut FigApp, ctx: &egui::Context) {
     let editable = app.session.active_read_only().is_none();
-    if app.session.tool.busy() || !editable || !app.session.doc().is_ok_and(figcraft_engine::board::is_board) || crate::board_connect::dragging(ctx) {
+    if app.session.tool.busy() || !editable || !app.session.doc().is_ok_and(figiran_engine::board::is_board) || crate::board_connect::dragging(ctx) {
         return;
     }
     let Some(h) = has(app) else { return };
@@ -463,9 +463,9 @@ const LINE_MIN_GAP: f64 = 10.0;
 /// A board page's grid on its background `bg` as the preferences set it (`board.grid`), for the
 /// canvas render to draw under the layers: dark marks on a light page, light ones on a dark page,
 /// in the theme's ink. `None` on design files and with the grid off.
-pub fn dots(app: &FigApp, bg: Color32, t: &Tokens) -> Option<figcraft_render::Dots> {
+pub fn dots(app: &FigApp, bg: Color32, t: &Tokens) -> Option<figiran_render::Dots> {
     let ds = app.session.ds().ok()?;
-    if !figcraft_engine::board::is_board(&ds.doc) {
+    if !figiran_engine::board::is_board(&ds.doc) {
         return None;
     }
     let g = app.session.prefs.board_grid.clone().sanitized();
@@ -486,12 +486,12 @@ pub fn dots(app: &FigApp, bg: Color32, t: &Tokens) -> Option<figcraft_render::Do
     let alpha = (base * g.contrast as f32).clamp(0.0, 1.0);
     // Graph paper's in-between lines stay fainter than its strong ones even zoomed in.
     let faded = alpha * fade * if g.style == GridStyle::Graph { 0.5 } else { 1.0 };
-    let color = |a: f32| figcraft_color::Color::from_rgba8(ink.r(), ink.g(), ink.b(), (a * 255.0).round() as u8);
+    let color = |a: f32| figiran_color::Color::from_rgba8(ink.r(), ink.g(), ink.b(), (a * 255.0).round() as u8);
     // Dots are about a point and a half across on screen, growing a little zoomed in, scaled by
     // the size setting (1, the default, keeps the usual dots).
     let k = g.size;
     let size = if lines { k.max(0.5) / zoom } else { (1.5 * zoom.sqrt()).clamp(1.0, 3.0) * k / zoom };
-    Some(figcraft_render::Dots { step, size, color: color(alpha), faded: color(faded), lines, major })
+    Some(figiran_render::Dots { step, size, color: color(alpha), faded: color(faded), lines, major })
 }
 
 /// The grid's spacing on the page at `zoom`, starting from `base` and multiplied by `major` until
@@ -539,13 +539,13 @@ pub(crate) fn grid_settings(app: &mut FigApp, ui: &mut Ui) {
         ui.horizontal(|ui| {
             let (mut spacing, mut major) = (g.spacing, g.major);
             ui.label(tr("Spacing"));
-            let (lo, hi) = figcraft_engine::board_grid::SPACING;
+            let (lo, hi) = figiran_engine::board_grid::SPACING;
             if ui.add(egui::DragValue::new(&mut spacing).range(lo..=hi)).changed() {
                 set = Some(json!({"spacing": spacing}));
             }
             if g.style == GridStyle::Graph {
                 ui.label(tr("Strong line every"));
-                let (lo, hi) = figcraft_engine::board_grid::MAJOR;
+                let (lo, hi) = figiran_engine::board_grid::MAJOR;
                 if ui.add(egui::DragValue::new(&mut major).range(lo..=hi)).changed() {
                     set = Some(json!({"major": major}));
                 }
@@ -554,12 +554,12 @@ pub(crate) fn grid_settings(app: &mut FigApp, ui: &mut Ui) {
         ui.horizontal(|ui| {
             let (mut size, mut contrast) = (g.size, g.contrast);
             ui.label(tr("Size"));
-            let (lo, hi) = figcraft_engine::board_grid::SIZE;
+            let (lo, hi) = figiran_engine::board_grid::SIZE;
             if ui.add(egui::Slider::new(&mut size, lo..=hi).max_decimals(2)).changed() {
                 set = Some(json!({"size": size}));
             }
             ui.label(tr("Contrast"));
-            let (lo, hi) = figcraft_engine::board_grid::CONTRAST;
+            let (lo, hi) = figiran_engine::board_grid::CONTRAST;
             if ui.add(egui::Slider::new(&mut contrast, lo..=hi).max_decimals(2)).changed() {
                 set = Some(json!({"contrast": contrast}));
             }

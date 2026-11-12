@@ -61,12 +61,12 @@ impl FigApp {
             "versionHistory": self.ui.versions.open,
             "branchReview": self.ui.branch_review.as_ref().map(|r| json!({"id": r.id, "picks": r.picks, "mode": if r.mode == dev_compare::Mode::Overlay { "overlay" } else { "sideBySide" }})),
             "devCompare": self.ui.dev.compare.as_ref().map(|c| json!({"id": c.id, "mode": if c.mode == dev_compare::Mode::Overlay { "overlay" } else { "sideBySide" }, "split": c.split, "version": c.version})),
-            "devFocus": self.session.ds().ok().and_then(figcraft_engine::DocState::focused),
+            "devFocus": self.session.ds().ok().and_then(figiran_engine::DocState::focused),
             "annotationFilter": self.ui.dev.categories.id(),
             "colorProfileDialog": self.ui.color_profile.map(|p| p.id()),
             "stylePicker": self.ui.style_picker.as_ref().map(|p| p.slot().key()),
             "stylePickerView": if self.ui.style_grid { "grid" } else { "list" },
-            "textPreview": figcraft_engine::textpreview::active(&self.session),
+            "textPreview": figiran_engine::textpreview::active(&self.session),
             "comments": {
                 "open": self.ui.comments.open,
                 "draft": self.ui.comments.draft.as_ref().map(|d| [d.0, d.1]),
@@ -83,9 +83,9 @@ impl FigApp {
             "canvas": {
                 "rect": [self.canvas.rect.min.x, self.canvas.rect.min.y, self.canvas.rect.max.x, self.canvas.rect.max.y],
                 "renderWork": self.canvas.render_work.map(|w| match w {
-                    figcraft_render::Work::Reused => json!({"kind": "reused"}),
-                    figcraft_render::Work::Partial { pixels } => json!({"kind": "partial", "pixels": pixels}),
-                    figcraft_render::Work::Full => json!({"kind": "full"}),
+                    figiran_render::Work::Reused => json!({"kind": "reused"}),
+                    figiran_render::Work::Partial { pixels } => json!({"kind": "partial", "pixels": pixels}),
+                    figiran_render::Work::Full => json!({"kind": "full"}),
                 }),
                 "quality": if self.canvas.tex_coarse { "preview" } else { "refined" },
                 "previewLatencyMs": self.canvas.preview_latency_ms,

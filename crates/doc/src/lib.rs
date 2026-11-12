@@ -1,4 +1,4 @@
-//! The FigCraft document model.
+//! The FigIran document model.
 //!
 //! A [`Document`] holds pages; each page is the root of a tree of [`Node`]s (frames, groups, shapes,
 //! text, components, instances…). Nodes are stored by id in a map of `Arc`s, so cloning a document
@@ -33,8 +33,8 @@ pub use board_route::{END_GAP, MAX_RUNS, RouteEnd, attach_points, attached_sides
 pub use colors::*;
 pub use comments::*;
 pub use facilitation::*;
-pub use figcraft_color as color;
-pub use figcraft_geom as geom;
+pub use figiran_color as color;
+pub use figiran_geom as geom;
 pub use handoff::*;
 pub use library::*;
 pub use node::*;
@@ -44,14 +44,14 @@ pub use text::*;
 pub use vector::*;
 pub use vector_faces::Face;
 
-use figcraft_color::{Color, ColorProfile};
-use figcraft_geom::{Affine, Point, Rect};
+use figiran_color::{Color, ColorProfile};
+use figiran_geom::{Affine, Point, Rect};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
 /// Deepest descendant [`Document::world_render_bounds`] follows: as deep as the renderer draws
-/// (`figcraft_render::MAX_EXPORT_DEPTH`), so a crafted chain can't overflow the stack (#1062).
+/// (`figiran_render::MAX_EXPORT_DEPTH`), so a crafted chain can't overflow the stack (#1062).
 const MAX_RENDER_DEPTH: usize = 256;
 
 /// Stable node identifier, unique within a document.
@@ -175,7 +175,7 @@ impl ImageData {
     pub const MAX_BYTES: u64 = 256 * 1024 * 1024;
 
     /// Whether `key` claims to be a content hash: 64 hex digits, the shape of the sha256 hex
-    /// `figcraft_format::image_hash` makes. Bytes stored under such a key must hash to it.
+    /// `figiran_format::image_hash` makes. Bytes stored under such a key must hash to it.
     pub fn claims_content_hash(key: &str) -> bool {
         key.len() == 64 && key.bytes().all(|b| b.is_ascii_hexdigit())
     }
@@ -761,7 +761,7 @@ impl Document {
         if n.is_page() {
             return self.page_content_bounds(id);
         }
-        Some(figcraft_geom::transform_rect_bbox(self.world_transform(id), n.local_rect()))
+        Some(figiran_geom::transform_rect_bbox(self.world_transform(id), n.local_rect()))
     }
 
     /// Bounds of everything painted by a node, effects and strokes included (page coordinates):
@@ -832,7 +832,7 @@ impl Document {
         // Children bounds in the group's current local space (a mask stands for what it masks).
         let mut local: Option<Rect> = None;
         for (c, cn) in self.box_children(n) {
-            let r = figcraft_geom::transform_rect_bbox(inv * self.world_transform(c), cn.local_rect());
+            let r = figiran_geom::transform_rect_bbox(inv * self.world_transform(c), cn.local_rect());
             local = Some(local.map_or(r, |l| l.union(r)));
         }
         let Some(local) = local else { return Ok(()) };
@@ -943,7 +943,7 @@ impl Document {
             }
             // A pattern tiling a layer of the copy tiles the copy's layer.
             for p in c.fills.iter_mut().chain(c.strokes.iter_mut()) {
-                if let figcraft_color::PaintKind::Pattern(pt) = &mut p.kind
+                if let figiran_color::PaintKind::Pattern(pt) = &mut p.kind
                     && let Some(m) = map.get(&NodeId(pt.source))
                 {
                     pt.source = m.0;
@@ -951,7 +951,7 @@ impl Document {
             }
             if let NodeKind::Vector { network } = &mut c.kind {
                 for p in network.regions.iter_mut().filter_map(|r| r.fills.as_mut()).flatten() {
-                    if let figcraft_color::PaintKind::Pattern(pt) = &mut p.kind
+                    if let figiran_color::PaintKind::Pattern(pt) = &mut p.kind
                         && let Some(m) = map.get(&NodeId(pt.source))
                     {
                         pt.source = m.0;

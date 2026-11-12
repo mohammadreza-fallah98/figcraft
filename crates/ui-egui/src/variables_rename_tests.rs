@@ -4,7 +4,7 @@
 //! aborts the app when it isn't (#224). A collection's context menu extends it.
 
 use egui::{Event, Key, Modifiers, PointerButton, Pos2};
-use figcraft_engine::Session;
+use figiran_engine::Session;
 
 use crate::layers_drag_tests::Ui;
 use crate::live_tests::{flat, has_text, text_center};

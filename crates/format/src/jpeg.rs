@@ -1,5 +1,5 @@
 //! A JPEG header check run before any JPEG from a file is decoded: on the canvas and in exports
-//! (`figcraft-render`) and for the pictures files carry ([`crate::thumbnail`]).
+//! (`figiran-render`) and for the pictures files carry ([`crate::thumbnail`]).
 
 /// Whether `bytes` are a progressive JPEG whose frame samples some component more finely (across
 /// or down) than its first. zune-jpeg 0.5.15, the decoder behind `image`, asserts in its upsampler

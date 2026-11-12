@@ -2,15 +2,15 @@
 //! company portal as a new project. The profile menu (`portal::profile_top`) offers the entry; the
 //! dialog asks for the project name (and, for an Admin, the company), then the document is taken
 //! exactly as Save as would write it (`file.saveAs` with `data`, which changes nothing in the
-//! document) and `figcraft_portal::Portal` uploads it on a background thread. This file only draws
+//! document) and `figiran_portal::Portal` uploads it on a background thread. This file only draws
 //! the dialog and words the outcome; the portal's server key never comes near the app.
 
 use std::time::Duration;
 
 use egui::{Context, Id, Ui};
-use figcraft_portal::session::Account;
-use figcraft_portal::upload::Companies;
-use figcraft_portal::{Portal, Status, UploadError, UploadJob, UploadPhase, UploadRole, UploadView, View};
+use figiran_portal::session::Account;
+use figiran_portal::upload::Companies;
+use figiran_portal::{Portal, Status, UploadError, UploadJob, UploadPhase, UploadRole, UploadView, View};
 use serde_json::json;
 
 use crate::FigApp;
@@ -69,7 +69,7 @@ impl Problem {
 
 /// What stops Upload (`None`: ready).
 pub fn problem_with(role: UploadRole, name: &str, company: Option<i64>) -> Option<Problem> {
-    if figcraft_portal::upload::clean_name(name).is_empty() {
+    if figiran_portal::upload::clean_name(name).is_empty() {
         return Some(Problem::NoName);
     }
     if role == UploadRole::Admin && company.is_none() {

@@ -2,9 +2,9 @@
 
 use std::collections::HashMap;
 
-use figcraft_color::{BlendMode, Gradient, GradientKind, ImagePaint, ImageScaleMode, Paint, PaintKind, PatternPaint};
-use figcraft_doc::{Document, EffectKind, MaskType as DocMaskType, Node, NodeId, NodeKind, StrokeAlign};
-use figcraft_geom::{Affine, BezPath, Rect, Shape};
+use figiran_color::{BlendMode, Gradient, GradientKind, ImagePaint, ImageScaleMode, Paint, PaintKind, PatternPaint};
+use figiran_doc::{Document, EffectKind, MaskType as DocMaskType, Node, NodeId, NodeKind, StrokeAlign};
+use figiran_geom::{Affine, BezPath, Rect, Shape};
 
 use crate::raster::Raster;
 use krilla::geom::{Path, PathBuilder, Size, Transform};
@@ -18,7 +18,7 @@ use crate::PdfOptions;
 use crate::print::Ink;
 
 /// Deepest node nesting drawn (the renderer's limit).
-pub(crate) const MAX_DEPTH: usize = figcraft_render::MAX_EXPORT_DEPTH;
+pub(crate) const MAX_DEPTH: usize = figiran_render::MAX_EXPORT_DEPTH;
 /// Largest side of any raster made for the PDF, in pixels.
 pub(crate) const MAX_RASTER_SIDE: f64 = 4096.0;
 
@@ -67,8 +67,8 @@ pub(crate) fn affine_ok(a: Affine) -> bool {
 
 /// kurbo path → krilla path (`None` when empty, degenerate or not finite).
 pub(crate) fn to_path(p: &BezPath) -> Option<Path> {
-    use figcraft_geom::kurbo::PathEl;
-    if p.elements().is_empty() || !figcraft_pathops::finite(p) {
+    use figiran_geom::kurbo::PathEl;
+    if p.elements().is_empty() || !figiran_pathops::finite(p) {
         return None;
     }
     let mut b = PathBuilder::new();
@@ -120,10 +120,10 @@ pub(crate) fn blend(b: BlendMode) -> Option<krilla::blend::BlendMode> {
     })
 }
 
-pub(crate) fn rule(r: figcraft_render::FillRule) -> FillRule {
+pub(crate) fn rule(r: figiran_render::FillRule) -> FillRule {
     match r {
-        figcraft_render::FillRule::EvenOdd => FillRule::EvenOdd,
-        figcraft_render::FillRule::Winding => FillRule::NonZero,
+        figiran_render::FillRule::EvenOdd => FillRule::EvenOdd,
+        figiran_render::FillRule::Winding => FillRule::NonZero,
     }
 }
 
@@ -247,7 +247,7 @@ impl<'a> Exporter<'a> {
     pub(crate) fn node(&mut self, s: &mut Surface, id: NodeId, parent_xf: Affine, depth: usize, as_mask: bool) {
         // What the renderer draws for this layer (images of its effects, pattern cells) and its
         // pattern sources go on from its depth: one cap for the whole export (#1082).
-        figcraft_render::at_layer_depth(depth, || self.layer(s, id, parent_xf, depth, as_mask));
+        figiran_render::at_layer_depth(depth, || self.layer(s, id, parent_xf, depth, as_mask));
     }
 
     fn layer(&mut self, s: &mut Surface, id: NodeId, parent_xf: Affine, depth: usize, as_mask: bool) {
@@ -268,7 +268,7 @@ impl<'a> Exporter<'a> {
         // Background blur and glass: an image drawn from what lies under the node, under its
         // content (nothing in a soft mask is seen).
         let back =
-            if !as_mask && self.masking == 0 && self.tiling == 0 && figcraft_render::backdrop::has_effects(n) { self.backdrop(id) } else { None };
+            if !as_mask && self.masking == 0 && self.tiling == 0 && figiran_render::backdrop::has_effects(n) { self.backdrop(id) } else { None };
         if fx.iter().any(|k| matches!(k, EffectKind::LayerBlur { .. } | EffectKind::Noise(_) | EffectKind::Texture(_))) {
             // Effects that change every pixel: the renderer draws the whole node.
             if let Some(b) = &back {
@@ -326,19 +326,19 @@ impl<'a> Exporter<'a> {
                 // The page's frame reaches out to the bleed (fills and clip; paints keep their box).
                 let outline = match self.bleed_root {
                     Some((id, b)) if id == n.id && n.kind.is_frame_like() => {
-                        Some((Rect::new(-b, -b, w + b, h + b).to_path(0.1), figcraft_render::FillRule::Winding))
+                        Some((Rect::new(-b, -b, w + b, h + b).to_path(0.1), figiran_render::FillRule::Winding))
                     }
-                    _ => figcraft_render::node_outline(self.doc, n),
+                    _ => figiran_render::node_outline(self.doc, n),
                 };
                 let is_bool = matches!(n.kind, NodeKind::BooleanOp { .. });
-                let closed = figcraft_doc::geometry::is_closed(n) || is_bool;
+                let closed = figiran_doc::geometry::is_closed(n) || is_bool;
                 if let Some((path, r)) = &outline
                     && closed
                 {
                     if let NodeKind::Vector { network } = &n.kind
                         && network.regions.iter().any(|r| r.fills.is_some() || r.paint_space.is_some())
                     {
-                        let drawn = figcraft_doc::geometry::drawn_network(network, n.corners.smoothing);
+                        let drawn = figiran_doc::geometry::drawn_network(network, n.corners.smoothing);
                         let net = drawn.as_ref();
                         for (i, region) in net.regions.iter().enumerate() {
                             let paints = region.fills.as_deref().unwrap_or(&n.fills);
@@ -346,7 +346,7 @@ impl<'a> Exporter<'a> {
                                 let (pw, ph, frame) = region.paint_frame(w, h);
                                 region_path.apply_affine(frame.inverse());
                                 let fill_rule =
-                                    if region.winding == figcraft_doc::WindingRule::EvenOdd { FillRule::EvenOdd } else { FillRule::NonZero };
+                                    if region.winding == figiran_doc::WindingRule::EvenOdd { FillRule::EvenOdd } else { FillRule::NonZero };
                                 for p in paints {
                                     self.fill(
                                         s,
@@ -384,9 +384,9 @@ impl<'a> Exporter<'a> {
                     }
                 }
                 if n.has_visible_stroke() {
-                    let geom = if is_bool { outline.as_ref().map(|(p, _)| p.clone()) } else { figcraft_doc::geometry::stroke_geometry(n) };
+                    let geom = if is_bool { outline.as_ref().map(|(p, _)| p.clone()) } else { figiran_doc::geometry::stroke_geometry(n) };
                     if let Some(g) = geom {
-                        let area = figcraft_render::draw::stroke_area(n, &g, closed);
+                        let area = figiran_render::draw::stroke_area(n, &g, closed);
                         for p in &n.strokes {
                             self.fill(s, &area, stroke_rule(n, closed), p, PaintFrame { size: PaintSize { width: w, height: h }, transform: xf });
                         }
@@ -419,7 +419,7 @@ impl<'a> Exporter<'a> {
                 // The outline, fully opaque; nothing shows through a mask without one.
                 let mut plain = m.clone();
                 plain.is_mask = false;
-                let clip = figcraft_render::subtree_outline(self.doc, &plain, depth + 1).and_then(|(mut p, r)| {
+                let clip = figiran_render::subtree_outline(self.doc, &plain, depth + 1).and_then(|(mut p, r)| {
                     p.apply_affine(xf * m.transform);
                     Some((to_path(&p)?, rule(r)))
                 });
@@ -495,7 +495,7 @@ impl<'a> Exporter<'a> {
         }
         let data = self.doc.images.get(&img.image);
         // Decoding through the renderer checks the image is readable and applies adjustments.
-        let made = figcraft_render::images::get(&img.image, data, &img.filters, self.doc.color_profile).map(|pm| {
+        let made = figiran_render::images::get(&img.image, data, &img.filters, self.doc.color_profile).map(|pm| {
             let (pw, ph) = (pm.width(), pm.height());
             // Unadjusted RGB images embed their original bytes (JPEG stays JPEG).
             let original = data.filter(|_| img.filters.is_identity() && ink == Ink::Rgb).and_then(|d| {
@@ -508,7 +508,7 @@ impl<'a> Exporter<'a> {
                     Sniffed::Other => None,
                 }
             });
-            let image = original.filter(|i| i.size() == (pw, ph)).unwrap_or_else(|| ink.bitmap(figcraft_render::to_rgba8(&pm), pw, ph));
+            let image = original.filter(|i| i.size() == (pw, ph)).unwrap_or_else(|| ink.bitmap(figiran_render::to_rgba8(&pm), pw, ph));
             (image, pw, ph)
         });
         self.images.insert(key, made.clone());
@@ -519,7 +519,7 @@ impl<'a> Exporter<'a> {
     fn image_fill(&mut self, s: &mut Surface, kp: &Path, r: FillRule, img: &ImagePaint, op: f32, size: PaintSize) {
         let PaintSize { width: w, height: h } = size;
         let Some((image, iw, ih)) = self.image(img) else { return };
-        let t = figcraft_render::paint::image_transform(img, f64::from(iw), f64::from(ih), w, h);
+        let t = figiran_render::paint::image_transform(img, f64::from(iw), f64::from(ih), w, h);
         let t = Affine::new([f64::from(t.sx), f64::from(t.ky), f64::from(t.kx), f64::from(t.sy), f64::from(t.tx), f64::from(t.ty)]);
         let Some(size) = Size::from_wh(iw as f32, ih as f32) else { return };
         if !affine_ok(t) || !above(t.determinant().abs(), 1e-12) {
@@ -568,8 +568,8 @@ impl<'a> Exporter<'a> {
             // Links and backdrops belong to the page, not to a tile.
             self.tiling += 1;
             // The source is one level below the layer it fills.
-            let depth = figcraft_render::layer_depth() + 1;
-            let _ = figcraft_render::pattern::nested(|| {
+            let depth = figiran_render::layer_depth() + 1;
+            let _ = figiran_render::pattern::nested(|| {
                 for (tx, ty) in &cell.tiles {
                     self.node(&mut ps, src.id, Affine::translate((*tx, *ty)) * Affine::scale(cell.scale) * unrotated, depth, false);
                 }
@@ -606,13 +606,13 @@ impl<'a> Exporter<'a> {
             k *= MAX_RASTER_SIDE / side;
         }
         let (pw, ph) = ((bb.width() * k).ceil().max(1.0) as u32, (bb.height() * k).ceil().max(1.0) as u32);
-        let Some(prep) = figcraft_render::paint::prepare(p, w, h, k, self.doc) else { return };
+        let Some(prep) = figiran_render::paint::prepare(p, w, h, k, self.doc) else { return };
         let Some(mut pix) = tiny_skia::Pixmap::new(pw, ph) else { return };
         let paint = tiny_skia::Paint { shader: prep.shader(), anti_alias: false, ..Default::default() };
         let Some(rect) = tiny_skia::Rect::from_xywh(bb.x0 as f32, bb.y0 as f32, bb.width() as f32, bb.height() as f32) else { return };
         pix.fill_rect(rect, &paint, tiny_skia::Transform::from_row(k as f32, 0.0, 0.0, k as f32, (-bb.x0 * k) as f32, (-bb.y0 * k) as f32), None);
         let Some(size) = Size::from_wh(pw as f32, ph as f32) else { return };
-        let image = self.ink().bitmap(figcraft_render::to_rgba8(&pix), pw, ph);
+        let image = self.ink().bitmap(figiran_render::to_rgba8(&pix), pw, ph);
         s.push_clip_path(kp, &r);
         s.push_transform(&to_xf(Affine::translate((bb.x0, bb.y0)) * Affine::scale(1.0 / k)));
         s.draw_image(image, size);

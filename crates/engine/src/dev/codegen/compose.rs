@@ -2,7 +2,7 @@ use super::swift::one_line;
 use super::{
     CodeLang, Color, Ctx, LayoutMode, Node, NodeId, NodeKind, PADDING, drop_shadow, first_fill, indent, literal, named, num, radius, stroke_color,
 };
-use figcraft_doc::Document;
+use figiran_doc::Document;
 
 // ------------------------------------------------------------------ Jetpack Compose
 

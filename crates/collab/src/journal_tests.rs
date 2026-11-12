@@ -3,7 +3,7 @@
 //! the last saved state gives the same server (clients resume into it), entries already in the
 //! state change nothing, and a log with a gap is refused.
 
-use figcraft_doc::{Document, NodeKind};
+use figiran_doc::{Document, NodeKind};
 
 use crate::message::{self, Access, ClientMsg, Hello, ServerMsg};
 use crate::sim_tests::base;
@@ -214,7 +214,7 @@ fn a_client_resuming_past_a_replaced_image_in_the_saved_log_catches_up() {
     let mut s = Server::new(base(), "", Limits::default());
     let mut a = join_as(&mut s, Access::Edit);
     let m = edit(&mut a, |d| {
-        d.images.insert("img1".into(), figcraft_doc::ImageData { bytes: std::sync::Arc::new(b"the first bytes".to_vec()), width: 2, height: 1 });
+        d.images.insert("img1".into(), figiran_doc::ImageData { bytes: std::sync::Arc::new(b"the first bytes".to_vec()), width: 2, height: 1 });
     });
     send(&mut s, a.id(), m, &mut [&mut a]);
     let r = resume_past(&s, &mut a, vec![crate::image_tests::put("img1", 2, 1, b"other bytes")], true);
@@ -222,13 +222,13 @@ fn a_client_resuming_past_a_replaced_image_in_the_saved_log_catches_up() {
 }
 
 /// `a` adds a rectangle showing image `img1`; returns the rectangle.
-fn add_image_layer(s: &mut Server, a: &mut Client) -> figcraft_doc::NodeId {
+fn add_image_layer(s: &mut Server, a: &mut Client) -> figiran_doc::NodeId {
     let page = s.document().first_page().unwrap();
     let mut id = None;
     let m = edit(a, |d| {
         let r = d.create(page, NodeKind::Rectangle, "R", 0.0, 0.0, 10.0, 10.0).unwrap();
-        d.get_mut(r).unwrap().fills = vec![figcraft_color::Paint::image("img1", figcraft_color::ImageScaleMode::Fill)];
-        d.images.insert("img1".into(), figcraft_doc::ImageData { bytes: std::sync::Arc::new(b"the first bytes".to_vec()), width: 2, height: 1 });
+        d.get_mut(r).unwrap().fills = vec![figiran_color::Paint::image("img1", figiran_color::ImageScaleMode::Fill)];
+        d.images.insert("img1".into(), figiran_doc::ImageData { bytes: std::sync::Arc::new(b"the first bytes".to_vec()), width: 2, height: 1 });
         id = Some(r);
     });
     send(s, a.id(), m, &mut [a]);

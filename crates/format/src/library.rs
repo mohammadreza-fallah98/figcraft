@@ -1,4 +1,4 @@
-//! A published library inside a `.figcraft` archive.
+//! A published library inside a `.figiran` archive.
 //!
 //! `library/manifest.json` holds the [`LibraryManifest`]; `library/document.json` the snapshot of
 //! the published assets (a `document.json` of its own). Images the snapshot uses are read from
@@ -13,7 +13,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::io::{Read, Seek, Write};
 use std::sync::Arc;
 
-use figcraft_doc::{ImageData, LibraryManifest, NodeKind, PublishedLibrary, used_images};
+use figiran_doc::{ImageData, LibraryManifest, NodeKind, PublishedLibrary, used_images};
 
 use crate::{FormatError, MAX_MEMBER, Unpacked, from_json, image_data, io_err, json_options, put, put_json};
 
@@ -97,8 +97,8 @@ pub(crate) fn read<R: Read + Seek>(
     Ok(Some(PublishedLibrary { manifest, doc: Arc::new(doc) }))
 }
 
-/// Read the published library of a `.figcraft` file (only its library entries are read): `None`
-/// when the file was never published, an error when it isn't a FigCraft archive or is damaged.
+/// Read the published library of a `.figiran` file (only its library entries are read): `None`
+/// when the file was never published, an error when it isn't a FigIran archive or is damaged.
 pub fn read_library<R: Read + Seek>(r: R) -> Result<Option<PublishedLibrary>, FormatError> {
     read_library_within(r, u64::MAX)
 }

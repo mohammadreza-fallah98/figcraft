@@ -18,13 +18,13 @@ use std::collections::BTreeMap;
 use std::io::Write;
 use std::sync::Arc;
 
-use figcraft_doc::color::{BlendMode, Color, GradientKind, ImageScaleMode, Paint, PaintKind};
-use figcraft_doc::geom::kurbo::PathEl;
-use figcraft_doc::geom::{Affine, BezPath};
-use figcraft_doc::proto::{
+use figiran_doc::color::{BlendMode, Color, GradientKind, ImageScaleMode, Paint, PaintKind};
+use figiran_doc::geom::kurbo::PathEl;
+use figiran_doc::geom::{Affine, BezPath};
+use figiran_doc::proto::{
     Action, Direction, Easing, GAMEPAD_BUTTONS, Interaction, KeyMods, Overflow, OverlayPosition, ScrollPosition, Transition, Trigger,
 };
-use figcraft_doc::{
+use figiran_doc::{
     AutoLayout, BoolOp, ContentAlign, CrossAlign, Document, EffectKind, ExportSize, GridAlign, GridKind, GridTrack, HConstraint, LayoutMode,
     LetterSpacing, LineHeight, ListStyle, MainAlign, MaskType, Node, NodeId, NodeKind, NoiseMode, PropDef, Sizing, StrokeAlign, StrokeCap,
     StrokeJoin, StyleKind, TextAlignH, TextAlignV, TextAutoResize, TextCase, TextData, TextDecoration, TextDirection, TextStyle, VConstraint,
@@ -420,7 +420,7 @@ fn join_name(j: StrokeJoin) -> &'static str {
 /// `3` quadratic, `4` cubic, each followed by its points as little-endian `f32` pairs.
 fn path_blob(p: &BezPath) -> Vec<u8> {
     let mut out = Vec::new();
-    let mut put = |cmd: u8, pts: &[figcraft_doc::geom::Point]| {
+    let mut put = |cmd: u8, pts: &[figiran_doc::geom::Point]| {
         out.push(cmd);
         for q in pts {
             out.extend_from_slice(&(finite(q.x) as f32).to_le_bytes());
@@ -586,7 +586,7 @@ impl<'d> Exporter<'d> {
     fn message(&mut self) -> Kv<'static> {
         let doc = self.doc;
         self.assign();
-        let profile = if doc.color_profile == figcraft_doc::color::ColorProfile::DisplayP3 { "DISPLAY_P3" } else { "SRGB" };
+        let profile = if doc.color_profile == figiran_doc::color::ColorProfile::DisplayP3 { "DISPLAY_P3" } else { "SRGB" };
         let mut root: Fields = vec![("guid", guid(0, 0)), ("phase", e("CREATED")), ("type", e("DOCUMENT")), ("name", s(&doc.name))];
         root.extend(root_fields());
         root.push(("documentColorProfile", e(profile)));
@@ -610,7 +610,7 @@ impl<'d> Exporter<'d> {
 }
 
 /// The plugin id and key under which a layer written as an outline keeps what it was.
-pub(super) const STASH: (&str, &str) = ("figcraft", "stroke");
+pub(super) const STASH: (&str, &str) = ("figiran", "stroke");
 
 /// An image's name in the file: the SHA-1 of its bytes (lowercase hex). Paints refer to images by
 /// these 20 bytes, and readers reject other hash lengths (the document's own SHA-256 key is not

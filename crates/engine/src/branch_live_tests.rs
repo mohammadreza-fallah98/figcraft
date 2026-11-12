@@ -5,9 +5,9 @@
 //! still refuses merging; a branch made outside the session that adds layers is refused instead
 //! of being sent for the server to refuse. Plus a fuzz test with random real commands.
 
-use figcraft_collab::sim::Rng;
-use figcraft_doc::ids::space_of;
-use figcraft_doc::{Document, NodeId};
+use figiran_collab::sim::Rng;
+use figiran_doc::ids::space_of;
+use figiran_doc::{Document, NodeId};
 use serde_json::{Map, Value, json};
 
 use crate::Session;
@@ -122,10 +122,10 @@ fn update_from_main_takes_in_peers_edits_and_shows_in_the_branch_history() {
 #[test]
 fn a_view_link_still_refuses_merging() {
     let (mut s, script) = session();
-    s.execute("collab.join", &json!({"link": "figcraft://join?host=a:1&file=f&token=t"})).unwrap();
+    s.execute("collab.join", &json!({"link": "figiran://join?host=a:1&file=f&token=t"})).unwrap();
     let mut doc = Document::new("Shared");
     let page = doc.first_page().unwrap();
-    let card = doc.create(page, figcraft_doc::NodeKind::Rectangle, "Card", 0.0, 0.0, 10.0, 10.0).unwrap();
+    let card = doc.create(page, figiran_doc::NodeKind::Rectangle, "Card", 0.0, 0.0, 10.0, 10.0).unwrap();
     let (_server, id, welcome) = serve_as(&doc, Access::View);
     let mut you = info(Role::Guest, id);
     you.access = Access::View;

@@ -1,16 +1,16 @@
 //! Join codes over the network: a file shared on the local network joined by its code, and by
 //! its view-only code to look without editing (engine sessions over loopback), what the browser's driver does with an online code, a server
-//! older than join codes, and the links that name a code. (A `figcraft-server` handing codes out
+//! older than join codes, and the links that name a code. (A `figiran-server` handing codes out
 //! and resolving them is tested in its own crate, with the same link.)
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr, TcpListener};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use figcraft_collab::code::{self, Code, Local};
-use figcraft_collab::message::{self, ClientMsg, PROTOCOL, ServerMsg};
-use figcraft_engine::Session;
-use figcraft_engine::live::{Event, Status};
+use figiran_collab::code::{self, Code, Local};
+use figiran_collab::message::{self, ClientMsg, PROTOCOL, ServerMsg};
+use figiran_engine::Session;
+use figiran_engine::live::{Event, Status};
 use serde_json::json;
 use tungstenite::{Bytes, Message};
 
@@ -243,23 +243,21 @@ fn code_at(server: &Endpoint) -> Invite {
 
 #[test]
 fn links_can_name_a_join_code() {
-    let (invite, found) = Invite::parse_join("figcraft://join?server=wss://share.example/&code=k7m-2qx-9td").unwrap();
+    let (invite, found) = Invite::parse_join("figiran://join?server=wss://share.example/&code=k7m-2qx-9td").unwrap();
     assert_eq!((invite.server.url(), invite.file.as_str(), invite.token.as_str()), ("wss://share.example:443/".to_string(), "", ""));
     assert_eq!(found, Some(Lookup::Code("K7M2QX9TD".into())));
-    let (invite, found) = Invite::parse_join(" figcraft://join?host=127.0.0.1:47900&code=K7M2QX9TD ").unwrap();
+    let (invite, found) = Invite::parse_join(" figiran://join?host=127.0.0.1:47900&code=K7M2QX9TD ").unwrap();
     assert_eq!((invite.server, found), (Endpoint::plain("127.0.0.1:47900"), Some(Lookup::Code("K7M2QX9TD".into()))));
     // A link with a file and a token is read as before.
-    let link = "figcraft://join?host=127.0.0.1:47900&file=abc&token=AbCdEfGhIjKlMnOpQrStUv";
+    let link = "figiran://join?host=127.0.0.1:47900&file=abc&token=AbCdEfGhIjKlMnOpQrStUv";
     assert_eq!(Invite::parse_join(link).unwrap(), (Invite::parse(link).unwrap(), None));
-    for bad in [
-        "figcraft://join?server=wss://share.example/&code=",
-        "figcraft://join?server=wss://share.example/&code=K7M",
-        "figcraft://join?code=K7M2QX9TD",
-    ] {
+    for bad in
+        ["figiran://join?server=wss://share.example/&code=", "figiran://join?server=wss://share.example/&code=K7M", "figiran://join?code=K7M2QX9TD"]
+    {
         assert!(Invite::parse_join(bad).is_err(), "{bad}");
     }
     // Where a file's link is needed (team libraries), a code isn't one.
-    let e = Invite::parse("figcraft://join?server=wss://share.example/&code=K7M2QX9TD").unwrap_err();
+    let e = Invite::parse("figiran://join?server=wss://share.example/&code=K7M2QX9TD").unwrap_err();
     assert!(e.contains("join code") && !e.contains("K7M"), "{e}");
 }
 
@@ -286,7 +284,7 @@ fn old_server() -> (Endpoint, std::thread::JoinHandle<()>) {
 /// A server from before join codes that manages a file's links as it always did: two connections,
 /// the first makes links, the second (asked for codes) can't read the request.
 fn old_server_with_links() -> (Endpoint, std::thread::JoinHandle<()>) {
-    use figcraft_collab::message::{Admin, AdminReply, LinkInfo, NewLink};
+    use figiran_collab::message::{Admin, AdminReply, LinkInfo, NewLink};
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
     let at = Endpoint::plain(listener.local_addr().unwrap().to_string());
     let t = std::thread::spawn(move || {
@@ -390,7 +388,7 @@ impl Socket for Script {
 
 /// The browser's driver joining with a code at a server.
 fn driver(t0: web_time::Instant) -> (Driver<Script>, Inbox) {
-    let (invite, found) = Invite::parse_join("figcraft://join?server=ws://127.0.0.1:47900/&code=K7M2QX9TD").unwrap();
+    let (invite, found) = Invite::parse_join("figiran://join?server=ws://127.0.0.1:47900/&code=K7M2QX9TD").unwrap();
     let inbox = Inbox::new(Arc::new(|| {}));
     let cfg = GuestConfig { lookup: found, ..GuestConfig::new(invite, "Ada".into()) };
     (Driver::start(Script::default(), cfg, inbox.clone(), t0), inbox)
@@ -451,24 +449,24 @@ fn the_browser_shows_why_a_code_didnt_join() {
 
 #[test]
 fn links_can_name_a_file_of_a_servers_team_list() {
-    let link = "figcraft://join?server=wss://figcraft.example/team/&file=0123456789abcdef&team=1";
+    let link = "figiran://join?server=wss://figiran.example/team/&file=0123456789abcdef&team=1";
     let (invite, found) = Invite::parse_join(link).unwrap();
     assert_eq!(
         (invite.server.url(), invite.file.as_str(), invite.token.as_str(), found),
-        ("wss://figcraft.example:443/team/".to_string(), "0123456789abcdef", "", Some(Lookup::Team))
+        ("wss://figiran.example:443/team/".to_string(), "0123456789abcdef", "", Some(Lookup::Team))
     );
     assert_eq!(Invite::parse_join(&invite.team_link()).unwrap(), (invite.clone(), Some(Lookup::Team)));
     let plain = Invite::new("127.0.0.1:47900", "abc", "");
-    assert_eq!(plain.team_link(), "figcraft://join?host=127.0.0.1:47900&file=abc&team=1");
+    assert_eq!(plain.team_link(), "figiran://join?host=127.0.0.1:47900&file=abc&team=1");
     // It names no token, so it isn't a link to join with directly; it needs a file.
     assert!(Invite::parse(link).is_err_and(|e| e.contains("team list")));
-    assert!(Invite::parse_join("figcraft://join?server=wss://figcraft.example/&team=1").is_err());
-    assert!(Invite::parse_join("figcraft://join?server=wss://figcraft.example/&file=../x&team=1").is_err());
+    assert!(Invite::parse_join("figiran://join?server=wss://figiran.example/&team=1").is_err());
+    assert!(Invite::parse_join("figiran://join?server=wss://figiran.example/&file=../x&team=1").is_err());
 }
 
 /// The browser's driver joining a file of a server's team list.
 fn team_driver(t0: web_time::Instant) -> (Driver<Script>, Inbox) {
-    let (invite, found) = Invite::parse_join("figcraft://join?server=ws://127.0.0.1:47900/&file=0123456789abcdef&team=1").unwrap();
+    let (invite, found) = Invite::parse_join("figiran://join?server=ws://127.0.0.1:47900/&file=0123456789abcdef&team=1").unwrap();
     let inbox = Inbox::new(Arc::new(|| {}));
     let cfg = GuestConfig { lookup: found, ..GuestConfig::new(invite, "Ada".into()) };
     (Driver::start(Script::default(), cfg, inbox.clone(), t0), inbox)

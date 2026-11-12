@@ -9,7 +9,7 @@
 
 use super::*;
 use crate::breaks::{break_between, grapheme_starts};
-use figcraft_doc::{LeadingTrim, LetterSpacing, LineHeight, ListStyle, ParaList, TextAlignH, TextAutoResize, TextData, TextDecoration};
+use figiran_doc::{LeadingTrim, LetterSpacing, LineHeight, ListStyle, ParaList, TextAlignH, TextAutoResize, TextData, TextDecoration};
 
 /// The default face once system fonts are indexed (a Latin face where the system has one, so CJK
 /// and emoji come from fallback faces), or None (skip) on a machine without fonts.

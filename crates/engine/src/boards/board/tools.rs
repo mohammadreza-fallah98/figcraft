@@ -12,7 +12,7 @@ use super::{
 const ATTACH_PX: f64 = 10.0;
 
 /// Point `p` as fractions of box `b` (`None`: a box with no area).
-fn part_at(b: figcraft_geom::Rect, p: Point) -> Option<[f64; 2]> {
+fn part_at(b: figiran_geom::Rect, p: Point) -> Option<[f64; 2]> {
     (b.width() > 0.0 && b.height() > 0.0).then(|| [((p.x - b.x0) / b.width()).clamp(0.0, 1.0), ((p.y - b.y0) / b.height()).clamp(0.0, 1.0)])
 }
 /// The sides an object takes a connector end at (their middles are its attach points).
@@ -21,7 +21,7 @@ const SIDES: [Side; 4] = [Side::Top, Side::Right, Side::Bottom, Side::Left];
 /// The side of box `b` a connector end at `p` chooses (#1708): the one `p` is towards anywhere in
 /// the box's outer half, whatever its proportions, so a whole edge picks its side. In the middle
 /// of the box none is chosen ([`Side::Auto`]: the side facing the other end).
-fn side_at(b: figcraft_geom::Rect, p: Point) -> Side {
+fn side_at(b: figiran_geom::Rect, p: Point) -> Side {
     let c = b.center();
     let (x, y) = ((p.x - c.x) / (b.width() / 2.0).max(1e-6), (p.y - c.y) / (b.height() / 2.0).max(1e-6));
     match (x.abs().max(y.abs()) < 0.5, x.abs() >= y.abs()) {
@@ -106,7 +106,7 @@ impl Session {
             // Under the connector being dragged out (previewed in the document), not on it.
             let doc = ds.interaction.as_ref().map_or(&*ds.doc, |it| &*it.doc);
             let leaf = self.hit(doc, ds.page, ev.p(), 2.0 / zoom)?;
-            let t = figcraft_doc::geometry::select_target(doc, leaf, &[], false);
+            let t = figiran_doc::geometry::select_target(doc, leaf, &[], false);
             let n = doc.node(t)?;
             if matches!(n.board, Some(BoardItem::Connector(_)) | Some(BoardItem::Label { .. }) | Some(BoardItem::Ink)) {
                 return None;
@@ -142,7 +142,7 @@ impl Session {
                 let on = at.or_else(|| (side != Side::Auto).then(|| side.point(b)));
                 let pts = SIDES.map(|s| s.point(b));
                 let lit = on.and_then(|o| {
-                    let near = pts.iter().enumerate().map(|(i, p)| (i, (o - *p).hypot())).filter(|(_, d)| *d <= figcraft_doc::END_GAP + 1e-6);
+                    let near = pts.iter().enumerate().map(|(i, p)| (i, (o - *p).hypot())).filter(|(_, d)| *d <= figiran_doc::END_GAP + 1e-6);
                     near.min_by(|x, y| x.1.total_cmp(&y.1)).map(|(i, _)| i)
                 });
                 pts.iter().enumerate().map(|(i, p)| ([p.x, p.y], lit == Some(i))).collect()
@@ -279,7 +279,7 @@ impl Session {
     /// A double-click with the Move tool on a board object: type in its text (a connector gets a
     /// label to type in). True when it was one.
     pub(crate) fn board_double_click(&mut self, doc: &Document, leaf: NodeId, sel: &[NodeId]) -> Result<bool> {
-        let whole = figcraft_doc::geometry::select_target(doc, leaf, sel, false);
+        let whole = figiran_doc::geometry::select_target(doc, leaf, sel, false);
         let editing = self.ds()?.text_edit.as_ref().is_some_and(|te| doc.is_ancestor(whole, te.id));
         let Some(item) = doc.node(whole).and_then(|n| n.board.clone()).filter(|_| !editing) else { return Ok(false) };
         self.tool.gesture = Gesture::None;

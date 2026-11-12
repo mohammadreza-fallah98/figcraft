@@ -1,10 +1,10 @@
 //! An AI agent attached over MCP, shown like a person in a live session while it works: its avatar
 //! in the people row and, on the canvas, an outline in its colour around the layers it last edited
 //! or selected, with its name. Both go a short while after its last command
-//! ([`figcraft_engine::agent`]), and only the file it works in shows them.
+//! ([`figiran_engine::agent`]), and only the file it works in shows them.
 
 use egui::{Align2, Pos2, Rect, Sense, Shape, Stroke, Ui, pos2, vec2};
-use figcraft_engine::agent::AgentPresence;
+use figiran_engine::agent::AgentPresence;
 use web_time::Instant;
 
 use crate::FigApp;
@@ -46,7 +46,7 @@ pub fn draw(app: &FigApp, painter: &egui::Painter, ctx: &egui::Context) {
 
 #[cfg(test)]
 mod tests {
-    use figcraft_engine::Session;
+    use figiran_engine::Session;
     use serde_json::json;
 
     use super::shown;

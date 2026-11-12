@@ -16,8 +16,8 @@
 //! `exchange.rs`), each waiting for its answers as long as a large upload may take; a publish then
 //! joins the new file.
 
-use figcraft_collab::message::{self, ClientMsg, Presence, ServerMsg};
-use figcraft_engine::live::{Event, Status};
+use figiran_collab::message::{self, ClientMsg, Presence, ServerMsg};
+use figiran_engine::live::{Event, Status};
 use std::time::Duration;
 // `std::time::Instant` on native builds; the browser's clock in the web build.
 use web_time::Instant;

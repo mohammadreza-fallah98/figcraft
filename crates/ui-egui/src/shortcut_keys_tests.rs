@@ -6,9 +6,9 @@
 //! canvas, not the interface.
 
 use egui::{Event, Key, Modifiers, ViewportCommand, ViewportId};
-use figcraft_doc::NodeId;
-use figcraft_engine::Session;
-use figcraft_engine::keymap::Platform;
+use figiran_doc::NodeId;
+use figiran_engine::Session;
+use figiran_engine::keymap::Platform;
 use serde_json::json;
 
 use crate::layers_drag_tests::Ui;
@@ -161,7 +161,7 @@ fn presentation_keys() {
 #[test]
 fn multiplayer_cursors_key_hides_and_shows_others_cursors() {
     use crate::live_tests::{Harness, cursor};
-    use figcraft_engine::live::Event as LiveEvent;
+    use figiran_engine::live::Event as LiveEvent;
     let (mut h, _) = Harness::new();
     h.frames(3);
     h.joined();
@@ -189,7 +189,7 @@ fn alt_r_shows_the_rotation_origin_and_escape_hides_it() {
     press(&mut u, Key::R, Modifiers::ALT);
     let at = u.app.session.ds().unwrap().origin_handle().expect("Alt+R shows the origin");
     assert!((at.x - 20.0).abs() < 1e-9 && (at.y - 20.0).abs() < 1e-9, "{at:?}");
-    assert_eq!(u.app.session.tool.tool, figcraft_engine::ToolId::Move, "R alone would pick the Rectangle tool");
+    assert_eq!(u.app.session.tool.tool, figiran_engine::ToolId::Move, "R alone would pick the Rectangle tool");
     press(&mut u, Key::Escape, Modifiers::NONE);
     assert!(u.app.session.ds().unwrap().origin_handle().is_none());
     assert_eq!(u.app.session.selection(), vec![r], "the first Escape only hides it");
@@ -260,7 +260,7 @@ fn cmd_alt_arrows_rotate_a_degree_and_fifteen_with_shift() {
     let r = id(s.execute("shape.rectangle", &json!({"x": 0, "y": 0, "width": 40, "height": 40})).unwrap());
     let mut u = Ui::new(s);
     u.app.run("select.set", json!({"ids": [r]}));
-    let rot = |u: &Ui| figcraft_geom::rotation_degrees(u.app.session.doc().unwrap().node(r).unwrap().transform);
+    let rot = |u: &Ui| figiran_geom::rotation_degrees(u.app.session.doc().unwrap().node(r).unwrap().transform);
     let size = |u: &Ui| {
         let n = u.app.session.doc().unwrap().node(r).unwrap().clone();
         (n.width, n.height)

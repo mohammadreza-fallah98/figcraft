@@ -4,8 +4,8 @@
 //! it brought the first time.
 
 use base64::Engine as _;
-use figcraft_doc::proto::Action;
-use figcraft_doc::{Document, Node, NodeId, VariableValue};
+use figiran_doc::proto::Action;
+use figiran_doc::{Document, Node, NodeId, VariableValue};
 use serde_json::{Value, json};
 
 use crate::Session;
@@ -66,9 +66,9 @@ fn other() -> Session {
 }
 
 fn import(s: &mut Session, file: &Session) -> Value {
-    let bytes = figcraft_format::save_bytes(file.doc().unwrap(), None).unwrap();
+    let bytes = figiran_format::save_bytes(file.doc().unwrap(), None).unwrap();
     let data = base64::engine::general_purpose::STANDARD.encode(bytes);
-    ex(s, "file.import", json!({"data": data, "name": "other.figcraft"}))
+    ex(s, "file.import", json!({"data": data, "name": "other.figiran"}))
 }
 
 /// The layers on the pages after the first `kept` pages.

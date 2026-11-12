@@ -149,7 +149,7 @@ impl<'d> Exporter<'d> {
         // its length, as a share of the stroke weight (half of it each for the full weight). The
         // two sides are the same: a reader draws nothing for a point with unequal sides.
         if let Some(p) = sp.profile().filter(|_| sp.weight.is_finite() && sp.weight > 0.0) {
-            let point = |q: &figcraft_doc::WidthPoint| o(vec![("position", fl(q.t)), ("ascent", fl(q.scale / 2.0)), ("descent", fl(q.scale / 2.0))]);
+            let point = |q: &figiran_doc::WidthPoint| o(vec![("position", fl(q.t)), ("ascent", fl(q.scale / 2.0)), ("descent", fl(q.scale / 2.0))]);
             let p = p.sanitized();
             if one_sided(&p) {
                 self.warn("strokes wider on one side of their path were written with that width on both sides");
@@ -169,7 +169,7 @@ impl<'d> Exporter<'d> {
     }
 
     /// Effect `index` of a layer, with the variables `bound` to its fields.
-    pub(super) fn effect(&mut self, x: &figcraft_doc::Effect, index: usize, bound: &Bound) -> Kv<'static> {
+    pub(super) fn effect(&mut self, x: &figiran_doc::Effect, index: usize, bound: &Bound) -> Kv<'static> {
         let mut f: Fields = vec![("visible", b(x.visible))];
         let vars = [
             ("color", "colorVar"),
@@ -180,9 +180,9 @@ impl<'d> Exporter<'d> {
             ("startRadius", "startRadiusVar"),
         ];
         f.extend(vars.into_iter().filter_map(|(ours, key)| Some((key, bound.effects.get(&(index, ours))?.clone()))));
-        let blur = |f: &mut Fields, ty: &'static str, bl: &figcraft_doc::Blur| {
+        let blur = |f: &mut Fields, ty: &'static str, bl: &figiran_doc::Blur| {
             f.extend([("type", e(ty)), ("radius", fl(bl.radius))]);
-            if bl.blur_type == figcraft_doc::BlurType::Progressive {
+            if bl.blur_type == figiran_doc::BlurType::Progressive {
                 f.extend([
                     ("blurOpType", e("PROGRESSIVE")),
                     ("startRadius", fl(bl.start_radius)),

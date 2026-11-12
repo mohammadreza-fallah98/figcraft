@@ -6,7 +6,7 @@ use super::{
 impl FigApp {
     /// Dismiss the composer after a successful switch away from the Comment tool.
     pub(crate) fn clear_comment_draft_after_tool_set(&mut self, id: &str, succeeded: bool) {
-        if id == "tool.set" && succeeded && self.session.tool.tool != figcraft_engine::tools::ToolId::Comment {
+        if id == "tool.set" && succeeded && self.session.tool.tool != figiran_engine::tools::ToolId::Comment {
             self.ui.comments.draft = None;
         }
     }
@@ -53,7 +53,7 @@ impl FigApp {
     }
 
     /// Show command `id`'s error.
-    pub(crate) fn failed(&mut self, id: &str, e: &figcraft_engine::EngineError) {
+    pub(crate) fn failed(&mut self, id: &str, e: &figiran_engine::EngineError) {
         let msg = e.to_string();
         // A plugin's failure text may carry CR or terminal controls: log it escaped.
         log::warn!("{id}: {}", msg.escape_debug());
@@ -130,11 +130,11 @@ impl FigApp {
                 "dialog.createFromColor" => crate::sampled_color::request(self, &r.data),
                 "panel.shortcuts" => self.ui.shortcuts_panel = !self.ui.shortcuts_panel,
                 "palette.actions" => menus::toggle_palette(&mut self.ui),
-                "panel.design" if self.session.doc().is_ok_and(figcraft_engine::board::is_board) => self.ui.board_panel = !self.ui.board_panel,
+                "panel.design" if self.session.doc().is_ok_and(figiran_engine::board::is_board) => self.ui.board_panel = !self.ui.board_panel,
                 "panel.design" => self.ui.right_tab = RightTab::Design,
                 "board.editText" => {
-                    if let Some(id) = r.data.get("id").and_then(figcraft_engine::params::id_of)
-                        && let Err(e) = figcraft_engine::board::edit_text(&mut self.session, id)
+                    if let Some(id) = r.data.get("id").and_then(figiran_engine::params::id_of)
+                        && let Err(e) = figiran_engine::board::edit_text(&mut self.session, id)
                     {
                         self.toast(e.to_string());
                     }
@@ -193,7 +193,7 @@ impl FigApp {
                 "dialog.saveAs" => self.save_as_dialog(),
                 "dialog.colorProfile" => self.ui.color_profile = self.session.doc().ok().map(|d| d.color_profile),
                 "present" => {
-                    if let Some(start) = r.data.get("start").and_then(figcraft_engine::params::id_of) {
+                    if let Some(start) = r.data.get("start").and_then(figiran_engine::params::id_of) {
                         tabs::open_present(self, start);
                     }
                 }
@@ -223,12 +223,12 @@ impl FigApp {
                     }
                 }
                 "preview" => {
-                    if let Some(start) = r.data.get("start").and_then(figcraft_engine::params::id_of) {
+                    if let Some(start) = r.data.get("start").and_then(figiran_engine::params::id_of) {
                         self.ui.preview = Some(present::Pane::new(start, &self.session));
                     }
                 }
                 "preview.close" => self.ui.preview = None,
-                "open.help" => self.services.open_url("https://getartcraft.com/apps/figcraft"),
+                "open.help" => self.services.open_url("https://getfigiran.com/apps/figiran"),
                 // A link in text activated while editing (`text.openLink`): the engine checked it
                 // is a web or mail link.
                 "open.url" => {
@@ -245,16 +245,16 @@ impl FigApp {
                     self.ui.crop = r
                         .data
                         .get("id")
-                        .and_then(figcraft_engine::params::id_of)
+                        .and_then(figiran_engine::params::id_of)
                         .zip(r.data.get("index").and_then(Value::as_u64))
                         .map(|(id, i)| (id, i as usize));
                 }
                 "canvas.renameLabel" => {
-                    self.ui.rename_label = r.data.get("id").and_then(figcraft_engine::params::id_of).map(|id| layers::Rename { id, start: true });
+                    self.ui.rename_label = r.data.get("id").and_then(figiran_engine::params::id_of).map(|id| layers::Rename { id, start: true });
                 }
                 "layers.rename" => {
                     let ids: Vec<NodeId> =
-                        r.data.get("ids").and_then(Value::as_array).into_iter().flatten().filter_map(figcraft_engine::params::id_of).collect();
+                        r.data.get("ids").and_then(Value::as_array).into_iter().flatten().filter_map(figiran_engine::params::id_of).collect();
                     if ids.len() > 1 {
                         dialogs::open_batch_rename(self, &ids);
                     } else {

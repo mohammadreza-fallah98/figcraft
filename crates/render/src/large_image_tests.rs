@@ -4,8 +4,8 @@
 
 use std::sync::Arc;
 
-use figcraft_color::{ImageScaleMode, Paint};
-use figcraft_doc::{Document, ImageData, NodeId, NodeKind};
+use figiran_color::{ImageScaleMode, Paint};
+use figiran_doc::{Document, ImageData, NodeId, NodeKind};
 use tiny_skia::Pixmap;
 
 use crate::images::{self, DISPLAY_SIDES, MAX_CACHED_BYTES};

@@ -5,10 +5,10 @@
 //! colours of what it paints; that is exact unless two of those shapes overlap (a Vector Drawable
 //! group has no opacity of its own), which [`Compat`] decides.
 
-use figcraft_color::{BlendMode, Paint, PaintKind};
-use figcraft_doc::{Document, EffectKind, MaskType, Node, NodeId, NodeKind};
-use figcraft_geom::{Affine, BezPath, Rect, Shape};
-use figcraft_render::{FillRule, MAX_EXPORT_DEPTH};
+use figiran_color::{BlendMode, Paint, PaintKind};
+use figiran_doc::{Document, EffectKind, MaskType, Node, NodeId, NodeKind};
+use figiran_geom::{Affine, BezPath, Rect, Shape};
+use figiran_render::{FillRule, MAX_EXPORT_DEPTH};
 
 use crate::model::{Fill, GroupItem, GroupXf, Item, ItemKind, NativeStroke, PathItem};
 use crate::paint::{GradOut, gradient, nonzero};
@@ -30,8 +30,8 @@ pub(crate) struct Walker<'a> {
 
 /// Every coordinate of `p` finite and within [`MAX_COORD`].
 fn writable(p: &BezPath) -> bool {
-    use figcraft_geom::kurbo::PathEl::*;
-    let ok = |q: figcraft_geom::Point| q.x.is_finite() && q.y.is_finite() && q.x.abs() <= MAX_COORD && q.y.abs() <= MAX_COORD;
+    use figiran_geom::kurbo::PathEl::*;
+    let ok = |q: figiran_geom::Point| q.x.is_finite() && q.y.is_finite() && q.x.abs() <= MAX_COORD && q.y.abs() <= MAX_COORD;
     p.elements().iter().all(|el| match *el {
         MoveTo(a) | LineTo(a) => ok(a),
         QuadTo(a, b) => ok(a) && ok(b),
@@ -188,7 +188,7 @@ impl<'a> Walker<'a> {
             // Glyph outlines are closed: inside and outside strokes follow them, as on the canvas.
             let even = stroke::outline_even_odd(n, true);
             for (path, _) in &runs {
-                let area = figcraft_render::draw::stroke_area(n, path, true);
+                let area = figiran_render::draw::stroke_area(n, path, true);
                 for p in &n.strokes {
                     self.fill(n, p, &area, even, xf, items);
                 }
@@ -200,10 +200,10 @@ impl<'a> Walker<'a> {
         let doc = self.doc;
         let outline = match n.kind {
             NodeKind::Group | NodeKind::Page { .. } => None,
-            _ => figcraft_render::node_outline(doc, n),
+            _ => figiran_render::node_outline(doc, n),
         };
         let boolean = matches!(n.kind, NodeKind::BooleanOp { .. });
-        let closed = figcraft_doc::geometry::is_closed(n) || boolean;
+        let closed = figiran_doc::geometry::is_closed(n) || boolean;
         if closed && let Some((path, rule)) = &outline {
             for p in &n.fills {
                 self.fill(n, p, path, *rule == FillRule::EvenOdd, xf, items);
@@ -252,7 +252,7 @@ impl<'a> Walker<'a> {
                 kids.extend(self.node(*k, xf, depth + 1));
             }
             // A mask without an outline shows nothing of what it masks.
-            let Some((outline, rule)) = figcraft_render::subtree_outline(doc, m, depth + 1) else { continue };
+            let Some((outline, rule)) = figiran_render::subtree_outline(doc, m, depth + 1) else { continue };
             if let Some(g) = self.clipped(m, &baked(&outline, xf * m.transform), rule == FillRule::EvenOdd, kids) {
                 out.push(g);
             }
@@ -329,10 +329,10 @@ impl<'a> Walker<'a> {
             if area.is_none() {
                 let geom = match &n.kind {
                     NodeKind::BooleanOp { .. } => outline.cloned(),
-                    _ => figcraft_doc::geometry::stroke_geometry(n),
+                    _ => figiran_doc::geometry::stroke_geometry(n),
                 };
                 let Some(g) = geom else { return };
-                area = Some(((*figcraft_render::draw::stroke_area(n, &g, closed)).clone(), stroke::outline_even_odd(n, closed)));
+                area = Some(((*figiran_render::draw::stroke_area(n, &g, closed)).clone(), stroke::outline_even_odd(n, closed)));
             }
             if let Some((a, even)) = &area {
                 self.fill(n, p, a, *even, xf, items);
@@ -366,7 +366,7 @@ impl<'a> Walker<'a> {
         };
         let mut grad = None;
         if let PaintKind::Gradient(g) = &p.kind {
-            let diamond = g.kind == figcraft_color::GradientKind::Diamond;
+            let diamond = g.kind == figiran_color::GradientKind::Diamond;
             if diamond {
                 match self.opts.compat {
                     Compat::BestEffort => self.note(Warn::DiamondApprox, n),

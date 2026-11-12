@@ -23,10 +23,10 @@ pub enum EngineError {
     Internal { cmd: String, msg: String },
 }
 
-impl From<figcraft_doc::DocError> for EngineError {
-    fn from(e: figcraft_doc::DocError) -> Self {
+impl From<figiran_doc::DocError> for EngineError {
+    fn from(e: figiran_doc::DocError) -> Self {
         match e {
-            figcraft_doc::DocError::NoNode(id) => EngineError::NoNode(id),
+            figiran_doc::DocError::NoNode(id) => EngineError::NoNode(id),
             other => EngineError::Other(other.to_string()),
         }
     }

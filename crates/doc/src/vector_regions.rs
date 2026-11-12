@@ -8,7 +8,7 @@
 
 use std::hash::{Hash, Hasher};
 
-use figcraft_geom::{BezPath, Point, Shape};
+use figiran_geom::{BezPath, Point, Shape};
 
 use crate::vector::{VectorNetwork, WindingRule};
 

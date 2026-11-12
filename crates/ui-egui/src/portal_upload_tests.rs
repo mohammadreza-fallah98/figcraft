@@ -5,11 +5,11 @@
 use std::sync::{Arc, Mutex};
 
 use egui::Pos2;
-use figcraft_portal::api::{Login, OpenedProject, PortalError, ProjectEntry};
-use figcraft_portal::secret::MemoryStore;
-use figcraft_portal::session::{Account, Api, Portal, Projects, Status, View};
-use figcraft_portal::upload::Company;
-use figcraft_portal::{UploadError, UploadPhase, UploadRole};
+use figiran_portal::api::{Login, OpenedProject, PortalError, ProjectEntry};
+use figiran_portal::secret::MemoryStore;
+use figiran_portal::session::{Account, Api, Portal, Projects, Status, View};
+use figiran_portal::upload::Company;
+use figiran_portal::{UploadError, UploadPhase, UploadRole};
 
 use crate::live_tests::{Harness, has_text, text_center, texts};
 use crate::portal_upload::{Problem, error_text, offered, problem_with, role_of};
@@ -75,7 +75,7 @@ fn signed_in(role: &'static str) -> (Harness, Portal, Uploads) {
         Portal::new(BASE, Arc::new(Scripted { role, uploads: uploads.clone() }), Box::new(MemoryStore::default()), Box::new(|| {}), inline, None);
     h.app.ui.portal.install(Ok(portal.clone()));
     portal.begin_login().unwrap();
-    portal.handle_auth_link("figcraft://auth?code=abc");
+    portal.handle_auth_link("figiran://auth?code=abc");
     assert_eq!(portal.view().status, Status::SignedIn);
     (h, portal, uploads)
 }
@@ -179,7 +179,7 @@ fn a_company_admin_uploads_the_document_as_save_as_writes_it_and_the_document_st
     let text = String::from_utf8_lossy(body);
     assert!(text.contains("name=\"name\"\r\n\r\nUntitled\r\n"), "the project is named after the document");
     assert!(!text.contains("companyId"), "a CompanyAdmin never names a company");
-    assert!(body.windows(4).any(|w| w == b"PK\x03\x04"), "a native .figcraft archive");
+    assert!(body.windows(4).any(|w| w == b"PK\x03\x04"), "a native .figiran archive");
     drop(sent);
     assert_eq!((h.app.session.docs[0].path.clone(), h.app.session.docs[0].is_dirty()), (path_before, dirty_before), "nothing was saved or marked");
     let shapes = h.frames(2);

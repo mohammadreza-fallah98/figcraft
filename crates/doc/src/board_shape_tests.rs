@@ -1,8 +1,8 @@
 //! Board shapes: every outline stays in its box with room for text, and files keep reading the
 //! shapes they saved.
 
-use figcraft_geom::Shape;
-use figcraft_geom::kurbo::PathEl;
+use figiran_geom::Shape;
+use figiran_geom::kurbo::PathEl;
 use serde_json::json;
 
 use crate::BoardShape;

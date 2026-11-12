@@ -1,6 +1,6 @@
 //! `text.listIndent` / `text.listOutdent` report `changed` only when the document changed.
 
-use figcraft_engine::{
+use figiran_engine::{
     Session,
     doc::{ListStyle, NodeId, NodeKind},
 };

@@ -7,10 +7,10 @@
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex};
 
-use figcraft_collab::sim::Rng;
-use figcraft_collab::{Client, ClientMsg, Limits, Outgoing, Server, ServerMsg};
-use figcraft_doc::{Document, NodeId};
-use figcraft_geom::Affine;
+use figiran_collab::sim::Rng;
+use figiran_collab::{Client, ClientMsg, Limits, Outgoing, Server, ServerMsg};
+use figiran_doc::{Document, NodeId};
+use figiran_geom::Affine;
 use serde_json::json;
 
 use crate::Session;
@@ -18,7 +18,7 @@ use crate::collab_tests::{base, random_command};
 use crate::live::{Event, Role, Status};
 use crate::live_tests::{Mock, Script, info};
 
-const LINK: &str = "figcraft://join?host=127.0.0.1:47900&file=f&token=t";
+const LINK: &str = "figiran://join?host=127.0.0.1:47900&file=f&token=t";
 
 /// One person: an engine session with a scripted link, what it sent that the server hasn't had
 /// yet, and what the server sent that it hasn't taken in yet.
@@ -79,7 +79,7 @@ impl Room {
             let to: Vec<usize> = to.into_iter().filter(|i| self.people[*i].online).collect();
             for i in to {
                 // Through the binary encoding, like the network.
-                let m = figcraft_collab::message::decode(&figcraft_collab::message::encode(&msg).unwrap(), usize::MAX).unwrap();
+                let m = figiran_collab::message::decode(&figiran_collab::message::encode(&msg).unwrap(), usize::MAX).unwrap();
                 self.people[i].down.push_back(Event::Sync(m));
             }
         }
@@ -155,7 +155,7 @@ impl Room {
         for (i, p) in self.people.iter().enumerate() {
             let c = p.s.live().client().unwrap();
             assert_eq!(c.pending(), 0, "person {i}");
-            assert!(c.view() == self.server.replica(), "person {i}: {}", figcraft_collab::sim::describe(self.server.replica(), c.view()));
+            assert!(c.view() == self.server.replica(), "person {i}: {}", figiran_collab::sim::describe(self.server.replica(), c.view()));
             assert!(*p.s.doc().unwrap() == *self.server.document(), "person {i}: the canvas shows the session's document");
         }
     }
@@ -320,7 +320,7 @@ fn a_dropped_connection_keeps_editing_and_catches_up() {
 
 impl Room {
     /// Person `i` has been told to join again: the server takes them as `resume` says.
-    fn welcome_as(&mut self, i: usize, resume: Option<figcraft_collab::Resume>) {
+    fn welcome_as(&mut self, i: usize, resume: Option<figiran_collab::Resume>) {
         let ClientMsg::Hello(mut h) = Client::hello("f", "t", "Person", "") else { panic!("not a hello") };
         h.resume = resume;
         let (id, out) = self.server.join(h).unwrap();
@@ -475,7 +475,7 @@ fn a_session_out_of_step_joins_again_by_itself() {
     let joins = room.people[0].script.lock().unwrap().joined.len();
     let tabs = room.s(0).docs.len();
     // A batch from far in the future: it can't be applied.
-    room.event(0, Event::Sync(ServerMsg::Changes(figcraft_collab::Accepted { seq: 999, author: 42, batch_id: 1, changes: vec![] })));
+    room.event(0, Event::Sync(ServerMsg::Changes(figiran_collab::Accepted { seq: 999, author: 42, batch_id: 1, changes: vec![] })));
     assert_eq!(room.s(0).live().status, Status::Connecting);
     assert!(room.s(0).live().disconnected());
     assert_eq!(room.people[0].script.lock().unwrap().joined.len(), joins + 1);

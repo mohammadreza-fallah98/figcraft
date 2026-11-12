@@ -4,7 +4,7 @@ use std::collections::{BTreeMap, HashMap};
 use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::{Arc, Mutex, OnceLock, RwLock};
 
-use figcraft_geom::BezPath;
+use figiran_geom::BezPath;
 use skrifa::instance::{LocationRef, NormalizedCoord, Size};
 use skrifa::outline::{DrawSettings, OutlinePen};
 use skrifa::raw::{FileRef, TableProvider};
@@ -133,7 +133,7 @@ impl std::fmt::Debug for Face {
 
 impl Face {
     /// The tracking the font's `trak` table gives text of `size` (pixels per glyph; 0 without a
-    /// table): Apple's platform text engine adds it on its own, FigCraft's doesn't.
+    /// table): Apple's platform text engine adds it on its own, FigIran's doesn't.
     pub fn tracking(&self, size: f64) -> f64 {
         let (Some(first), Some(last)) = (self.track.first(), self.track.last()) else { return 0.0 };
         if !size.is_finite() || self.upem <= 0.0 {
@@ -197,7 +197,7 @@ impl Face {
         let subscript = script(os2.as_ref().map(|t| t.y_subscript_y_size()), os2.as_ref().map(|t| t.y_subscript_y_offset()), false, 0.14);
         let weight = {
             let w = attrs.weight.value();
-            if w.is_finite() && w > 0.0 { w.round() as u16 } else { figcraft_doc::style_weight(&style) }
+            if w.is_finite() && w > 0.0 { w.round() as u16 } else { figiran_doc::style_weight(&style) }
         };
         Some(Face {
             id: NEXT_FACE.fetch_add(1, Ordering::Relaxed),
@@ -326,7 +326,7 @@ impl Face {
     /// static fonts). Starts from the named instance matching the style name (else the weight and
     /// italic the name implies, with an optical size that follows the font size), then applies the
     /// style's custom values; every value is clamped to its axis.
-    pub fn axis_values(&self, style: &figcraft_doc::TextStyle) -> Vec<f64> {
+    pub fn axis_values(&self, style: &figiran_doc::TextStyle) -> Vec<f64> {
         if self.axes.is_empty() {
             return Vec::new();
         }
@@ -340,7 +340,7 @@ impl Face {
             let italic = style.font_style.to_ascii_lowercase().contains("italic") && !self.italic;
             for (slot, a) in v.iter_mut().zip(&self.axes) {
                 match a.tag.as_str() {
-                    "wght" if !own_style => *slot = f64::from(figcraft_doc::style_weight(&style.font_style)),
+                    "wght" if !own_style => *slot = f64::from(figiran_doc::style_weight(&style.font_style)),
                     "ital" if italic => *slot = 1.0,
                     "slnt" if italic => *slot = a.min,
                     "opsz" if style.font_size.is_finite() => *slot = style.font_size,
@@ -438,7 +438,7 @@ fn has_style(f: &Face, style: &str) -> bool {
 /// A style name's weight before its file is read: the usual names, and Hiragino's "W3" (300).
 fn pending_weight(style: &str) -> i32 {
     let w = norm_style(style).strip_prefix('w').and_then(|n| n.parse::<i32>().ok()).filter(|n| (0..=9).contains(n));
-    w.map_or(i32::from(figcraft_doc::style_weight(style)), |n| n * 100)
+    w.map_or(i32::from(figiran_doc::style_weight(style)), |n| n * 100)
 }
 
 /// How far a face named `have` is from `style`, judged by name before its file is read: 0 for the
@@ -460,7 +460,7 @@ fn variation_info(f: &skrifa::FontRef) -> (Vec<Axis>, Vec<NamedInstance>) {
     let axes: Vec<Axis> = all
         .iter()
         .filter_map(|a| {
-            let tag = String::from_utf8(a.tag().to_be_bytes().to_vec()).ok().filter(|t| figcraft_doc::valid_axis_tag(t))?;
+            let tag = String::from_utf8(a.tag().to_be_bytes().to_vec()).ok().filter(|t| figiran_doc::valid_axis_tag(t))?;
             let (min, default, max) = (f64::from(a.min_value()), f64::from(a.default_value()), f64::from(a.max_value()));
             if !(min.is_finite() && default.is_finite() && max.is_finite()) || min > max {
                 return None;
@@ -546,7 +546,7 @@ fn names(f: &skrifa::FontRef) -> (Option<String>, Option<String>) {
 
 /// Families tried, in order, for characters a text's own font lacks. Every script face craft-fonts
 /// can embed (Noto Sans Arabic, Thai, Hebrew, Devanagari, Georgian) is here after the Latin faces,
-/// so a web build that embeds one (`FIGCRAFT_EMBED_SCRIPTS`, #1902) draws that script in an Inter
+/// so a web build that embeds one (`FIGIRAN_EMBED_SCRIPTS`, #1902) draws that script in an Inter
 /// document: the browser has no other fonts. The symbol fonts come last: Apple Symbols (macOS),
 /// Segoe UI Symbol (Windows) and the Noto symbol and math fonts (Linux), for signs such as ⌖ and ⤒
 /// that no text face has.
@@ -1040,7 +1040,7 @@ impl FontDb {
         if let Some(f) = faces.iter().find(|f| norm_style(&f.style) == want).or_else(|| faces.iter().find(|f| has_style(f, style))) {
             return Some((*f).clone());
         }
-        let want_w = i32::from(figcraft_doc::style_weight(style));
+        let want_w = i32::from(figiran_doc::style_weight(style));
         let want_i = style.to_lowercase().contains("italic");
         // A variable face covers its whole weight range, and an italic or slant axis can slant it.
         let cost = |f: &Arc<Face>| {
@@ -1541,7 +1541,7 @@ pub fn family_style_weights(family: &str) -> Vec<(String, u16)> {
 }
 
 /// Scan system fonts into the global db (desktop; a no-op on the web, or with
-/// `FIGCRAFT_NO_SYSTEM_FONTS` set). Runs once per process: a concurrent caller waits for that scan.
+/// `FIGIRAN_NO_SYSTEM_FONTS` set). Runs once per process: a concurrent caller waits for that scan.
 /// The directory walk runs without holding the database lock; results are merged in one short write.
 pub fn scan_system_fonts() {
     SCANNED.get_or_init(|| {
@@ -1561,7 +1561,7 @@ pub fn scan_system_fonts() {
 
 /// Walk the system font folders again, for fonts installed while the app runs (the first scan is
 /// once per process): the families that were unknown before, and every family that gained faces.
-/// Before the first scan this is that scan; a no-op on the web or with `FIGCRAFT_NO_SYSTEM_FONTS`.
+/// Before the first scan this is that scan; a no-op on the web or with `FIGIRAN_NO_SYSTEM_FONTS`.
 pub fn rescan_system_fonts() -> Rescan {
     #[cfg(not(target_arch = "wasm32"))]
     if !system_fonts_opted_out() {
@@ -1637,14 +1637,14 @@ pub fn local_only(family: &str) -> bool {
     db().read().unwrap_or_else(std::sync::PoisonError::into_inner).local_only(family)
 }
 
-/// `FIGCRAFT_NO_SYSTEM_FONTS` is set (and not `0`), or the process opted out
+/// `FIGIRAN_NO_SYSTEM_FONTS` is set (and not `0`), or the process opted out
 /// ([`opt_out_of_system_fonts`]): renders use only the embedded fonts.
 #[cfg(not(target_arch = "wasm32"))]
 fn system_fonts_opted_out() -> bool {
-    OPTED_OUT.load(Ordering::Relaxed) || std::env::var_os("FIGCRAFT_NO_SYSTEM_FONTS").is_some_and(|v| !v.is_empty() && v != "0")
+    OPTED_OUT.load(Ordering::Relaxed) || std::env::var_os("FIGIRAN_NO_SYSTEM_FONTS").is_some_and(|v| !v.is_empty() && v != "0")
 }
 
-/// Use only the embedded fonts for the rest of the process, as `FIGCRAFT_NO_SYSTEM_FONTS` does
+/// Use only the embedded fonts for the rest of the process, as `FIGIRAN_NO_SYSTEM_FONTS` does
 /// (headless runs with `--no-system-fonts`): no call scans the system fonts after this.
 pub fn opt_out_of_system_fonts() {
     OPTED_OUT.store(true, Ordering::Relaxed);

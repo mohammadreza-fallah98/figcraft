@@ -3,10 +3,10 @@
 
 use super::tests::pointers;
 use super::*;
-use figcraft_doc::proto::{
+use figiran_doc::proto::{
     Action, DeviceRotation, Direction, Easing, Overflow, OverlayPosition, PrototypeSettings, ScrollPosition, Transition, Trigger,
 };
-use figcraft_doc::{VariableType, VariableValue};
+use figiran_doc::{VariableType, VariableValue};
 use serde_json::json;
 
 pub(super) const THEME: &str = "VariableCollectionId:1:1";
@@ -346,7 +346,7 @@ fn junk_in_prototypes_and_variables_never_panics() {
                 assert!(doc.validate().is_empty(), "{p} = {j}");
                 for n in doc.nodes() {
                     for it in &n.interactions {
-                        assert!(figcraft_doc::proto::walk(&it.actions).filter_map(Action::dest).all(|d| doc.contains(d)), "{p} = {j}");
+                        assert!(figiran_doc::proto::walk(&it.actions).filter_map(Action::dest).all(|d| doc.contains(d)), "{p} = {j}");
                     }
                     assert!(n.bound.values().all(|v| doc.variables.get(v).is_some()), "{p} = {j}");
                 }

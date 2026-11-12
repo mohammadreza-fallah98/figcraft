@@ -3,10 +3,10 @@
 use std::sync::Arc;
 
 use egui::{Align2, Color32, CornerRadius, Pos2, Rect, Sense, Shape, Stroke, StrokeKind, Ui, pos2, vec2};
-use figcraft_doc::{Document, NodeId, NodeKind};
-use figcraft_engine::Preedit;
-use figcraft_engine::tools::{PointerEvent, PointerKind, ToolId, selection_box, selection_frame};
-use figcraft_geom::Point;
+use figiran_doc::{Document, NodeId, NodeKind};
+use figiran_engine::Preedit;
+use figiran_engine::tools::{PointerEvent, PointerKind, ToolId, selection_box, selection_frame};
+use figiran_geom::Point;
 use serde_json::json;
 
 use crate::FigApp;
@@ -49,8 +49,8 @@ pub mod widget_bar;
 pub struct CanvasState {
     pub rect: Rect,
     texture: Option<egui::TextureHandle>,
-    tex_view: Option<figcraft_render::View>,
-    /// The file ([`figcraft_engine::DocState::uid`]) and page the texture shows: it is drawn only
+    tex_view: Option<figiran_render::View>,
+    /// The file ([`figiran_engine::DocState::uid`]) and page the texture shows: it is drawn only
     /// on them.
     tex_of: Option<(u64, NodeId)>,
     /// The texture is a coarse preview (see [`crate::render_worker`]).
@@ -63,9 +63,9 @@ pub struct CanvasState {
     kept: Vec<Kept>,
     submitted: Option<JobKey>,
     /// The view of the last render asked for.
-    want_view: Option<figcraft_render::View>,
+    want_view: Option<figiran_render::View>,
     /// What the last canvas render had to do (shown by `ui.inspect`).
-    pub render_work: Option<figcraft_render::Work>,
+    pub render_work: Option<figiran_render::Work>,
     /// From asking for a render to its preview, and its refined image, handed to egui as the
     /// canvas texture (ms; the texture is uploaded when that frame is painted).
     pub preview_latency_ms: Option<f64>,
@@ -130,7 +130,7 @@ const KEPT: usize = 4;
 /// A refined canvas image of a file and page not shown now ([`CanvasState::kept`]).
 struct Kept {
     texture: egui::TextureHandle,
-    view: figcraft_render::View,
+    view: figiran_render::View,
     of: (u64, NodeId),
     seq: u64,
 }
@@ -187,7 +187,7 @@ impl FigApp {
             return;
         }
         self.canvas.preedit = self.preedit_key().and_then(|key| {
-            let (doc, range, cursor) = figcraft_engine::textedit::preedit_doc(&self.session)?;
+            let (doc, range, cursor) = figiran_engine::textedit::preedit_doc(&self.session)?;
             Some(PreeditView { key, doc: Arc::new(doc), range, cursor })
         });
     }
@@ -325,7 +325,7 @@ pub fn show(app: &mut FigApp, ui: &mut Ui, worker: &mut Worker) {
         };
         match &mut app.canvas.texture {
             Some(t) => t.set(done.image, filter),
-            None => app.canvas.texture = Some(ctx.load_texture("figcraft-canvas", done.image, filter)),
+            None => app.canvas.texture = Some(ctx.load_texture("figiran-canvas", done.image, filter)),
         }
         let latency = Some(done.at.elapsed().as_secs_f64() * 1000.0);
         if done.coarse {
@@ -393,7 +393,7 @@ pub fn show(app: &mut FigApp, ui: &mut Ui, worker: &mut Worker) {
 
 /// The image's screen rect; align native-density renders to device pixels to avoid linear filtering
 /// blending neighbouring texels. Stale and pixel-preview renders retain their original projection.
-pub(super) fn presented_image_rect(tl: Pos2, view: &figcraft_render::View, zoom: f64, ppp: f32, pixel_preview: bool) -> Rect {
+pub(super) fn presented_image_rect(tl: Pos2, view: &figiran_render::View, zoom: f64, ppp: f32, pixel_preview: bool) -> Rect {
     let w = (f64::from(view.width) / view.scale * zoom) as f32;
     let h = (f64::from(view.height) / view.scale * zoom) as f32;
     let native_density = !pixel_preview
@@ -409,7 +409,7 @@ pub(super) fn presented_image_rect(tl: Pos2, view: &figcraft_render::View, zoom:
 
 /// What the canvas says to screen readers: the selected layer ("Rectangle 1, Rectangle, 120 by 80,
 /// selected"), how many are selected, or the page with nothing selected.
-pub fn describe(s: &figcraft_engine::Session) -> String {
+pub fn describe(s: &figiran_engine::Session) -> String {
     let Ok(ds) = s.ds() else { return String::new() };
     match ds.selection.as_slice() {
         [] => trf("{page}, nothing selected", &[("page", &ds.doc.node(ds.page).map(|p| p.name.as_str()).unwrap_or(tr("Page")))]),

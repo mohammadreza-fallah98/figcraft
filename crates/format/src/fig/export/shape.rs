@@ -214,9 +214,9 @@ impl<'d> Exporter<'d> {
                         st.push((
                             "handleMirroring",
                             e(match m {
-                                figcraft_doc::HandleMirroring::None => "NONE",
-                                figcraft_doc::HandleMirroring::Angle => "ANGLE",
-                                figcraft_doc::HandleMirroring::AngleAndLength => "ANGLE_AND_LENGTH",
+                                figiran_doc::HandleMirroring::None => "NONE",
+                                figiran_doc::HandleMirroring::Angle => "ANGLE",
+                                figiran_doc::HandleMirroring::AngleAndLength => "ANGLE_AND_LENGTH",
                             }),
                         ));
                     }
@@ -270,7 +270,7 @@ impl<'d> Exporter<'d> {
             if net.regions.iter().any(|r| r.winding != winding) {
                 self.warn("vectors whose filled areas use different winding rules use the first one's in their outline");
             }
-            self.geometry("fillGeometry", &figcraft_doc::geometry::drawn_network(net, n.corners.smoothing).fill_path(), winding, f);
+            self.geometry("fillGeometry", &figiran_doc::geometry::drawn_network(net, n.corners.smoothing).fill_path(), winding, f);
         }
     }
 
@@ -295,7 +295,7 @@ impl<'d> Exporter<'d> {
         if !(plain && weight.is_finite() && weight > 0.0 && w.is_finite() && h.is_finite()) {
             return;
         }
-        let whole = matches!(n.kind, NodeKind::Ellipse { sweep, inner, .. } if inner == 0.0 && figcraft_doc::geom::full_sweep(sweep));
+        let whole = matches!(n.kind, NodeKind::Ellipse { sweep, inner, .. } if inner == 0.0 && figiran_doc::geom::full_sweep(sweep));
         if boxy || whole {
             let (out, inset) = match sp.align {
                 StrokeAlign::Inside => (0.0, weight),
@@ -309,10 +309,10 @@ impl<'d> Exporter<'d> {
                     return None;
                 }
                 let mut p = if whole {
-                    figcraft_doc::geom::ellipse(gw, gh, 0.0, std::f64::consts::TAU, 0.0)
+                    figiran_doc::geom::ellipse(gw, gh, 0.0, std::f64::consts::TAU, 0.0)
                 } else {
                     let radii = n.corners.radii.map(|r| if r > 0.0 { (r + d).max(0.0) } else { 0.0 });
-                    figcraft_doc::geom::rounded_rect(gw, gh, radii, n.corners.smoothing)
+                    figiran_doc::geom::rounded_rect(gw, gh, radii, n.corners.smoothing)
                 };
                 p.apply_affine(Affine::translate((-d, -d)));
                 Some(p)
@@ -322,12 +322,12 @@ impl<'d> Exporter<'d> {
             self.geometry("strokeGeometry", &ring, WindingRule::EvenOdd, f);
         } else if sp.align == StrokeAlign::Center {
             let path = match &n.kind {
-                NodeKind::Vector { .. } => figcraft_doc::geometry::stroke_geometry(n),
+                NodeKind::Vector { .. } => figiran_doc::geometry::stroke_geometry(n),
                 NodeKind::Text(_) => None,
-                _ => figcraft_doc::geometry::shape_path(n),
+                _ => figiran_doc::geometry::shape_path(n),
             };
             let Some(path) = path.filter(|p| !p.elements().is_empty()) else { return };
-            use figcraft_doc::geom::kurbo::{Cap, Join, Stroke, StrokeOpts, stroke};
+            use figiran_doc::geom::kurbo::{Cap, Join, Stroke, StrokeOpts, stroke};
             let cap = match sp.cap_start {
                 StrokeCap::Round => Cap::Round,
                 StrokeCap::Square => Cap::Square,

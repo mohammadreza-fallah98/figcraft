@@ -1,7 +1,7 @@
 //! Boards sync: the file kind reaches joiners in their snapshot, and a layer's board metadata (a
 //! connector's ends, a sticky's author) syncs as one property, through both encodings.
 
-use figcraft_doc::{BoardItem, Connector, Document, End, FileKind, NodeKind, Routing, Side};
+use figiran_doc::{BoardItem, Connector, Document, End, FileKind, NodeKind, Routing, Side};
 
 use crate::change::{Change, DocProp, Prop};
 use crate::replica::{Mode, Replica};

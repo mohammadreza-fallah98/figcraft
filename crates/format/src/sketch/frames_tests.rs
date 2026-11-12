@@ -1,7 +1,7 @@
 //! Sketch 2025 and newer: frames and graphics (groups with a `groupBehavior`), stacks, corners in
 //! the style, pins and sizing, border sides.
 
-use figcraft_doc::{Document, LayoutMode, Node, NodeKind};
+use figiran_doc::{Document, LayoutMode, Node, NodeKind};
 use serde_json::{Value, json};
 
 use super::fixture::*;
@@ -76,8 +76,8 @@ fn stacks_become_auto_layout() {
     let order: Vec<&str> = r.children.iter().map(|c| doc.node(*c).unwrap().name.as_str()).collect();
     assert_eq!(order, ["First", "Second", "Free"], "flow order is the reverse of Sketch's list");
     assert!(node(&doc, "Free").child_layout.absolute);
-    assert_eq!(node(&doc, "Second").child_layout.sizing_h, figcraft_doc::Sizing::Fill);
-    assert_eq!(r.child_layout.sizing_v, figcraft_doc::Sizing::Hug);
+    assert_eq!(node(&doc, "Second").child_layout.sizing_h, figiran_doc::Sizing::Fill);
+    assert_eq!(r.child_layout.sizing_v, figiran_doc::Sizing::Hug);
     let c = node(&doc, "Column").layout.as_ref().unwrap();
     assert_eq!(c.mode, LayoutMode::Vertical);
     assert!(format!("{c:?}").contains("SpaceBetween"), "{c:?}");
@@ -193,7 +193,7 @@ fn masters_and_instances_keep_frame_styles_and_stacks() {
 
 fn solid_of(n: &Node) -> Option<[f32; 3]> {
     n.fills.iter().find_map(|p| match &p.kind {
-        figcraft_doc::color::PaintKind::Solid { color } => Some([color.r, color.g, color.b]),
+        figiran_doc::color::PaintKind::Solid { color } => Some([color.r, color.g, color.b]),
         _ => None,
     })
 }
@@ -239,7 +239,7 @@ fn text_color_overrides() {
     let m = master("M", "S", "Button", 100.0, 40.0, vec![label]);
     let doc = open_symbols(vec![instance("I", "S", 0.0, 0.0, 100.0, 40.0, &[("Label_textColor", color(1.0, 0.0, 0.0, 1.0))])], vec![m]);
     let n = in_instance(&doc, "I", "Label");
-    let red = |p: &figcraft_doc::color::Paint| matches!(p.kind, figcraft_doc::color::PaintKind::Solid { color } if color.r == 1.0 && color.g == 0.0);
+    let red = |p: &figiran_doc::color::Paint| matches!(p.kind, figiran_doc::color::PaintKind::Solid { color } if color.r == 1.0 && color.g == 0.0);
     let NodeKind::Text(td) = &n.kind else { panic!("not text") };
     assert!(n.fills.iter().any(red) || td.style.fills.as_ref().is_some_and(|f| f.iter().any(red)), "{:?} {:?}", n.fills, td.style.fills);
 }
@@ -251,9 +251,9 @@ fn blurs_list() {
     let m = styled(rect("Comet", 50.0, 0.0, 40.0, 4.0), "blurs", json!([blur(1, 6.0)]));
     let b = styled(rect("Glass", 100.0, 0.0, 40.0, 40.0), "blurs", json!([blur(3, 10.0)]));
     let (doc, warnings) = open(vec![g, m, b]);
-    assert!(matches!(node(&doc, "Glow").effects[0].kind, figcraft_doc::EffectKind::LayerBlur(_)));
-    assert!(matches!(node(&doc, "Glass").effects[0].kind, figcraft_doc::EffectKind::BackgroundBlur(_)));
-    assert!(matches!(node(&doc, "Comet").effects[0].kind, figcraft_doc::EffectKind::LayerBlur(_)), "motion blur drawn as a layer blur");
+    assert!(matches!(node(&doc, "Glow").effects[0].kind, figiran_doc::EffectKind::LayerBlur(_)));
+    assert!(matches!(node(&doc, "Glass").effects[0].kind, figiran_doc::EffectKind::BackgroundBlur(_)));
+    assert!(matches!(node(&doc, "Comet").effects[0].kind, figiran_doc::EffectKind::LayerBlur(_)), "motion blur drawn as a layer blur");
     assert!(warnings.iter().any(|w| w.contains("motion")), "{warnings:?}");
 }
 
@@ -272,8 +272,8 @@ fn text_sizing_2025() {
         NodeKind::Text(td) => td.auto_resize,
         _ => panic!("not text"),
     };
-    assert_eq!(auto("Fixed"), figcraft_doc::TextAutoResize::Height);
-    assert_eq!(auto("Fit"), figcraft_doc::TextAutoResize::WidthAndHeight);
+    assert_eq!(auto("Fixed"), figiran_doc::TextAutoResize::Height);
+    assert_eq!(auto("Fit"), figiran_doc::TextAutoResize::WidthAndHeight);
 }
 
 #[test]
@@ -311,7 +311,7 @@ fn inner_shadows_in_the_shadow_list() {
         json!({"_class": "shadow", "isEnabled": true, "blurRadius": 4, "offsetX": 0, "offsetY": 2, "spread": 0, "color": color(0.0, 0.0, 0.0, 0.5)});
     sh["isInnerShadow"] = json!(true);
     let (doc, _) = open(vec![styled(rect("Inset", 0.0, 0.0, 40.0, 40.0), "shadows", json!([sh]))]);
-    assert!(matches!(node(&doc, "Inset").effects[0].kind, figcraft_doc::EffectKind::InnerShadow(_)));
+    assert!(matches!(node(&doc, "Inset").effects[0].kind, figiran_doc::EffectKind::InnerShadow(_)));
 }
 
 #[test]
@@ -343,7 +343,7 @@ fn tints_keep_opacity() {
     g["style"] = json!({"_class": "style", "fills": [tint]});
     let (doc, _) = open(vec![g]);
     let f = &node(&doc, "Faint").fills[0];
-    let figcraft_doc::color::PaintKind::Solid { color } = &f.kind else { panic!("not solid") };
+    let figiran_doc::color::PaintKind::Solid { color } = &f.kind else { panic!("not solid") };
     assert_eq!((color.r, color.g), (1.0, 0.0));
     assert!((color.a * f.opacity - 0.25).abs() < 1e-3, "{color:?} {}", f.opacity);
     assert!(node(&doc, "Tinted").fills.is_empty());
@@ -359,10 +359,10 @@ fn glass_and_progressive_blurs() {
         styled(rect("Glass", 0.0, 0.0, 40.0, 40.0), "blurs", json!([glass])),
         styled(rect("Prog", 50.0, 0.0, 40.0, 40.0), "blurs", json!([prog])),
     ]);
-    assert!(matches!(node(&doc, "Glass").effects[0].kind, figcraft_doc::EffectKind::Glass(_)), "{warnings:?}");
-    let figcraft_doc::EffectKind::BackgroundBlur(b) = &node(&doc, "Prog").effects[0].kind else { panic!("not a background blur") };
-    assert_eq!(b.blur_type, figcraft_doc::BlurType::Progressive);
-    // Sketch's radius is the blur's standard deviation; FigCraft's twice it.
+    assert!(matches!(node(&doc, "Glass").effects[0].kind, figiran_doc::EffectKind::Glass(_)), "{warnings:?}");
+    let figiran_doc::EffectKind::BackgroundBlur(b) = &node(&doc, "Prog").effects[0].kind else { panic!("not a background blur") };
+    assert_eq!(b.blur_type, figiran_doc::BlurType::Progressive);
+    // Sketch's radius is the blur's standard deviation; FigIran's twice it.
     assert_eq!((b.start_radius, b.radius), (48.0, 0.0));
 }
 
@@ -476,7 +476,7 @@ fn stretching_stacks_fill_items_across() {
         let n = p.children.iter().filter_map(|c| doc.node(*c)).find(|n| n.name == name).unwrap();
         n.child_layout.sizing_h
     };
-    use figcraft_doc::Sizing as LayoutSizing;
+    use figiran_doc::Sizing as LayoutSizing;
     assert_eq!(sizing("Start", "Fixed"), LayoutSizing::Fixed);
     assert_eq!(sizing("Stretch", "Fixed"), LayoutSizing::Fill);
     assert_eq!(sizing("Stretch", "Hug"), LayoutSizing::Fill);

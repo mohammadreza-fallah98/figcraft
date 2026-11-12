@@ -1,8 +1,8 @@
 //! Noise and texture: grains in the layer's own coordinates (stable under pans), colour modes,
 //! size and density; texture scattering edges, clipped or not.
 
-use figcraft_color::{Color, Paint};
-use figcraft_doc::{Document, Effect, EffectKind, NodeId, NodeKind, Noise, NoiseMode, Texture};
+use figiran_color::{Color, Paint};
+use figiran_doc::{Document, Effect, EffectKind, NodeId, NodeKind, Noise, NoiseMode, Texture};
 
 use super::*;
 
@@ -118,7 +118,7 @@ fn grains_stay_put_where_their_edges_fall_on_pixel_centres() {
 
 #[test]
 fn noise_blend_mode_applies() {
-    let (d, r) = square(noise(Noise { density: 1.0, color: Color::WHITE, blend: figcraft_color::BlendMode::Multiply, ..Noise::default() }));
+    let (d, r) = square(noise(Noise { density: 1.0, color: Color::WHITE, blend: figiran_color::BlendMode::Multiply, ..Noise::default() }));
     // White multiplied changes nothing.
     assert!(inside(&render_at(&d, r, (0.0, 0.0), 1.0)).iter().all(|c| *c == [128, 128, 128, 255]));
 }
@@ -166,7 +166,7 @@ fn hostile_grain_values_do_not_crash() {
 /// far more.)
 #[test]
 fn texture_moves_far_into_a_wide_layer_stay_put() {
-    use figcraft_color::{ColorStop, Gradient, GradientKind};
+    use figiran_color::{ColorStop, Gradient, GradientKind};
     let mut d = Document::new("wide");
     let p = d.first_page().unwrap();
     let r = d.create(p, NodeKind::Rectangle, "Stripes", 0.0, 0.0, 2400.0, 60.0).unwrap();

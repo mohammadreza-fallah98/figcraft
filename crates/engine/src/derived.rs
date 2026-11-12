@@ -71,7 +71,7 @@ pub fn normalize(doc: &mut Document, before: &Document) {
     // 0b. Fill and hug only where they can apply (a layer moved out of auto layout, a parent that
     // started to hug or lost auto layout): the rest becomes fixed at its current size.
     for id in live(doc, &touched) {
-        figcraft_layout::coherent_sizing(doc, id);
+        figiran_layout::coherent_sizing(doc, id);
     }
     touched.extend(doc.take_dirty());
     // 1. Text auto-size (a sticky's note first takes the size its length calls for).
@@ -79,14 +79,14 @@ pub fn normalize(doc: &mut Document, before: &Document) {
     touched.extend(doc.take_dirty());
     for id in live(doc, &touched) {
         let Some(n) = doc.node(id) else { continue };
-        if let Some((w, h)) = figcraft_text::auto_size(n)
+        if let Some((w, h)) = figiran_text::auto_size(n)
             && ((w - n.width).abs() > 1e-6 || (h - n.height).abs() > 1e-6)
         {
             let dw = w - n.width;
             let anchor_right = keeps_right_edge(doc, before, n);
-            figcraft_layout::set_size(doc, id, w, h);
+            figiran_layout::set_size(doc, id, w, h);
             if anchor_right && let Some(n) = doc.node_mut(id) {
-                n.transform *= figcraft_geom::kurbo::Affine::translate((-dw, 0.0));
+                n.transform *= figiran_geom::kurbo::Affine::translate((-dw, 0.0));
             }
         }
     }
@@ -158,7 +158,7 @@ pub fn normalize(doc: &mut Document, before: &Document) {
             .into_iter()
             .filter_map(|i| doc.node_arc(i).map(|a| (a.clone(), doc.dirty().contains(&i))))
             .collect();
-        figcraft_layout::layout_frame(doc, f, &m);
+        figiran_layout::layout_frame(doc, f, &m);
         for (a, was_dirty) in kept {
             doc.keep_if_unchanged(a, was_dirty);
         }
@@ -200,7 +200,7 @@ pub(crate) fn only_moved_layers(doc: &mut Document, before: &Document, touched: 
         if Arc::ptr_eq(b, n) || b.transform == n.transform {
             continue;
         }
-        let copied = |n: &Node| matches!(n.kind, figcraft_doc::NodeKind::Component { .. } | figcraft_doc::NodeKind::Instance { .. });
+        let copied = |n: &Node| matches!(n.kind, figiran_doc::NodeKind::Component { .. } | figiran_doc::NodeKind::Instance { .. });
         if std::iter::successors(Some(&**n), |n| n.parent.and_then(|p| doc.node(p))).any(copied) {
             continue;
         }
@@ -221,7 +221,7 @@ pub(crate) fn only_moved_layers(doc: &mut Document, before: &Document, touched: 
 /// Whether auto-width text `n` keeps its right edge when its width changes: it was already
 /// right-aligned auto-width text before the edit and no auto layout flow places it.
 fn keeps_right_edge(doc: &Document, before: &Document, n: &Node) -> bool {
-    use figcraft_doc::{TextAlignH, TextAutoResize};
+    use figiran_doc::{TextAlignH, TextAutoResize};
     let right_auto = |n: &Node| n.kind.text().is_some_and(|t| t.align_h == TextAlignH::Right && t.auto_resize == TextAutoResize::WidthAndHeight);
     let in_flow = !n.child_layout.absolute && n.parent.and_then(|p| doc.node(p)).is_some_and(|p| p.layout.is_some() && p.kind.is_frame_like());
     right_auto(n) && before.node(n.id).is_some_and(right_auto) && !in_flow
@@ -264,7 +264,7 @@ fn binding_scope(doc: &Document, before: &Document, touched: &BTreeSet<NodeId>) 
         return None;
     }
     let main = |n: &Node| match n.kind {
-        figcraft_doc::NodeKind::Instance { component, .. } => Some(component),
+        figiran_doc::NodeKind::Instance { component, .. } => Some(component),
         _ => None,
     };
     let mut out = BTreeSet::new();
@@ -280,7 +280,7 @@ fn binding_scope(doc: &Document, before: &Document, touched: &BTreeSet<NodeId>) 
         } else {
             out.insert(id);
         }
-        if modes && matches!(n.kind, figcraft_doc::NodeKind::Component { .. }) {
+        if modes && matches!(n.kind, figiran_doc::NodeKind::Component { .. }) {
             for i in components::instances_of(doc, id) {
                 out.extend(doc.subtree(i));
             }
@@ -293,7 +293,7 @@ fn binding_scope(doc: &Document, before: &Document, touched: &BTreeSet<NodeId>) 
 /// design `touched` changed (added, removed or edited; the handoff status itself and hiding a
 /// section's contents don't count).
 fn mark_dev_changes(doc: &mut Document, before: &Document, touched: &BTreeSet<NodeId>) {
-    let ready = |d: &Document, id: NodeId| d.node(id).is_some_and(|n| n.dev_status == figcraft_doc::DevStatus::ReadyForDev);
+    let ready = |d: &Document, id: NodeId| d.node(id).is_some_and(|n| n.dev_status == figiran_doc::DevStatus::ReadyForDev);
     let mut changed: BTreeSet<NodeId> = BTreeSet::new();
     for &id in touched {
         // Ready-for-dev frames around it first (the cheap test).
@@ -325,7 +325,7 @@ fn mark_dev_changes(doc: &mut Document, before: &Document, touched: &BTreeSet<No
     }
     // Snapshots last until the change is resolved, the layer is marked again or it's deleted.
     if !doc.dev_snapshots.is_empty() {
-        let keep = |d: &Document, id: NodeId| d.node(id).is_some_and(|n| n.dev_status == figcraft_doc::DevStatus::ReadyForDev && n.dev_changed);
+        let keep = |d: &Document, id: NodeId| d.node(id).is_some_and(|n| n.dev_status == figiran_doc::DevStatus::ReadyForDev && n.dev_changed);
         let stale: Vec<NodeId> = doc.dev_snapshots.keys().copied().filter(|id| !keep(doc, *id)).collect();
         for id in stale {
             doc.dev_snapshots.remove(&id);

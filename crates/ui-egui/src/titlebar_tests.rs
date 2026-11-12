@@ -3,7 +3,7 @@
 //! resize it. A system-drawn title bar leaves all of that to the system.
 
 use egui::{Event, PointerButton, Pos2, RawInput, Rect, ResizeDirection, ViewportCommand, ViewportId, pos2, vec2};
-use figcraft_engine::Session;
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::{FigApp, NoServices, TitleBar};
@@ -313,9 +313,9 @@ fn closing_a_tab_with_unsaved_changes_asks() {
 /// where with Save as first and the tab stays open until it is saved.
 #[test]
 fn save_in_the_tab_question_saves_then_closes() {
-    let dir = std::env::temp_dir().join(format!("figcraft-tab-close-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("figiran-tab-close-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
-    let path = dir.join("kept.figcraft");
+    let path = dir.join("kept.figiran");
     let mut u = Ui::new(TitleBar::Custom);
     u.app.session.execute("file.new", &json!({})).unwrap();
     u.app.session.execute("doc.switch", &json!({"index": 0})).unwrap();

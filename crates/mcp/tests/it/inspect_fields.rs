@@ -1,7 +1,7 @@
 //! Compact trees are built by the backend, including every size-budget retry.
 
 use crate::common::Client;
-use figcraft_mcp::{Backend, Headless, call_tool};
+use figiran_mcp::{Backend, Headless, call_tool};
 use serde_json::{Value, json};
 
 fn tree(mut create: impl FnMut(Value) -> Value) -> Value {

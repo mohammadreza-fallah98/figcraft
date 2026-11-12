@@ -1,4 +1,4 @@
-//! FigCraft's icon set, drawn in code from simple primitives on a 16×16 grid. Original artwork
+//! FigIran's icon set, drawn in code from simple primitives on a 16×16 grid. Original artwork
 //! (MIT OR Apache-2.0): no third-party icons are used anywhere.
 //!
 //! The grid is pixel-exact at 16 px: 1-unit strokes sit on half coordinates (pixel centres) and
@@ -315,10 +315,10 @@ pub fn button(ui: &mut egui::Ui, icon: Icon, size: f32, active: bool, tooltip: &
 
 /// The mark of a file of `kind` on tabs and file rows: a pen nib for design files, a sticky note
 /// for boards.
-pub fn file_mark(kind: figcraft_doc::FileKind) -> Icon {
+pub fn file_mark(kind: figiran_doc::FileKind) -> Icon {
     match kind {
-        figcraft_doc::FileKind::Design => Icon::PenNib,
-        figcraft_doc::FileKind::Board => Icon::Board,
+        figiran_doc::FileKind::Design => Icon::PenNib,
+        figiran_doc::FileKind::Board => Icon::Board,
     }
 }
 
@@ -441,7 +441,7 @@ mod tests {
     /// The Design panel's Rotation field shows an icon of its own, not Corner radius's (#256).
     #[test]
     fn rotation_and_corner_radius_fields_show_different_icons() {
-        let mut s = figcraft_engine::Session::new();
+        let mut s = figiran_engine::Session::new();
         let r = s.execute("shape.rectangle", &serde_json::json!({"x": 0, "y": 0, "width": 100, "height": 80})).unwrap()["id"].clone();
         s.execute("select.set", &serde_json::json!({"ids": [r]})).unwrap();
         let mut u = crate::layers_drag_tests::Ui::new(s);

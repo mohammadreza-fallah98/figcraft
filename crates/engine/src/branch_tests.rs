@@ -1,10 +1,10 @@
 //! Branches through commands: create, edit on both sides, review, resolve, merge as one undo step,
 //! update from main, archive, saving with the file, and a fuzz test over random real commands.
 
-use figcraft_collab::merge::{Key, Side, plan};
-use figcraft_collab::sim::Rng;
-use figcraft_collab::{Change, DocProp, Mode, Prop, Replica, Target};
-use figcraft_doc::{Document, NodeId, NodeKind};
+use figiran_collab::merge::{Key, Side, plan};
+use figiran_collab::sim::Rng;
+use figiran_collab::{Change, DocProp, Mode, Prop, Replica, Target};
+use figiran_doc::{Document, NodeId, NodeKind};
 use serde_json::{Value, json};
 
 use crate::Session;
@@ -46,12 +46,12 @@ fn edits_on_both_sides_merge_as_one_undo_step() {
     assert_eq!(merged["merged"], true);
     assert_eq!(s.docs.len(), 1, "the branch tab closes");
     let doc = s.doc().unwrap();
-    assert!(doc.node(figcraft_doc::NodeId(made.as_u64().unwrap())).is_some());
+    assert!(doc.node(figiran_doc::NodeId(made.as_u64().unwrap())).is_some());
     assert!(fill(&s, r[0]).contains("1.0") && fill(&s, r[1]) == main_before);
     assert_eq!(ok(&mut s, "branch.list", json!({}))[0]["state"], "merged");
     // One undo step takes the merge back.
     ok(&mut s, "edit.undo", json!({}));
-    assert!(s.doc().unwrap().node(figcraft_doc::NodeId(made.as_u64().unwrap())).is_none());
+    assert!(s.doc().unwrap().node(figiran_doc::NodeId(made.as_u64().unwrap())).is_none());
     assert_eq!(fill(&s, r[1]), main_before);
     assert!(s.execute("branch.merge", &json!({"id": id})).is_err(), "a merged branch can't merge again");
 }
@@ -153,9 +153,9 @@ fn styles_variables_and_comments_merge() {
 
 #[test]
 fn branch_tabs_save_with_the_main_file_and_come_back() {
-    let dir = std::env::temp_dir().join(format!("figcraft-branches-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("figiran-branches-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
-    let path = dir.join("file.figcraft").to_string_lossy().to_string();
+    let path = dir.join("file.figiran").to_string_lossy().to_string();
     let (mut s, id, r) = branched();
     ok(&mut s, "node.set", json!({"id": r[0], "props": {"name": "Branch edit"}}));
     // Saving on the branch tab saves the main file, branch included.
@@ -275,7 +275,7 @@ fn auto_layout_fields_changed_one_way_survive_a_conflict() {
             ok(&mut s, "doc.switch", json!({"index": 1}));
         }
         let layout = s.doc().unwrap().node(card).unwrap().layout.clone().unwrap();
-        assert_eq!((layout.padding, layout.gap, layout.main_align), ([padding; 4], 30.0, figcraft_doc::MainAlign::Center), "{cmd}, {pick} wins");
+        assert_eq!((layout.padding, layout.gap, layout.main_align), ([padding; 4], 30.0, figiran_doc::MainAlign::Center), "{cmd}, {pick} wins");
     }
 }
 
@@ -303,12 +303,12 @@ fn shows(changes: &[Change], doc: &Document) -> Result<(), String> {
         let ok = match c {
             Change::Create { id, .. } => doc.contains(*id),
             Change::Delete { id } => !doc.contains(*id),
-            Change::Set { prop: figcraft_collab::Prop::Position, .. } => true,
+            Change::Set { prop: figiran_collab::Prop::Position, .. } => true,
             Change::Set { id, prop, value } => r.value(&Target::Node(*id, *prop)).ok().flatten().as_ref() == Some(value),
             Change::SetDoc { prop: DocProp::StyleOrder | DocProp::CommentOrder | DocProp::CollectionOrder | DocProp::VariableOrder, .. } => true,
             Change::SetDoc { prop, value } => r.value(&Target::Doc(*prop)).ok().flatten().as_ref() == Some(value),
             Change::Put { entry, value } => r.value(&Target::Entry(entry.clone())).ok().flatten().as_ref() == Some(value),
-            Change::Remove { entry: figcraft_collab::Entry::Image(_) } => true,
+            Change::Remove { entry: figiran_collab::Entry::Image(_) } => true,
             Change::Remove { entry } => r.value(&Target::Entry(entry.clone())).ok().flatten().is_none(),
         };
         if !ok {
@@ -324,8 +324,8 @@ pub(crate) fn base_with_lists() -> Document {
     let mut doc = base();
     let f = doc.node(doc.first_page().unwrap()).unwrap().children[0];
     let n = doc.get_mut(f).unwrap();
-    n.exports = ["@1", "@2"].map(|suffix| figcraft_doc::ExportSetting { suffix: suffix.into(), ..Default::default() }).to_vec();
-    n.guides = vec![figcraft_doc::Guide { vertical: true, offset: 10.0 }, figcraft_doc::Guide { vertical: false, offset: 20.0 }];
+    n.exports = ["@1", "@2"].map(|suffix| figiran_doc::ExportSetting { suffix: suffix.into(), ..Default::default() }).to_vec();
+    n.guides = vec![figiran_doc::Guide { vertical: true, offset: 10.0 }, figiran_doc::Guide { vertical: false, offset: 20.0 }];
     doc
 }
 
@@ -382,7 +382,7 @@ fn random_edits_on_both_sides_merge() {
         lists += list_writes(&p.branch).intersection(&list_writes(&p.main)).filter(|k| !p.conflicts.iter().any(|c| c.key == **k)).count();
         if p.conflicts.is_empty() {
             disjoint += 1;
-            let none = |_: &figcraft_collab::merge::Key| None;
+            let none = |_: &figiran_collab::merge::Key| None;
             let (into_main, _) = p.merge(&m, Side::Branch, &none).unwrap_or_else(|e| panic!("seed {seed}: {e}"));
             let (into_branch, _) = p.merge(&b, Side::Main, &none).unwrap_or_else(|e| panic!("seed {seed}: {e}"));
             // Values both sides work out for themselves (sizes and places auto layout gives) stay

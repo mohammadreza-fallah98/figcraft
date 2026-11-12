@@ -7,9 +7,9 @@ use crate::Session;
 use crate::cmd::file::FileSnapshot;
 
 fn temp_file(name: &str) -> String {
-    let dir = std::env::temp_dir().join(format!("figcraft-disk-changes-{}-{name}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("figiran-disk-changes-{}-{name}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
-    dir.join("TESTE.figcraft").to_string_lossy().into_owned()
+    dir.join("TESTE.figiran").to_string_lossy().into_owned()
 }
 
 /// What the file on disk names its first page.
@@ -20,7 +20,7 @@ fn page_on_disk(path: &str) -> String {
     ds.doc.node(ds.page).unwrap().name.clone()
 }
 
-/// The app has `path` open with an unsaved edit, after figcraft-cli renamed its page on disk.
+/// The app has `path` open with an unsaved edit, after figiran-cli renamed its page on disk.
 fn app_and_cli(path: &str) -> Session {
     let mut setup = Session::new();
     setup.execute("shape.rectangle", &json!({"x": 0, "y": 0, "width": 10, "height": 10})).unwrap();

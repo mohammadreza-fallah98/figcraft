@@ -5,7 +5,7 @@
 use std::io::Cursor;
 
 use base64::Engine as _;
-use figcraft_doc::{NodeId, NodeKind};
+use figiran_doc::{NodeId, NodeKind};
 use serde_json::{Value, json};
 
 use crate::{Session, params};

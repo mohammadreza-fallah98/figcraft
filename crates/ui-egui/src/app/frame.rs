@@ -13,7 +13,7 @@ impl FigApp {
         if let Some((c, p, rev)) = &self.ui.text_preview
             && c == command
             && *p == params
-            && (*rev == revision || figcraft_engine::textpreview::active(&self.session))
+            && (*rev == revision || figiran_engine::textpreview::active(&self.session))
         {
             return;
         }
@@ -80,7 +80,7 @@ impl FigApp {
             return;
         }
         self.ui.last_right_tab = self.ui.right_tab;
-        if self.ui.right_tab != RightTab::Design && self.session.tool.tool == figcraft_engine::tools::ToolId::Pen {
+        if self.ui.right_tab != RightTab::Design && self.session.tool.tool == figiran_engine::tools::ToolId::Pen {
             self.run("tool.set", json!({"tool": "move"}));
         }
     }
@@ -214,7 +214,7 @@ impl FigApp {
     /// Whether the right panel shows: never with the UI `hidden`; always on a design file; on a
     /// board, which has no prototypes or Dev Mode (its tab stays Design), only when asked for.
     pub(super) fn right_panel_shown(&mut self, hidden: bool) -> bool {
-        let board = self.session.doc().is_ok_and(figcraft_engine::board::is_board);
+        let board = self.session.doc().is_ok_and(figiran_engine::board::is_board);
         if board {
             self.ui.right_tab = RightTab::Design;
         }

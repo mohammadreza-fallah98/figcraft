@@ -3,9 +3,9 @@
 
 use super::*;
 use crate::boolean::{PathCache, boolean_steps, fold_cached};
-use figcraft_color::{Color, Paint};
-use figcraft_doc::{BoolOp, Document, NodeId, NodeKind, WidthPoint, WidthProfile};
-use figcraft_geom::kurbo::{BezPath, Shape};
+use figiran_color::{Color, Paint};
+use figiran_doc::{BoolOp, Document, NodeId, NodeKind, WidthPoint, WidthProfile};
+use figiran_geom::kurbo::{BezPath, Shape};
 
 fn dark(p: &Pixmap, x: u32, y: u32) -> bool {
     let i = ((y * p.width() + x) * 4) as usize;
@@ -65,7 +65,7 @@ fn editing_one_operand_recombines_only_from_it_up() {
     assert_eq!(steps(&d), 0, "unchanged: from the cache");
     // Moving the sixth operand (a drag frame) recombines it and the two above it.
     let mut moved = d.clone();
-    moved.get_mut(kids[5]).unwrap().transform = figcraft_geom::Affine::translate((3.0, 1.5)) * d.node(kids[5]).unwrap().transform;
+    moved.get_mut(kids[5]).unwrap().transform = figiran_geom::Affine::translate((3.0, 1.5)) * d.node(kids[5]).unwrap().transform;
     assert_eq!(steps(&moved), 3);
     // The top one: one step. Going back: cached.
     let mut top = moved.clone();
@@ -112,7 +112,7 @@ fn caches_drop_the_least_recently_used_half() {
     let mut bad = BezPath::new();
     bad.move_to((f64::NAN, 0.0));
     bad.line_to((1.0, 1.0));
-    let sq = figcraft_geom::Rect::new(0.0, 0.0, 1.0, 1.0).to_path(0.1);
+    let sq = figiran_geom::Rect::new(0.0, 0.0, 1.0, 1.0).to_path(0.1);
     assert!(fold_cached(&[(sq, BoolOp::Union), (bad, BoolOp::Union)]).unwrap().elements().is_empty());
 }
 
@@ -156,8 +156,8 @@ fn deep_boolean_nesting_stops_at_the_outline_depth_limit() {
 
 #[test]
 fn stroke_only_boolean_operands_keep_their_holes() {
-    use figcraft_doc::StrokeAlign;
-    use figcraft_geom::Point;
+    use figiran_doc::StrokeAlign;
+    use figiran_geom::Point;
 
     for kind in [NodeKind::Polygon { count: 6 }, NodeKind::Rectangle, NodeKind::Line] {
         for align in [StrokeAlign::Inside, StrokeAlign::Center, StrokeAlign::Outside] {
@@ -193,8 +193,8 @@ fn stroke_only_boolean_operands_keep_their_holes() {
 
 #[test]
 fn boolean_operands_preserve_side_borders_and_container_children() {
-    use figcraft_doc::StrokeAlign;
-    use figcraft_geom::Point;
+    use figiran_doc::StrokeAlign;
+    use figiran_geom::Point;
     for kind in [NodeKind::Rectangle, NodeKind::Frame] {
         let mut d = Document::new("borders");
         let page = d.first_page().unwrap();
@@ -227,7 +227,7 @@ fn boolean_operands_preserve_side_borders_and_container_children() {
 
 #[test]
 fn stroke_only_text_operands_use_glyphs_instead_of_the_text_box() {
-    use figcraft_doc::{StrokeAlign, TextData};
+    use figiran_doc::{StrokeAlign, TextData};
     let mut d = Document::new("text strokes");
     let page = d.first_page().unwrap();
     let b = d.create(page, NodeKind::BooleanOp { op: BoolOp::Union }, "B", 0.0, 0.0, 400.0, 100.0).unwrap();
@@ -256,8 +256,8 @@ fn stroke_only_text_operands_use_glyphs_instead_of_the_text_box() {
 
 #[test]
 fn rounded_side_borders_follow_their_corners_in_booleans() {
-    use figcraft_doc::StrokeAlign;
-    use figcraft_geom::Point;
+    use figiran_doc::StrokeAlign;
+    use figiran_geom::Point;
     let mut d = Document::new("rounded borders");
     let page = d.first_page().unwrap();
     let b = d.create(page, NodeKind::BooleanOp { op: BoolOp::Union }, "B", 0.0, 0.0, 100.0, 100.0).unwrap();

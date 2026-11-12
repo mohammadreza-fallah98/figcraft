@@ -3,7 +3,7 @@
 
 use crate::geometry::{enter_target, select_target};
 use crate::{BoolOp, Document, NodeId, NodeKind, Region, Segment, VectorNetwork, Vertex, WindingRule};
-use figcraft_geom::Point;
+use figiran_geom::Point;
 
 fn page(d: &Document) -> NodeId {
     d.first_page().unwrap()
@@ -51,7 +51,7 @@ fn ordinary_hit_uses_region_paints_without_layer_fill() {
             Region {
                 loops: vec![vec![0, 1, 2, 3]],
                 winding: WindingRule::NonZero,
-                fills: Some(vec![figcraft_color::Paint::solid(figcraft_color::Color::BLACK)]),
+                fills: Some(vec![figiran_color::Paint::solid(figiran_color::Color::BLACK)]),
                 ..Default::default()
             },
             Region { loops: vec![vec![0, 1, 2, 3]], winding: WindingRule::NonZero, fills: Some(Vec::new()), ..Default::default() },
@@ -74,7 +74,7 @@ fn inherited_paint_frames_use_per_region_hit_testing() {
     let id = d.create(p, NodeKind::Vector { network }, "V", 0.0, 0.0, 10.0, 10.0).unwrap();
     assert_eq!(d.hit_test(p, Point::new(5.0, 5.0), 0.0, None), None, "legacy even-odd loops cancel");
     let NodeKind::Vector { network } = &mut d.get_mut(id).unwrap().kind else { panic!("expected vector") };
-    network.regions[0].paint_space = Some(crate::RegionPaintSpace { width: 10.0, height: 10.0, transform: figcraft_geom::Affine::IDENTITY });
+    network.regions[0].paint_space = Some(crate::RegionPaintSpace { width: 10.0, height: 10.0, transform: figiran_geom::Affine::IDENTITY });
     assert!(network.regions.iter().all(|region| region.fills.is_none()));
     assert_eq!(d.hit_test(p, Point::new(5.0, 5.0), 0.0, None), Some(id), "paint-framed regions inherit the node fill independently");
     assert_eq!(d.hit_test(p, Point::new(15.0, 5.0), 0.0, None), None);
@@ -90,7 +90,7 @@ fn explicitly_unfilled_regions_keep_the_stroke_only_selection_band() {
     let id = d.create(p, NodeKind::Vector { network }, "V", 0.0, 0.0, 100.0, 100.0).unwrap();
     let n = d.get_mut(id).unwrap();
     n.fills.clear();
-    n.strokes = vec![figcraft_color::Paint::solid(figcraft_color::Color::BLACK)];
+    n.strokes = vec![figiran_color::Paint::solid(figiran_color::Color::BLACK)];
     n.stroke.weight = 1.0;
     assert_eq!(d.hit_test(p, Point::new(50.0, -4.0), 2.0, None), Some(id));
 }

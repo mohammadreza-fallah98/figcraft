@@ -40,7 +40,7 @@ pub(crate) fn arkui(ctx: &Ctx, id: NodeId, depth: usize, out: &mut String, extra
     arkui_layer(ctx, n, depth, out, extra);
 }
 
-fn text_layer(ctx: &Ctx, n: &Node, t: &figcraft_doc::TextData, pad: &str, out: &mut String, mods: &mut Vec<String>) {
+fn text_layer(ctx: &Ctx, n: &Node, t: &figiran_doc::TextData, pad: &str, out: &mut String, mods: &mut Vec<String>) {
     let text = ctx.param(n, "characters").map_or_else(|| literal(&t.characters, false), |p| format!("this.{}", p.ident));
     out.push_str(&format!("{pad}Text({text})\n"));
     let s = &t.style;
@@ -127,7 +127,7 @@ fn frame_layer(ctx: &Ctx, n: &Node, depth: usize, pad: &str, out: &mut String, m
     ark_radius(n, mods);
 }
 
-fn layout_mods(l: &figcraft_doc::AutoLayout, mods: &mut Vec<String>) {
+fn layout_mods(l: &figiran_doc::AutoLayout, mods: &mut Vec<String>) {
     let [t, r, b, lft] = l.padding;
     if [t, r, b, lft].iter().any(|v| *v > 0.0) {
         mods.push(format!(".padding({{ top: {}, right: {}, bottom: {}, left: {} }})", num(t), num(r), num(b), num(lft)));
@@ -233,7 +233,7 @@ fn arkui_layer(ctx: &Ctx, n: &Node, depth: usize, out: &mut String, extra: &[Str
     if n.opacity < 1.0 {
         mods.push(format!(".opacity({})", num(f64::from(n.opacity))));
     }
-    let rot = figcraft_geom::rotation_degrees(n.transform);
+    let rot = figiran_geom::rotation_degrees(n.transform);
     if rot.abs() > 0.01 && rot.is_finite() {
         mods.push(format!(".rotate({{ angle: {} }})", num(-rot)));
     }

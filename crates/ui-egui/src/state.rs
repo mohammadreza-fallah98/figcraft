@@ -24,7 +24,7 @@ pub enum TitleBar {
 }
 
 /// A file being encoded for auto-save: its snapshot and, once done, its bytes.
-pub type AutoSaveEncoding = std::thread::JoinHandle<(figcraft_engine::cmd::file::FileSnapshot, figcraft_engine::Result<Vec<u8>>)>;
+pub type AutoSaveEncoding = std::thread::JoinHandle<(figiran_engine::cmd::file::FileSnapshot, figiran_engine::Result<Vec<u8>>)>;
 
 /// The side panels' widths: the least and most a drag of their edge gives, what a double-click on
 /// the edge puts back, and how much of the window they leave the canvas.

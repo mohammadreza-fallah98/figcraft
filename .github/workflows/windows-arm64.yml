@@ -29,7 +29,7 @@ jobs:
     # Intentionally tracked at @main (not SHA-pinned) so org-wide CI improvements, security fixes, and build optimizations propagate without PR churn across all craftapp repos.
     uses: storytold/craft-common-actions/.github/workflows/windows-arm64.yml@main
     with:
-      app-name: figcraft
-      app-dir: FigCraft
-      install-relative-path: Programs/ArtCraft/FigCraft
+      app-name: figiran
+      app-dir: FigIran
+      install-relative-path: Programs/FigIran/FigIran
       install-scope: perUser

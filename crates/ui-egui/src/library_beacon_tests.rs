@@ -2,8 +2,8 @@
 //! contact it (#1097): the library waits until the user clicks Check for updates. That a library
 //! not allowed is never asked is the engine's `library_beacon_tests`; here, what allows it.
 
-use figcraft_doc::LibraryLink;
-use figcraft_engine::Session;
+use figiran_doc::LibraryLink;
+use figiran_engine::Session;
 
 use crate::layers_drag_tests::Ui;
 use crate::live_tests::{flat, has_text, text_center};

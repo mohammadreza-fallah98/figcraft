@@ -1,8 +1,8 @@
 //! Regions in vector edit mode (`regions.rs`): hover, the hit priority and clearances, selecting
 //! and dragging regions, and the hatch's geometry (spacing by zoom, anchoring, clipping).
 
-use figcraft_doc::{NodeId, Region, Segment, VectorNetwork, Vertex, WindingRule};
-use figcraft_geom::{Affine, Point, Rect, Vec2};
+use figiran_doc::{NodeId, Region, Segment, VectorNetwork, Vertex, WindingRule};
+use figiran_geom::{Affine, Point, Rect, Vec2};
 use serde_json::json;
 
 use super::regions::*;
@@ -51,9 +51,9 @@ fn editing_vector(s: &mut Session, n: VectorNetwork) -> NodeId {
     let id = crate::params::id_of(&r["id"]).unwrap();
     let doc = s.doc_mut().unwrap();
     let node = doc.get_mut(id).unwrap();
-    node.kind = figcraft_doc::NodeKind::Vector { network: n };
+    node.kind = figiran_doc::NodeKind::Vector { network: n };
     node.transform = Affine::IDENTITY;
-    node.fills = vec![figcraft_color::Paint::solid(figcraft_color::Color::DEFAULT_SHAPE)];
+    node.fills = vec![figiran_color::Paint::solid(figiran_color::Color::DEFAULT_SHAPE)];
     super::refit(doc, id).unwrap();
     ex(s, "vector.edit.begin", json!({"id": id}));
     id
@@ -122,7 +122,7 @@ fn only_filled_areas_are_regions() {
 #[test]
 fn styled_region_hit_ignores_empty_override_and_needs_no_layer_fill() {
     let mut n = overlapping();
-    n.regions[0].fills = Some(vec![figcraft_color::Paint::solid(figcraft_color::Color::BLACK)]);
+    n.regions[0].fills = Some(vec![figiran_color::Paint::solid(figiran_color::Color::BLACK)]);
     n.regions[1].fills = Some(Vec::new());
     let mut s = Session::new();
     let id = editing_vector(&mut s, n);
@@ -621,5 +621,5 @@ fn fill_pattern_sets_the_layers_fill_with_regions_selected() {
     ex(&mut s, "fill.pattern", json!({"ids": [id], "source": src}));
     assert_eq!(net(&s, id).regions[1].fills, None, "the region still inherits");
     let top = s.doc().unwrap().node(id).unwrap().fills.last().cloned().unwrap();
-    assert!(matches!(top.kind, figcraft_color::PaintKind::Pattern(_)), "{top:?}");
+    assert!(matches!(top.kind, figiran_color::PaintKind::Pattern(_)), "{top:?}");
 }

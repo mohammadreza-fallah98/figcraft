@@ -7,7 +7,7 @@ use super::{
     Align2, COMPONENT, Color32, CornerRadius, Document, FigApp, NodeId, NodeKind, Point, Pos2, Rect, Shape, Stroke, StrokeKind, Tokens, ToolId,
     doc_c32, pos2, selection_box, selection_frame, semibold, tr, vec2,
 };
-use figcraft_doc::{HConstraint, VConstraint};
+use figiran_doc::{HConstraint, VConstraint};
 
 /// Everything drawn over the rendered page; returns the frame labels drawn (frame, corners on the
 /// page) for the engine to hit-test.
@@ -34,7 +34,7 @@ pub(super) fn overlays(app: &FigApp, painter: &egui::Painter, t: &Tokens) -> Vec
         if !on_screen.intersects(app.canvas.rect) {
             continue;
         }
-        if view.layout_grids && !n.grids.is_empty() && figcraft_layout::grids_shown(&doc, *c) {
+        if view.layout_grids && !n.grids.is_empty() && figiran_layout::grids_shown(&doc, *c) {
             layout_grids(app, painter, &doc, *c, n);
         }
         // The focus view's bar names its frame.
@@ -62,7 +62,7 @@ pub(super) fn overlays(app: &FigApp, painter: &egui::Painter, t: &Tokens) -> Vec
     let unmoved = crate::selection_cache::unmoved(ds, &doc);
     let key: Vec<u64> = editing.map(|e| e.0).into_iter().collect();
     let operands = crate::selection_cache::cached(painter.ctx(), "operands", &unmoved, &sel, &key, || {
-        figcraft_engine::booleans::outlined_operands(&unmoved, &sel, editing)
+        figiran_engine::booleans::outlined_operands(&unmoved, &sel, editing)
     });
     for id in operands.iter().filter(|o| !sel.contains(o)) {
         draw_outline(app, painter, &doc, *id, stroke(outline_colour(&doc, *id, accent(painter)).gamma_multiply(0.6), 1.0));
@@ -76,7 +76,7 @@ pub(super) fn overlays(app: &FigApp, painter: &egui::Painter, t: &Tokens) -> Vec
     if let Some(d) = ov.drop_target
         && let Some(q) = node_quad(app, &doc, d)
     {
-        quad(painter, q, stroke(if figcraft_engine::components::is_slot(&doc, d) { COMPONENT } else { accent(painter) }, 1.0));
+        quad(painter, q, stroke(if figiran_engine::components::is_slot(&doc, d) { COMPONENT } else { accent(painter) }, 1.0));
     }
     // Boards: the object a stamp would stick to, outlined as a hovered layer is.
     if let Some(s) = ov.stamp_target {
@@ -100,15 +100,15 @@ pub(super) fn overlays(app: &FigApp, painter: &egui::Painter, t: &Tokens) -> Vec
     // The selection's size label, which measurement labels keep clear of.
     let mut size_label = None;
     if let Some(ve) = ds.vector_edit.clone()
-        && let Some(o) = figcraft_engine::vectoredit::overlay(&doc, &ve)
+        && let Some(o) = figiran_engine::vectoredit::overlay(&doc, &ve)
     {
         // The Variable width tool shows width points in place of the path's points.
-        let width_tool = ve.tool == figcraft_engine::vectoredit::VTool::Width;
+        let width_tool = ve.tool == figiran_engine::vectoredit::VTool::Width;
         // Other layers edited at once go under the active one; the hover shows on its own layer.
         let ov = &app.session.tool.overlay;
         let hover_on = |id| ov.vector_hover.filter(|_| ov.vector_hover_on.unwrap_or(ve.id) == id);
         for part in &ve.others {
-            if let Some(po) = figcraft_engine::vectoredit::overlay(&doc, &ve.view(part)) {
+            if let Some(po) = figiran_engine::vectoredit::overlay(&doc, &ve.view(part)) {
                 vector_overlay(app, painter, &po, !width_tool, hover_on(part.id), false, None);
             }
         }
@@ -128,7 +128,7 @@ pub(super) fn overlays(app: &FigApp, painter: &egui::Painter, t: &Tokens) -> Vec
         size_label = selection_overlay(app, painter, ds, &doc, &sel, zoom);
     }
     if app.session.tool.tool == ToolId::ShapeBuilder
-        && let Some(arr) = figcraft_engine::shapebuilder::current(&app.session)
+        && let Some(arr) = figiran_engine::shapebuilder::current(&app.session)
     {
         builder_overlay(app, painter, t, &arr);
     }
@@ -192,15 +192,15 @@ fn pixel_grid(app: &FigApp, painter: &egui::Painter) {
 }
 
 /// The layout grids of frame `c` (`n`).
-fn layout_grids(app: &FigApp, painter: &egui::Painter, doc: &Document, c: NodeId, n: &figcraft_doc::Node) {
+fn layout_grids(app: &FigApp, painter: &egui::Painter, doc: &Document, c: NodeId, n: &figiran_doc::Node) {
     let w = doc.world_transform(c);
     for g in n.grids.iter().filter(|g| g.visible) {
         let col = doc_c32(painter.ctx(), g.color);
-        for r in figcraft_layout::grid_lines(g, n.width, n.height) {
+        for r in figiran_layout::grid_lines(g, n.width, n.height) {
             let a = w * Point::new(r.x0, r.y0);
             let b = w * Point::new(r.x1, r.y1);
             let (sa, sb) = (app.to_screen(a.x, a.y), app.to_screen(b.x, b.y));
-            if g.kind == figcraft_doc::GridKind::Grid {
+            if g.kind == figiran_doc::GridKind::Grid {
                 painter.line_segment([sa, sb], stroke(col, 1.0));
             } else {
                 painter.rect_filled(Rect::from_two_pos(sa, sb), CornerRadius::ZERO, col);
@@ -209,7 +209,7 @@ fn layout_grids(app: &FigApp, painter: &egui::Painter, doc: &Document, c: NodeId
     }
 }
 
-fn text_edit_overlay(app: &FigApp, painter: &egui::Painter, t: &Tokens, doc: &Document, te: &figcraft_engine::TextEdit, zoom: f64) {
+fn text_edit_overlay(app: &FigApp, painter: &egui::Painter, t: &Tokens, doc: &Document, te: &figiran_engine::TextEdit, zoom: f64) {
     let preedit = app.preedit_view();
     let edoc: &Document = preedit.map(|p| &*p.doc).unwrap_or(doc);
     let Some(text) = TextOnScreen::of(edoc, te.id) else { return };
@@ -274,7 +274,7 @@ pub(super) fn selection_geometry(app: &FigApp, painter: &egui::Painter, doc: &Ar
             outlines: Arc::new(outlines),
             bbox: selection_box(doc, sel),
             size: selection_frame(doc, sel).map(|(_, w, h)| (w, h)),
-            locked: sel.iter().any(|i| figcraft_engine::tools::locked_in(doc, *i)),
+            locked: sel.iter().any(|i| figiran_engine::tools::locked_in(doc, *i)),
         }
     })
 }
@@ -285,16 +285,16 @@ pub(super) fn selection_geometry(app: &FigApp, painter: &egui::Painter, doc: &Ar
 fn shown_geometry(
     app: &FigApp,
     painter: &egui::Painter,
-    ds: &figcraft_engine::DocState,
+    ds: &figiran_engine::DocState,
     doc: &Arc<Document>,
     sel: &[NodeId],
-) -> (SelectionGeometry, egui::Vec2, figcraft_geom::Vec2) {
+) -> (SelectionGeometry, egui::Vec2, figiran_geom::Vec2) {
     match crate::selection_cache::moved(ds) {
         Some((base, (dx, dy))) => {
             let on_screen = app.to_screen(dx, dy) - app.to_screen(0.0, 0.0);
-            (selection_geometry(app, painter, &base, sel), on_screen, figcraft_geom::Vec2::new(dx, dy))
+            (selection_geometry(app, painter, &base, sel), on_screen, figiran_geom::Vec2::new(dx, dy))
         }
-        None => (selection_geometry(app, painter, doc, sel), egui::Vec2::ZERO, figcraft_geom::Vec2::ZERO),
+        None => (selection_geometry(app, painter, doc, sel), egui::Vec2::ZERO, figiran_geom::Vec2::ZERO),
     }
 }
 
@@ -302,7 +302,7 @@ fn shown_geometry(
 fn selection_overlay(
     app: &FigApp,
     painter: &egui::Painter,
-    ds: &figcraft_engine::DocState,
+    ds: &figiran_engine::DocState,
     doc: &Arc<Document>,
     sel: &[NodeId],
     zoom: f64,
@@ -330,7 +330,7 @@ fn selection_overlay(
     {
         let is_line = sel.len() == 1 && matches!(sel.first().and_then(|i| doc.node(*i)).map(|n| &n.kind), Some(NodeKind::Line));
         // A selected connector's handles are its two ends (drag one onto another object).
-        let connector = figcraft_engine::board::selected_connector_ends(doc, sel).map(|(_, ends)| ends);
+        let connector = figiran_engine::board::selected_connector_ends(doc, sel).map(|(_, ends)| ends);
         let mut label = if is_line { fmt(w) } else { format!("{} × {}", fmt(w), fmt(h)) };
         let scale = app.session.tool.overlay.scale;
         if let Some(hint) = scale {
@@ -338,7 +338,7 @@ fn selection_overlay(
         }
         // A layer smaller than its handles on screen shows just its outline (they still answer
         // just outside it).
-        let tiny = figcraft_engine::tools::box_sides_px(&b, zoom).1 < figcraft_engine::tools::SMALL_BOX_PX;
+        let tiny = figiran_engine::tools::box_sides_px(&b, zoom).1 < figiran_engine::tools::SMALL_BOX_PX;
         // Measuring to another layer (Alt held) shows just the outlines: no handles or size.
         let measuring = app.session.tool.overlay.measure_box.is_some();
         // Locked layers (selected in the layers panel) can't be resized, nor anything in Dev
@@ -364,7 +364,7 @@ fn selection_overlay(
             (!measuring && connector.is_none()).then_some(label),
         );
         // Its path handles, one for each portion that can be dragged.
-        let paths = if app.session.tool.dev_mode { Vec::new() } else { figcraft_engine::board::selected_connector_handles(doc, sel, zoom) };
+        let paths = if app.session.tool.dev_mode { Vec::new() } else { figiran_engine::board::selected_connector_handles(doc, sel, zoom) };
         for (_, at) in paths {
             let c = app.to_screen(at.x, at.y);
             painter.circle_filled(c, 3.5, col);
@@ -383,7 +383,7 @@ fn selection_overlay(
             // The point that stays put: the dragged pivot, else the anchor.
             let pivot = scale
                 .map(|h| Point::new(h.pivot[0], h.pivot[1]))
-                .or_else(|| figcraft_engine::tools::scale_anchor_point(doc, sel, app.session.tool.scale_anchor));
+                .or_else(|| figiran_engine::tools::scale_anchor_point(doc, sel, app.session.tool.scale_anchor));
             if let Some(p) = pivot {
                 let c = app.to_screen(p.x, p.y);
                 painter.circle_filled(c, 4.0, Color32::WHITE);
@@ -437,7 +437,7 @@ fn pen_overlay(app: &FigApp, painter: &egui::Painter, zoom: f64) {
         if app.session.tool.tool == ToolId::Pencil {
             // The stroke it will make, in its colour and weight (at least a point when zoomed out):
             // white over a dark page or frame, as the stroke will be (#1741).
-            let (default, weight) = figcraft_engine::tools::PENCIL_STROKE;
+            let (default, weight) = figiran_engine::tools::PENCIL_STROKE;
             let color = ov.pen_color.unwrap_or(default);
             painter.add(Shape::line(pts, stroke(doc_c32(painter.ctx(), color), ((weight * zoom) as f32).max(1.0))));
         } else {
@@ -475,7 +475,7 @@ fn pen_overlay(app: &FigApp, painter: &egui::Painter, zoom: f64) {
 }
 
 /// Mask outlines, frame outlines and slices, as the View menu shows.
-fn view_outlines(app: &FigApp, painter: &egui::Painter, t: &Tokens, ds: &figcraft_engine::DocState, doc: &Document) {
+fn view_outlines(app: &FigApp, painter: &egui::Painter, t: &Tokens, ds: &figiran_engine::DocState, doc: &Document) {
     let (view, page) = (&ds.view, ds.page);
     for id in doc.subtree(page) {
         let Some(n) = doc.node(id).filter(|n| n.visible) else { continue };
@@ -526,12 +526,12 @@ fn transform_box(
 /// short bar through the layer's middle — a horizontal one, a vertical one, or both (a cross when
 /// the layer is centred on both axes). Auto-layout frames ignore constraints, so no guides are
 /// drawn there, except for a layer that ignores the auto layout (absolute position).
-fn constraint_lines(app: &FigApp, painter: &egui::Painter, ds: &figcraft_engine::DocState, doc: &Arc<Document>, sel: &[NodeId]) {
+fn constraint_lines(app: &FigApp, painter: &egui::Painter, ds: &figiran_engine::DocState, doc: &Arc<Document>, sel: &[NodeId]) {
     // Constraints bind a layer only to a frame it sits inside: one without auto layout, or one
     // whose auto layout the layer ignores (absolute position). A move changes neither.
     let unmoved = crate::selection_cache::unmoved(ds, doc);
     let bound = crate::selection_cache::cached(painter.ctx(), "constrained", &unmoved, sel, &[], || -> Vec<NodeId> {
-        let binds = |n: &figcraft_doc::Node, p: &figcraft_doc::Node| p.kind.is_frame_like() && (p.layout.is_none() || n.child_layout.absolute);
+        let binds = |n: &figiran_doc::Node, p: &figiran_doc::Node| p.kind.is_frame_like() && (p.layout.is_none() || n.child_layout.absolute);
         sel.iter()
             .copied()
             .filter(|i| unmoved.node(*i).is_some_and(|n| n.parent.and_then(|p| unmoved.node(p)).is_some_and(|p| binds(n, p))))
@@ -610,7 +610,7 @@ fn pill(painter: &egui::Painter, at: Pos2, align: Align2, text: String, col: Col
 /// The selected ellipse's arc handles (the hovered or dragged one larger, Start with a dot inside)
 /// and, while one is dragged, its readout beside it.
 fn arc_overlay(app: &FigApp, painter: &egui::Painter, col: Color32) {
-    use figcraft_engine::arc_handles::ArcHandle;
+    use figiran_engine::arc_handles::ArcHandle;
     let Some(hs) = app.session.arc_handles() else { return };
     let ov = &app.session.tool.overlay;
     for h in [ArcHandle::Ratio, ArcHandle::Start, ArcHandle::Sweep] {
@@ -632,7 +632,7 @@ fn arc_overlay(app: &FigApp, painter: &egui::Painter, col: Color32) {
 /// The selected shape's corner radius handles and a star's ratio handle (the hovered or dragged
 /// one larger) and, while one is dragged, its value beside it.
 fn shape_overlay(app: &FigApp, painter: &egui::Painter, col: Color32) {
-    use figcraft_engine::shape_handles::ShapeHandle;
+    use figiran_engine::shape_handles::ShapeHandle;
     let ov = &app.session.tool.overlay;
     for (h, [x, y]) in app.session.shape_handles() {
         let r = if ov.shape_hover == Some(h) { 4.5 } else { 3.5 };
@@ -652,12 +652,12 @@ fn shape_overlay(app: &FigApp, painter: &egui::Painter, col: Color32) {
 
 /// Variable width tool: each width point on the path with a bar across the stroke to its two
 /// width handles (the selected point filled), and a faint preview where a drag would add one.
-fn width_overlay(app: &FigApp, painter: &egui::Painter, doc: &Document, ve: &figcraft_engine::vectoredit::VectorEdit, zoom: f64) {
-    use figcraft_doc::WidthSide;
-    use figcraft_engine::vectoredit::{WHit, width_handles, width_preview};
+fn width_overlay(app: &FigApp, painter: &egui::Painter, doc: &Document, ve: &figiran_engine::vectoredit::VectorEdit, zoom: f64) {
+    use figiran_doc::WidthSide;
+    use figiran_engine::vectoredit::{WHit, width_handles, width_preview};
     let hover = app.session.tool.overlay.width_hover;
     let sp = |p: &[f64; 2]| app.to_screen(p[0], p[1]);
-    let draw = |h: &figcraft_engine::vectoredit::WidthHandle, ghost: bool| {
+    let draw = |h: &figiran_engine::vectoredit::WidthHandle, ghost: bool| {
         let (c, a, b) = (sp(&h.at), sp(&h.sides[0]), sp(&h.sides[1]));
         let col = if ghost { accent(painter).gamma_multiply(0.5) } else { accent(painter) };
         painter.line_segment([a, b], stroke(Color32::from_white_alpha(160), 3.0));
@@ -698,13 +698,13 @@ fn bezier_handle(painter: &egui::Painter, v: Pos2, e: Pos2, r: f32, fill: Color3
 fn vector_overlay(
     app: &FigApp,
     painter: &egui::Painter,
-    o: &figcraft_engine::vectoredit::EditOverlay,
+    o: &figiran_engine::vectoredit::EditOverlay,
     points: bool,
-    hover: Option<figcraft_engine::vectoredit::VHit>,
+    hover: Option<figiran_engine::vectoredit::VHit>,
     active: bool,
-    add: Option<figcraft_engine::tools::VectorAdd>,
+    add: Option<figiran_engine::tools::VectorAdd>,
 ) {
-    use figcraft_engine::vectoredit::VHit;
+    use figiran_engine::vectoredit::VHit;
     let ov = &app.session.tool.overlay;
     let sp = |p: &[f64; 2]| app.to_screen(p[0], p[1]);
     // Paint bucket target: hatched like a fill to come.

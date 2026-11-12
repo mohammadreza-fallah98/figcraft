@@ -11,9 +11,9 @@ pub(super) fn region_hatch(app: &FigApp, painter: &egui::Painter) {
     let Ok(ds) = app.session.ds() else { return };
     let (ox, oy) = ds.view.page_to_screen(0.0, 0.0);
     let (z, min) = (ds.view.zoom, app.canvas.rect.min);
-    let view = figcraft_geom::Affine::new([z, 0.0, 0.0, z, f64::from(min.x) + ox, f64::from(min.y) + oy]);
+    let view = figiran_geom::Affine::new([z, 0.0, 0.0, z, f64::from(min.x) + ox, f64::from(min.y) + oy]);
     let r = painter.clip_rect();
-    let clip = figcraft_geom::Rect::new(f64::from(r.min.x), f64::from(r.min.y), f64::from(r.max.x), f64::from(r.max.y));
+    let clip = figiran_geom::Rect::new(f64::from(r.min.x), f64::from(r.min.y), f64::from(r.max.x), f64::from(r.max.y));
     for [a, b] in app.session.vector_region_hatch(view, Some(clip)) {
         painter.line_segment([pos2(a.x as f32, a.y as f32), pos2(b.x as f32, b.y as f32)], stroke(accent(painter), REGION_HATCH_WIDTH));
     }
@@ -21,9 +21,9 @@ pub(super) fn region_hatch(app: &FigApp, painter: &egui::Painter) {
 
 /// Shape builder: every region's edges, and the hovered or collected regions hatched (in the
 /// danger colour when releasing removes them).
-pub(super) fn builder_overlay(app: &FigApp, painter: &egui::Painter, t: &Tokens, arr: &figcraft_engine::shapebuilder::Arrangement) {
+pub(super) fn builder_overlay(app: &FigApp, painter: &egui::Painter, t: &Tokens, arr: &figiran_engine::shapebuilder::Arrangement) {
     let ov = &app.session.tool.overlay;
-    let screen = |r: &figcraft_engine::shapebuilder::Region| -> Vec<Vec<Pos2>> {
+    let screen = |r: &figiran_engine::shapebuilder::Region| -> Vec<Vec<Pos2>> {
         r.polys.iter().filter_map(|poly| clean_poly(poly.iter().map(|p| app.to_screen(p.x, p.y)))).collect()
     };
     // Edges read on any fill: a light halo under a thin accent line.

@@ -38,8 +38,8 @@ impl Session {
     }
 
     /// The background a new file's page gets: the dark page colour while the interface is dark.
-    pub fn new_page_background(&self) -> figcraft_color::Color {
-        if self.ui_dark == Some(true) { figcraft_color::Color::DARK_PAGE } else { figcraft_color::Color::DEFAULT_PAGE }
+    pub fn new_page_background(&self) -> figiran_color::Color {
+        if self.ui_dark == Some(true) { figiran_color::Color::DARK_PAGE } else { figiran_color::Color::DEFAULT_PAGE }
     }
 
     /// Tell the engine the interface's theme (the UI does, every frame). The first time, a new
@@ -55,7 +55,7 @@ impl Session {
             let blank = pages.iter().all(|p| {
                 ds.doc.node(*p).is_some_and(|n| {
                     n.children.is_empty()
-                        && matches!(n.kind, figcraft_doc::NodeKind::Page { background, .. } if background == figcraft_color::Color::DEFAULT_PAGE)
+                        && matches!(n.kind, figiran_doc::NodeKind::Page { background, .. } if background == figiran_color::Color::DEFAULT_PAGE)
                 })
             });
             if !(untouched && blank) {
@@ -63,8 +63,8 @@ impl Session {
             }
             let mut doc = (*ds.doc).clone();
             for p in pages {
-                if let Some(figcraft_doc::NodeKind::Page { background, .. }) = doc.node_mut(p).map(|n| &mut n.kind) {
-                    *background = figcraft_color::Color::DARK_PAGE;
+                if let Some(figiran_doc::NodeKind::Page { background, .. }) = doc.node_mut(p).map(|n| &mut n.kind) {
+                    *background = figiran_color::Color::DARK_PAGE;
                 }
             }
             // Still a file without changes.

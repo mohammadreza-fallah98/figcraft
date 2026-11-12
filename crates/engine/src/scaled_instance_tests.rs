@@ -6,7 +6,7 @@ use serde_json::{Value, json};
 
 use crate::Session;
 use crate::components::tests::{copy_of, ex, healthy, idv, node};
-use figcraft_doc::{NodeId, NodeKind};
+use figiran_doc::{NodeId, NodeKind};
 
 /// The scale the icon is shown at: 24 px to 14 px.
 const K: f64 = 14.0 / 24.0;

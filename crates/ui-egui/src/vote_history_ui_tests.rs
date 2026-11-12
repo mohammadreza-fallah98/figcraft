@@ -1,7 +1,7 @@
 //! The Results popover steps through the votes kept in the file, newest first, and deletes the one
 //! it shows; Results stays on the pill while any are kept, after they're cleared off the board.
 
-use figcraft_engine::Session;
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::export_preview_tests::{click, labelled};
@@ -81,7 +81,7 @@ fn the_results_step_through_kept_votes_and_delete_one() {
     // A row selects its object.
     let row = at(&mut u, "1. Ship it");
     click(&mut u, row);
-    let earlier = figcraft_engine::cmd::facilitate::sessions(&u.app.session).unwrap()[1].rows[0].id;
+    let earlier = figiran_engine::cmd::facilitate::sessions(&u.app.session).unwrap()[1].rows[0].id;
     assert_eq!(u.app.session.selection(), [earlier]);
     let delete = at(&mut u, "Delete results");
     click(&mut u, delete);

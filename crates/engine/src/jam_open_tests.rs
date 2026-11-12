@@ -10,10 +10,10 @@ use crate::Session;
 
 /// A `.jam` holding one page with a rectangle named `Card`, written to a temporary file.
 fn jam_file(tag: &str) -> std::path::PathBuf {
-    let mut doc = figcraft_doc::Document::new("Synthetic board");
+    let mut doc = figiran_doc::Document::new("Synthetic board");
     let page = doc.first_page().unwrap();
-    doc.create(page, figcraft_doc::NodeKind::Rectangle, "Card", 10.0, 10.0, 80.0, 40.0).unwrap();
-    let (fig, _) = figcraft_format::fig::export(&doc, None).unwrap();
+    doc.create(page, figiran_doc::NodeKind::Rectangle, "Card", 10.0, 10.0, 80.0, 40.0).unwrap();
+    let (fig, _) = figiran_format::fig::export(&doc, None).unwrap();
     let mut from = zip::ZipArchive::new(std::io::Cursor::new(fig)).unwrap();
     let mut to = zip::ZipWriter::new(std::io::Cursor::new(Vec::new()));
     for i in 0..from.len() {
@@ -27,7 +27,7 @@ fn jam_file(tag: &str) -> std::path::PathBuf {
         to.start_file(member.name(), zip::write::SimpleFileOptions::default()).unwrap();
         to.write_all(&bytes).unwrap();
     }
-    let path = std::env::temp_dir().join(format!("figcraft-jam-{tag}-{}.jam", std::process::id()));
+    let path = std::env::temp_dir().join(format!("figiran-jam-{tag}-{}.jam", std::process::id()));
     std::fs::write(&path, to.finish().unwrap().into_inner()).unwrap();
     path
 }

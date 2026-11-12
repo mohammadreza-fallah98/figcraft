@@ -6,8 +6,8 @@
 
 use egui::accesskit::{Node, Role, Toggled};
 use egui::{Event, Key, Modifiers};
-use figcraft_doc::NodeId;
-use figcraft_engine::{Session, ToolId};
+use figiran_doc::NodeId;
+use figiran_engine::{Session, ToolId};
 use serde_json::json;
 
 use crate::a11y::{Region, focused_name};
@@ -408,7 +408,7 @@ fn the_align_buttons_are_off_for_a_layer_alone_on_the_page() {
 /// side-panel edges.
 #[test]
 fn the_custom_panel_edges_never_enter_the_keyboard_or_focus_order() {
-    // FigCraft's panels are fixed, so egui makes no `panel.__resize` widgets; the draggable edges
+    // FigIran's panels are fixed, so egui makes no `panel.__resize` widgets; the draggable edges
     // are `Id::unique(("panel_edge", ...))`. They sense the pointer but must not be focusable, or
     // Tab/F6 would stop on an unnamed control.
     let (mut u, _, _) = setup();

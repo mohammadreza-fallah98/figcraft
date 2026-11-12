@@ -12,9 +12,9 @@
 //! step. Rounded
 //! points are drawn in, as the fill shows them.
 
-use figcraft_doc::{Document, VectorNetwork, WindingRule};
-use figcraft_geom::kurbo::{self, ParamCurveNearest, PathEl};
-use figcraft_geom::{Affine, Point, Rect, Shape, Vec2};
+use figiran_doc::{Document, VectorNetwork, WindingRule};
+use figiran_geom::kurbo::{self, ParamCurveNearest, PathEl};
+use figiran_geom::{Affine, Point, Rect, Shape, Vec2};
 
 use super::{VectorEdit, network};
 
@@ -52,14 +52,14 @@ pub fn hatch_spacing(zoom: f64) -> Option<f64> {
     (s.is_finite() && s > 0.0).then_some(s)
 }
 
-fn region_filled(n: &figcraft_doc::Node, net: &VectorNetwork, i: usize) -> bool {
+fn region_filled(n: &figiran_doc::Node, net: &VectorNetwork, i: usize) -> bool {
     net.regions.get(i).is_some_and(|r| r.fills.as_deref().unwrap_or(&n.fills).iter().any(|f| f.visible))
 }
 
 /// The network as its fill draws it: rounded points drawn in with the layer's corner `smoothing`
 /// (region indexes are kept).
 fn drawn(net: &VectorNetwork, smoothing: f64) -> std::borrow::Cow<'_, VectorNetwork> {
-    figcraft_doc::geometry::drawn_network(net, smoothing)
+    figiran_doc::geometry::drawn_network(net, smoothing)
 }
 
 /// The region of the active layer under page point `p` at `zoom`: none when a point is within

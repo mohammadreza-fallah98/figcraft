@@ -3,7 +3,7 @@
 
 use crate::Session;
 use crate::components::tests::{ex, idv};
-use figcraft_doc::{NodeId, NodeKind};
+use figiran_doc::{NodeId, NodeKind};
 use serde_json::json;
 
 /// A 1080×1350 "Post" with "Title" and "Price" texts and a "Badge" rectangle. Returns the frame.
@@ -66,7 +66,7 @@ fn each_row_fills_a_copy_in_one_undo_step() {
 fn copies_export_to_a_folder_and_bad_input_is_refused() {
     let mut s = Session::new();
     let f = post(&mut s);
-    let dir = std::env::temp_dir().join(format!("figcraft-datafill-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("figiran-datafill-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let r = ex(
         &mut s,
@@ -122,7 +122,7 @@ fn each_row_comes_in_every_format() {
 fn review_export_names_are_unique_and_failures_are_reported() {
     let mut s = Session::new();
     let f = post(&mut s);
-    let dir = std::env::temp_dir().join(format!("figcraft-datafill-names-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("figiran-datafill-names-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let r = ex(
         &mut s,
@@ -135,7 +135,7 @@ fn review_export_names_are_unique_and_failures_are_reported() {
     assert!(files.iter().all(|p| std::fs::metadata(p).is_ok()), "{files:?}");
     let _ = std::fs::remove_dir_all(&dir);
     // A folder that can't be written: the copies stay and every failure is reported.
-    let r = ex(&mut s, "data.fill", json!({"id": f, "rows": [{"name": "x"}], "dir": "/nonexistent-figcraft-dir/out"}));
+    let r = ex(&mut s, "data.fill", json!({"id": f, "rows": [{"name": "x"}], "dir": "/nonexistent-figiran-dir/out"}));
     assert_eq!(r["ids"].as_array().unwrap().len(), 1);
     assert_eq!(r["errors"].as_array().map(Vec::len), Some(1), "{r}");
     assert!(s.doc().unwrap().contains(NodeId(r["ids"][0].as_u64().unwrap())));

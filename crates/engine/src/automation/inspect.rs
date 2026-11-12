@@ -1,6 +1,6 @@
 //! Document inspection as JSON, so agents can verify their work without screenshots.
 
-use figcraft_doc::{Document, Node, NodeId, NodeKind, StrokeJoin, TextData, TextDecoration};
+use figiran_doc::{Document, Node, NodeId, NodeKind, StrokeJoin, TextData, TextDecoration};
 use serde_json::{Value, json};
 
 use crate::Session;
@@ -170,7 +170,7 @@ pub fn node_json_with_options(doc: &Document, id: NodeId, depth: usize, options:
 
 /// The cells of the grid frames met so far in one inspection, so a grid's geometry is worked out
 /// once, not once per child.
-type GridCells = std::cell::RefCell<std::collections::HashMap<NodeId, std::collections::HashMap<NodeId, figcraft_layout::GridCell>>>;
+type GridCells = std::cell::RefCell<std::collections::HashMap<NodeId, std::collections::HashMap<NodeId, figiran_layout::GridCell>>>;
 
 fn node_json_in(doc: &Document, id: NodeId, depth: usize, options: &InspectOptions, grids: &GridCells) -> Value {
     let Some(n) = doc.node(id) else { return Value::Null };
@@ -221,7 +221,7 @@ fn base_props(doc: &Document, n: &Node, id: NodeId, o: &mut serde_json::Map<Stri
     insert_prop(o, options, "width", || json!(round(n.width)));
     insert_prop(o, options, "height", || json!(round(n.height)));
     if options.includes("rotation") {
-        let rot = figcraft_geom::rotation_degrees(n.transform);
+        let rot = figiran_geom::rotation_degrees(n.transform);
         if rot.abs() > 1e-6 {
             insert_prop(o, options, "rotation", || json!(round(rot)));
         }
@@ -243,7 +243,7 @@ fn base_props(doc: &Document, n: &Node, id: NodeId, o: &mut serde_json::Map<Stri
     if n.opacity < 1.0 {
         insert_prop(o, options, "opacity", || json!(n.opacity));
     }
-    if !matches!(n.blend, figcraft_color::BlendMode::Normal | figcraft_color::BlendMode::PassThrough) {
+    if !matches!(n.blend, figiran_color::BlendMode::Normal | figiran_color::BlendMode::PassThrough) {
         insert_prop(o, options, "blend", || json!(n.blend));
     }
 }
@@ -315,7 +315,7 @@ fn layout_props(doc: &Document, n: &Node, o: &mut serde_json::Map<String, Value>
         let mut grids = grids.borrow_mut();
         let cells = grids
             .entry(p)
-            .or_insert_with(|| figcraft_layout::grid_geometry(doc, p).map(|g| g.cells.into_iter().map(|c| (c.id, c)).collect()).unwrap_or_default());
+            .or_insert_with(|| figiran_layout::grid_geometry(doc, p).map(|g| g.cells.into_iter().map(|c| (c.id, c)).collect()).unwrap_or_default());
         cells.get(&n.id).copied()
     });
     if let Some(cell) = cell {
@@ -435,7 +435,7 @@ fn text_props(t: &TextData, o: &mut serde_json::Map<String, Value>, options: &In
     }
     // Lists: one style for the layer, or each paragraph's type, nesting level and start.
     if t.paragraphs.is_empty() {
-        if t.list != figcraft_doc::ListStyle::None {
+        if t.list != figiran_doc::ListStyle::None {
             insert_prop(o, options, "listStyle", || json!(t.list));
         }
     } else {
@@ -447,12 +447,12 @@ fn text_props(t: &TextData, o: &mut serde_json::Map<String, Value>, options: &In
     }
     // The paragraphs' base direction: one for the layer when they agree, else each one's (Auto
     // throughout says nothing).
-    let dirs: Vec<figcraft_doc::TextDirection> = t.paragraphs.iter().map(|p| p.direction).collect();
-    if let Some(first) = dirs.first().copied().filter(|d| *d != figcraft_doc::TextDirection::Auto)
+    let dirs: Vec<figiran_doc::TextDirection> = t.paragraphs.iter().map(|p| p.direction).collect();
+    if let Some(first) = dirs.first().copied().filter(|d| *d != figiran_doc::TextDirection::Auto)
         && dirs.iter().all(|d| *d == first)
     {
         insert_prop(o, options, "textDirection", || json!(first));
-    } else if dirs.iter().any(|d| *d != figcraft_doc::TextDirection::Auto) {
+    } else if dirs.iter().any(|d| *d != figiran_doc::TextDirection::Auto) {
         insert_prop(o, options, "lineDirections", || dirs.iter().map(|d| json!(d)).collect());
     }
     if t.list_spacing != 0.0 {
@@ -463,10 +463,10 @@ fn text_props(t: &TextData, o: &mut serde_json::Map<String, Value>, options: &In
             insert_prop(o, options, k, || json!(true));
         }
     }
-    if t.leading_trim != figcraft_doc::LeadingTrim::None {
+    if t.leading_trim != figiran_doc::LeadingTrim::None {
         insert_prop(o, options, "leadingTrim", || json!(t.leading_trim));
     }
-    if t.wrap_style != figcraft_doc::WrapStyle::Auto {
+    if t.wrap_style != figiran_doc::WrapStyle::Auto {
         insert_prop(o, options, "wrapStyle", || json!(t.wrap_style));
     }
     if !t.runs.is_empty() {
@@ -526,19 +526,19 @@ fn kind_props(doc: &Document, n: &Node, o: &mut serde_json::Map<String, Value>, 
 }
 
 fn round(v: f64) -> f64 {
-    figcraft_geom::round_to(v, 2)
+    figiran_geom::round_to(v, 2)
 }
 
-fn paints(p: &[figcraft_color::Paint]) -> Value {
+fn paints(p: &[figiran_color::Paint]) -> Value {
     Value::Array(
         p.iter()
             .map(|x| match &x.kind {
-                figcraft_color::PaintKind::Solid { color } => {
+                figiran_color::PaintKind::Solid { color } => {
                     let mut v = json!({"type": "solid", "color": color.to_css_hex()});
                     if x.opacity < 1.0 {
                         v["opacity"] = json!(x.opacity);
                     }
-                    if x.blend != figcraft_color::BlendMode::Normal {
+                    if x.blend != figiran_color::BlendMode::Normal {
                         v["blend"] = json!(x.blend);
                     }
                     if !x.visible {

@@ -181,7 +181,7 @@ impl Session {
         let inv = pw.inverse();
         // Anchors and handles into the parent's space.
         let pts: Vec<(Point, Point, Point)> = pen.points.iter().map(|(p, i, o)| (inv * *p, inv * (*p + *i), inv * (*p + *o))).collect();
-        let mut path = figcraft_geom::BezPath::new();
+        let mut path = figiran_geom::BezPath::new();
         for (k, (p, _, _)) in pts.iter().enumerate() {
             if k == 0 {
                 path.move_to(*p);
@@ -195,7 +195,7 @@ impl Session {
             path.curve_to(last.2, first.1, first.0);
             path.close_path();
         }
-        use figcraft_geom::Shape;
+        use figiran_geom::Shape;
         let bb = path.bounding_box();
         path.apply_affine(Affine::translate((-bb.x0, -bb.y0)));
         let mut net = VectorNetwork::from_path(&path);
@@ -220,7 +220,7 @@ impl Session {
                 let id = doc.alloc_id();
                 let mut n = Node::new(id, NodeKind::Vector { network: VectorNetwork::default() }, "Vector", 0.0, 0.0);
                 n.fills.clear();
-                n.strokes = vec![figcraft_color::Paint::solid(figcraft_color::Color::BLACK)];
+                n.strokes = vec![figiran_color::Paint::solid(figiran_color::Color::BLACK)];
                 n.stroke.align = StrokeAlign::Center;
                 doc.insert(n, parent, None)?;
                 id
@@ -232,7 +232,7 @@ impl Session {
         n.height = bb.height();
         n.transform = Affine::translate((bb.x0, bb.y0));
         if pen.closed && n.fills.is_empty() {
-            n.fills = vec![figcraft_color::Paint::solid(figcraft_color::Color::DEFAULT_SHAPE)];
+            n.fills = vec![figiran_color::Paint::solid(figiran_color::Color::DEFAULT_SHAPE)];
         }
         ds.selection = vec![id];
         ds.revision += 1;
@@ -314,7 +314,7 @@ impl Session {
             return Ok(());
         }
         // Smooth: fit a curve through the samples.
-        let mut poly = figcraft_geom::BezPath::new();
+        let mut poly = figiran_geom::BezPath::new();
         for (k, p) in points.iter().enumerate() {
             if k == 0 {
                 poly.move_to(*p);
@@ -322,7 +322,7 @@ impl Session {
                 poly.line_to(*p);
             }
         }
-        let fitted = figcraft_geom::kurbo::simplify::simplify_bezpath(poly.iter(), 0.75, &Default::default());
+        let fitted = figiran_geom::kurbo::simplify::simplify_bezpath(poly.iter(), 0.75, &Default::default());
         let d = fitted.to_svg();
         if matches!(self.tool.tool, ToolId::Marker | ToolId::Highlighter) {
             return self.ink_finish(&d);
@@ -353,7 +353,7 @@ impl Session {
 
     /// The colour a Pencil stroke starting at `p` will have: it goes into the frame under `p`
     /// (else the page), and is white when that is dark (`pencil_color`).
-    pub(super) fn pencil_color_at(&self, p: figcraft_geom::Point) -> Result<figcraft_color::Color> {
+    pub(super) fn pencil_color_at(&self, p: figiran_geom::Point) -> Result<figiran_color::Color> {
         let page = self.page()?;
         let doc = self.doc()?;
         let parent = frame_at(doc, page, p, &[]).unwrap_or(page);

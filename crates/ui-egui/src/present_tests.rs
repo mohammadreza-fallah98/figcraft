@@ -3,8 +3,8 @@
 //! frame scrolls inside the device's screen with the wheel and by dragging.
 
 use egui::{Event, Key, Pos2, RawInput, Rect, pos2, vec2};
-use figcraft_doc::NodeId;
-use figcraft_engine::Session;
+use figiran_doc::NodeId;
+use figiran_engine::Session;
 use serde_json::{Value, json};
 
 use crate::{FigApp, NoServices};
@@ -215,7 +215,7 @@ fn a_top_level_frame_taller_than_the_phone_scrolls_without_an_overflow_setting()
     let doc = s.doc().unwrap();
     let page = doc.first_page().unwrap();
     let phone = doc.top_frames(page).into_iter().find(|f| doc.node(*f).unwrap().name == "Phone").unwrap();
-    assert_eq!(doc.node(phone).unwrap().overflow, figcraft_doc::proto::Overflow::None);
+    assert_eq!(doc.node(phone).unwrap().overflow, figiran_doc::proto::Overflow::None);
     let mut u = Ui::new(s);
     u.run("proto.preview", json!({"start": phone}));
     let range = u.preview()["scrollRange"][1].as_f64().unwrap();

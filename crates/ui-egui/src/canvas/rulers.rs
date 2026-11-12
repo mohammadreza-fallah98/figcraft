@@ -27,17 +27,17 @@ pub(super) fn boards(doc: &Document, page: NodeId) -> Vec<NodeId> {
 
 /// A frame's or section's handoff status as its badge says it, with the badge colour ("Changed"
 /// once a ready-for-dev layer was edited; `None` without a status).
-pub(crate) fn status_label(n: &figcraft_doc::Node) -> Option<(&'static str, Color32)> {
+pub(crate) fn status_label(n: &figiran_doc::Node) -> Option<(&'static str, Color32)> {
     match n.dev_status {
-        figcraft_doc::DevStatus::None => None,
-        figcraft_doc::DevStatus::ReadyForDev if n.dev_changed => Some((tr("Changed"), crate::theme::DEV_CHANGED)),
-        figcraft_doc::DevStatus::ReadyForDev => Some((tr("Ready for dev"), crate::theme::DEV_READY)),
-        figcraft_doc::DevStatus::Completed => Some((tr("Completed"), crate::theme::DEV_COMPLETED)),
+        figiran_doc::DevStatus::None => None,
+        figiran_doc::DevStatus::ReadyForDev if n.dev_changed => Some((tr("Changed"), crate::theme::DEV_CHANGED)),
+        figiran_doc::DevStatus::ReadyForDev => Some((tr("Ready for dev"), crate::theme::DEV_READY)),
+        figiran_doc::DevStatus::Completed => Some((tr("Completed"), crate::theme::DEV_COMPLETED)),
     }
 }
 
 /// A frame's or section's handoff status as a small pill left-centred on `at`; the pill's area.
-pub(crate) fn status_badge(painter: &egui::Painter, n: &figcraft_doc::Node, at: Pos2) -> Option<Rect> {
+pub(crate) fn status_badge(painter: &egui::Painter, n: &figiran_doc::Node, at: Pos2) -> Option<Rect> {
     let (label, fill) = status_label(n)?;
     let galley = painter.layout_no_wrap(label.to_string(), semibold(10.0), Color32::WHITE);
     let r = Rect::from_min_size(pos2(at.x, at.y - galley.size().y / 2.0 - 2.0), galley.size() + vec2(10.0, 4.0));
@@ -52,7 +52,7 @@ pub(super) fn rulers(app: &FigApp, painter: &egui::Painter, t: &Tokens, doc: &Do
     painter.rect_filled(Rect::from_min_size(r.min, vec2(r.width(), size)), CornerRadius::ZERO, t.panel);
     painter.rect_filled(Rect::from_min_size(r.min, vec2(size, r.height())), CornerRadius::ZERO, t.panel);
     let zoom = app.session.ds().map(|d| d.view.zoom).unwrap_or(1.0);
-    let step = figcraft_engine::guides::ruler_step(zoom);
+    let step = figiran_engine::guides::ruler_step(zoom);
     let p0 = app.to_page(r.min);
     let p1 = app.to_page(r.max);
     // Highlight the selection's span.

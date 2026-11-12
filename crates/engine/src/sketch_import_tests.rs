@@ -1,12 +1,12 @@
 //! `.sketch` files through the file commands. The importer's own tests (fixtures built in code)
-//! are in `figcraft_format::sketch`.
+//! are in `figiran_format::sketch`.
 
 use std::io::Write;
 
 use base64::Engine;
 use serde_json::{Value, json};
 
-use figcraft_doc::NodeKind;
+use figiran_doc::NodeKind;
 
 use crate::Session;
 
@@ -48,7 +48,7 @@ fn sketch_with_doc(app_version: &str, pages: &[(&str, &str)], layers: &[Value], 
 }
 
 fn temp(name: &str, bytes: &[u8]) -> (std::path::PathBuf, std::path::PathBuf) {
-    let dir = std::env::temp_dir().join(format!("figcraft-sketch-test-{}-{name}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("figiran-sketch-test-{}-{name}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let path = dir.join(name);
     std::fs::write(&path, bytes).unwrap();
@@ -137,7 +137,7 @@ fn sketch_masks_show_their_content() {
     s.execute("file.open", &json!({"data": data, "name": "x.sketch"})).unwrap();
     let doc = s.doc().unwrap();
     let icon = doc.nodes().find(|n| n.name == "Icon").unwrap().id;
-    let pix = figcraft_render::render_node(doc, icon, 1.0).unwrap();
+    let pix = figiran_render::render_node(doc, icon, 1.0).unwrap();
     let px = |x: u32, y: u32| pix.pixel(x, y).unwrap();
     // The square in the middle, dark grey.
     let c = px(30, 30);
@@ -182,16 +182,16 @@ fn sketch_instances_stay_live() {
     s.execute("node.set", &json!({"id": main_tag, "props": {"fill": "#ff0000"}})).unwrap();
     let doc = s.doc().unwrap();
     let fill = &doc.node(inst_tag).unwrap().fills;
-    assert!(fill.iter().any(|p| matches!(p.kind, figcraft_doc::color::PaintKind::Solid { color } if color.r > 0.99 && color.g < 0.01)), "{fill:?}");
+    assert!(fill.iter().any(|p| matches!(p.kind, figiran_doc::color::PaintKind::Solid { color } if color.r > 0.99 && color.g < 0.01)), "{fill:?}");
     let b = doc.world_bounds(inst_tag).unwrap();
     assert!((b.x0 - 180.0).abs() < 1e-6, "{b:?}");
 }
 
-/// Local only (`FIGCRAFT_SKETCH_SAMPLES` names a folder of `.sketch` files): each opens (Sketch 48
+/// Local only (`FIGIRAN_SKETCH_SAMPLES` names a folder of `.sketch` files): each opens (Sketch 48
 /// and newer) with its instances linked and finite geometry, or is refused as too old.
 #[test]
 fn local_sketch_samples_open() {
-    let Ok(dir) = std::env::var("FIGCRAFT_SKETCH_SAMPLES") else { return };
+    let Ok(dir) = std::env::var("FIGIRAN_SKETCH_SAMPLES") else { return };
     let mut files: Vec<std::path::PathBuf> = std::fs::read_dir(&dir).unwrap().filter_map(|e| e.ok().map(|e| e.path())).collect();
     files.retain(|p| p.extension().is_some_and(|e| e.eq_ignore_ascii_case("sketch")));
     files.sort();
@@ -231,15 +231,15 @@ fn local_sketch_samples_open() {
     }
 }
 
-/// Local only (`FIGCRAFT_SKETCH_SAMPLES` and `FIGCRAFT_SKETCHTOOL`, the path of Sketch's
-/// `sketchtool`): every artboard of each sample (Sketch 48 and newer) drawn by FigCraft is compared
+/// Local only (`FIGIRAN_SKETCH_SAMPLES` and `FIGIRAN_SKETCHTOOL`, the path of Sketch's
+/// `sketchtool`): every artboard of each sample (Sketch 48 and newer) drawn by FigIran is compared
 /// with Sketch's own export of it. Prints the share of pixels that differ per artboard (a channel
 /// off by more than 40, on white); fails past 10% (a broken artboard, not antialiasing or fonts).
 #[test]
 fn local_sketch_samples_match_sketch() {
-    let (Ok(dir), Ok(tool)) = (std::env::var("FIGCRAFT_SKETCH_SAMPLES"), std::env::var("FIGCRAFT_SKETCHTOOL")) else { return };
+    let (Ok(dir), Ok(tool)) = (std::env::var("FIGIRAN_SKETCH_SAMPLES"), std::env::var("FIGIRAN_SKETCHTOOL")) else { return };
     // Text draws in the fonts Sketch uses only once the system fonts are known.
-    figcraft_text::fontdb::scan_system_fonts();
+    figiran_text::fontdb::scan_system_fonts();
     let mut files: Vec<std::path::PathBuf> = std::fs::read_dir(&dir).unwrap().filter_map(|e| e.ok().map(|e| e.path())).collect();
     files.retain(|p| p.extension().is_some_and(|e| e.eq_ignore_ascii_case("sketch")));
     files.sort();
@@ -249,7 +249,7 @@ fn local_sketch_samples_match_sketch() {
         if s.execute("file.open", &json!({"path": path.to_string_lossy()})).is_err() {
             continue;
         }
-        let out = std::env::temp_dir().join(format!("figcraft-sketch-ref-{}", std::process::id()));
+        let out = std::env::temp_dir().join(format!("figiran-sketch-ref-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&out);
         let status = std::process::Command::new(&tool)
             .args(["export", "artboards"])
@@ -279,15 +279,15 @@ fn local_sketch_samples_match_sketch() {
                 .filter(|l| l["_class"] == "artboard")
                 .map(|l| l["do_objectID"].as_str().unwrap().to_string())
                 .collect();
-            let frames: Vec<figcraft_doc::NodeId> =
+            let frames: Vec<figiran_doc::NodeId> =
                 doc.node(*page_id).unwrap().children.iter().copied().filter(|c| matches!(doc.node(*c).unwrap().kind, NodeKind::Frame)).collect();
             assert_eq!(boards.len(), frames.len(), "{}: artboards of {page_ref}", path.display());
             for (id, frame) in boards.iter().zip(frames) {
                 let Ok(reference) = image::open(out.join(format!("{id}.png"))) else { continue };
                 let reference = reference.to_rgba8();
-                let ours = figcraft_render::render_node(doc, frame, 1.0).unwrap();
+                let ours = figiran_render::render_node(doc, frame, 1.0).unwrap();
                 let (w, h) = (reference.width().min(ours.width()), reference.height().min(ours.height()));
-                let ours_rgba = figcraft_render::to_rgba8(&ours);
+                let ours_rgba = figiran_render::to_rgba8(&ours);
                 // Both on white, straight alpha.
                 let on_white = |c: &[u8], i: usize| {
                     let a = f64::from(c[3]) / 255.0;
@@ -323,7 +323,7 @@ fn sketch_text_keeps_the_platform_tracking() {
     if !std::path::Path::new("/System/Library/Fonts/SFNS.ttf").exists() {
         return;
     }
-    figcraft_text::fontdb::scan_system_fonts();
+    figiran_text::fontdb::scan_system_fonts();
     let font = json!({"name": "SFUIText-Regular", "size": 13});
     let run = json!({"location": 0, "length": 2, "attributes": {"MSAttributedStringFontAttribute": {"attributes": font}}});
     let t = shape("text", "Label", [0.0, 0.0, 100.0, 20.0], json!({"attributedString": {"string": "Hi", "attributes": [run]}, "textBehaviour": 0}));
@@ -335,7 +335,7 @@ fn sketch_text_keeps_the_platform_tracking() {
     let ls = td.style.letter_spacing.resolve(13.0);
     assert!((ls - (-12.0 * 13.0 / 2048.0)).abs() < 1e-6, "{ls}");
     // A named style's optical size follows the size there: the text carries it.
-    let f = figcraft_text::fontdb::find_face(&td.style.font_family, &td.style.font_style).unwrap();
+    let f = figiran_text::fontdb::find_face(&td.style.font_family, &td.style.font_style).unwrap();
     let named = f.axis("opsz").is_some() && f.instance(&td.style.font_style).is_some();
     assert_eq!(td.style.variations.get("opsz").copied(), named.then_some(13.0), "{:?}", td.style);
 }
@@ -422,12 +422,12 @@ fn sketch_resized_stack_instances_reflow() {
 fn sketch_natural_line_rule() {
     use crate::cmd::file::sketch_line;
     // Helvetica Neue Medium (975 + 217 of 1000, a gap of 29 left out) at 17 px: 16.575 → 17 and
-    // 3.689 → 4, a line of 21 with the baseline at 17. FigCraft puts the baseline at
+    // 3.689 → 4, a line of 21 with the baseline at 17. FigIran puts the baseline at
     // (21 − 20.264) / 2 + 16.575 = 16.943, so the text moves down 0.057.
     let (line, down) = sketch_line(975.0, 217.0, 1000.0, "Helvetica Neue", 17.0);
     assert!((line - 21.0).abs() < 1e-9 && (down - 0.057).abs() < 1e-9, "{line} {down}");
     // Helvetica at 100 px: 77 + 23 and a fifth more, 120, all of it above: the baseline at 97
-    // where FigCraft centres it at 87.
+    // where FigIran centres it at 87.
     let (line, down) = sketch_line(1577.0, 471.0, 2048.0, "helvetica", 100.0);
     assert!((line - 120.0).abs() < 1e-9 && (down - 10.0).abs() < 0.05, "{line} {down}");
     assert_eq!(sketch_line(0.0, 0.0, 0.0, "X", 12.0), (0.0, 0.0), "no metrics, no change");
@@ -441,7 +441,7 @@ fn sketch_text_gets_sketchs_natural_line() {
     if !std::path::Path::new("/System/Library/Fonts/HelveticaNeue.ttc").exists() {
         return;
     }
-    figcraft_text::fontdb::scan_system_fonts();
+    figiran_text::fontdb::scan_system_fonts();
     let font = json!({"name": "HelveticaNeue", "size": 100});
     let run = json!({"location": 0, "length": 2, "attributes": {"MSAttributedStringFontAttribute": {"attributes": font}}});
     let t = shape("text", "Label", [0.0, 0.0, 200.0, 120.0], json!({"attributedString": {"string": "Hi", "attributes": [run]}, "textBehaviour": 0}));
@@ -451,7 +451,7 @@ fn sketch_text_gets_sketchs_natural_line() {
     let doc = s.doc().unwrap();
     let NodeKind::Text(td) = &doc.nodes().find(|n| n.name == "Label").unwrap().kind else { panic!("not text") };
     // 95.2 → 95 and 21.3 → 21: 116 px, as a share of the size.
-    let figcraft_doc::LineHeight::Percent(p) = td.style.line_height else { panic!("{:?}", td.style.line_height) };
+    let figiran_doc::LineHeight::Percent(p) = td.style.line_height else { panic!("{:?}", td.style.line_height) };
     assert!((p - 116.0).abs() < 1e-9, "{p}");
 }
 
@@ -462,7 +462,7 @@ fn sketch_text_in_a_stack_stays_put() {
     if !std::path::Path::new("/System/Library/Fonts/Helvetica.ttc").exists() {
         return;
     }
-    figcraft_text::fontdb::scan_system_fonts();
+    figiran_text::fontdb::scan_system_fonts();
     let font = json!({"name": "Helvetica", "size": 40});
     let run = json!({"location": 0, "length": 2, "attributes": {"MSAttributedStringFontAttribute": {"attributes": font}}});
     let label = shape(
@@ -485,7 +485,7 @@ fn sketch_text_in_a_stack_stays_put() {
     let stack = doc.nodes().find(|n| n.name == "Stack").unwrap().id;
     let label = doc.nodes().find(|n| n.name == "Label").unwrap().id;
     let before = doc.world_bounds(label).unwrap();
-    figcraft_layout::layout_frame(&mut doc, stack, &crate::measure::TextMeasure);
+    figiran_layout::layout_frame(&mut doc, stack, &crate::measure::TextMeasure);
     let after = doc.world_bounds(label).unwrap();
     assert!((before.y0 - after.y0).abs() < 1e-6, "{before:?} → {after:?}");
 }
@@ -497,7 +497,7 @@ fn sketch_shared_text_styles_match_their_layers() {
     if !std::path::Path::new("/System/Library/Fonts/SFNS.ttf").exists() {
         return;
     }
-    figcraft_text::fontdb::scan_system_fonts();
+    figiran_text::fontdb::scan_system_fonts();
     let attrs = json!({"MSAttributedStringFontAttribute": {"attributes": {"name": "SFUIText-Regular", "size": 13}}});
     let style = json!({"_class": "style", "textStyle": {"_class": "textStyle", "encodedAttributes": attrs.clone()}});
     let shared = json!({"_class": "sharedStyle", "do_objectID": "TS", "name": "Body", "value": style.clone()});
@@ -520,7 +520,7 @@ fn sketch_shared_text_styles_match_their_layers() {
         .styles
         .iter()
         .find_map(|st| match &st.kind {
-            figcraft_doc::StyleKind::Text { style, .. } if st.name == "Body" => Some(style.clone()),
+            figiran_doc::StyleKind::Text { style, .. } if st.name == "Body" => Some(style.clone()),
             _ => None,
         })
         .unwrap();

@@ -1,6 +1,6 @@
 //! Convert the simple vector network used by text-on-path layers in `.fig` files into a native text path.
 
-use figcraft_doc::{
+use figiran_doc::{
     TextPath,
     geom::{
         BezPath,
@@ -77,7 +77,7 @@ pub(super) fn from_network(net: &Network, sx: f64, sy: f64, t: f64, forward: boo
         start = 1.0 - start;
     }
     let path = TextPath { d: d.to_svg(), start, flip };
-    let lines = figcraft_doc::geom::measure::polylines(&path.path()).ok_or("cannot be measured by text renderer")?;
+    let lines = figiran_doc::geom::measure::polylines(&path.path()).ok_or("cannot be measured by text renderer")?;
     if lines.first().is_none_or(|line| line.length() <= 1e-9) {
         return Err("cannot be measured by text renderer");
     }
@@ -181,7 +181,7 @@ fn cubic(net: &Network, use_: Use, sx: f64, sy: f64) -> Result<(P, P, P, P), &'s
 mod tests {
     use super::*;
     use crate::fig::network::{Segment, Vertex};
-    use figcraft_doc::geom::kurbo::PathEl;
+    use figiran_doc::geom::kurbo::PathEl;
 
     fn vertex(x: f64, y: f64) -> Vertex {
         Vertex { style: 0, x, y }
@@ -298,7 +298,7 @@ mod tests {
         };
         assert_eq!(from_network(&many_lines, 1.0, 1.0, 0.5, true), Err("cannot be measured by text renderer"));
 
-        // Past the cap the builders hold their sizes to (`figcraft_geom::MAX_COORD`, inclusive).
+        // Past the cap the builders hold their sizes to (`figiran_geom::MAX_COORD`, inclusive).
         let huge = Network {
             vertices: vec![vertex(0.0, 0.0), vertex(2e9, 0.0)],
             segments: vec![segment(START_SEGMENT_STYLE, 0, 1, (0.0, 0.0), (0.0, 0.0))],

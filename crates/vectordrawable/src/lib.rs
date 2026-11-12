@@ -7,13 +7,13 @@
 //!
 //! What maps exactly:
 //! - shapes, booleans, vector networks, frames and text: their outlines
-//!   (`figcraft_render::node_outline`, glyph outlines per styled run), with every transform baked
+//!   (`figiran_render::node_outline`, glyph outlines per styled run), with every transform baked
 //!   into the path data (a `<group>` can only scale, rotate and translate, a `<path>` not at all);
 //! - solid fills and paint, layer and stop opacity, folded into `#AARRGGBB` colours;
 //! - centred, uniform, solid strokes as stroke attributes (width, cap, join, miter limit); every
 //!   other stroke (inside, outside, dashed, variable width, arrows, per-side weights, gradient
 //!   paints, under a skew or non-uniform scale) as its filled outline
-//!   (`figcraft_render::draw::stroke_area`);
+//!   (`figiran_render::draw::stroke_area`);
 //! - linear, radial and angular (sweep) gradients, for any handle frame: a linear gradient's end
 //!   point is projected so it bands along the width handle; radial and sweep gradients go in a
 //!   `<group>` that scales and rotates the unit circle onto the handle ellipse (a 2×2 singular
@@ -35,9 +35,9 @@ mod walk;
 mod warnings;
 mod xml;
 
-use figcraft_doc::{Document, NodeId};
-use figcraft_geom::{Affine, Rect};
-use figcraft_render::{ExportDepthError, check_export_depth};
+use figiran_doc::{Document, NodeId};
+use figiran_geom::{Affine, Rect};
+use figiran_render::{ExportDepthError, check_export_depth};
 
 /// How the export handles what a Vector Drawable can't draw exactly.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -84,7 +84,7 @@ pub fn try_export(doc: &Document, ids: &[NodeId], opts: &VdOptions) -> Result<Vd
     check_export_depth(doc, ids)?;
     let area = match opts.bounds {
         Some(b) if [b.x0, b.y0, b.x1, b.y1].iter().all(|v| v.is_finite()) => b,
-        _ => ids.iter().filter_map(|i| figcraft_render::export_bounds(doc, *i)).reduce(|a, b| a.union(b)).ok_or(VdError::Empty)?,
+        _ => ids.iter().filter_map(|i| figiran_render::export_bounds(doc, *i)).reduce(|a, b| a.union(b)).ok_or(VdError::Empty)?,
     };
     let (w, h) = (area.width(), area.height());
     if !(w.is_finite() && h.is_finite() && w > 0.0 && h > 0.0) {

@@ -11,9 +11,9 @@
 //! in it) for the app, or for the server's browser build.
 
 use egui::{Align2, CornerRadius, Rect, Sense, Ui, pos2, vec2};
-use figcraft_engine::live::utc_date;
-use figcraft_engine::online::{FileState, OnlineFile, ServerProblem, server_host};
-use figcraft_engine::team::{Team, TeamFile, TeamList, team_link, web_link};
+use figiran_engine::live::utc_date;
+use figiran_engine::online::{FileState, OnlineFile, ServerProblem, server_host};
+use figiran_engine::team::{Team, TeamFile, TeamList, team_link, web_link};
 use serde_json::{Value, json};
 
 use crate::FigApp;
@@ -210,7 +210,7 @@ fn row(app: &mut FigApp, ui: &mut Ui, t: &Tokens, f: &OnlineFile, busy: bool) {
         if let Some(code) = shared.and_then(|s| s.edit.code.as_deref())
             && item(ui, tr("Copy code"), true)
         {
-            app.clipboard_set_text(&figcraft_engine::figcraft_collab::code::grouped(code));
+            app.clipboard_set_text(&figiran_engine::figiran_collab::code::grouped(code));
             app.toast(tr("Join code copied"));
             ui.close();
         }
@@ -310,7 +310,7 @@ fn team_row(app: &mut FigApp, ui: &mut Ui, t: &Tokens, server: &str, web: &str, 
         }
         if crate::right::menu_item(ui, tr("Copy link"), "") {
             app.clipboard_set_text(&team_link(server, &f.file));
-            app.toast(tr("Link copied: it opens the file in FigCraft"));
+            app.toast(tr("Link copied: it opens the file in FigIran"));
             ui.close();
         }
         if !web.is_empty() && crate::right::menu_item(ui, tr("Copy browser link"), "") {

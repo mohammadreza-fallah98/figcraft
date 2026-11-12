@@ -5,7 +5,7 @@
 
 use std::time::{Duration, Instant};
 
-use figcraft_doc::{Document, NodeId};
+use figiran_doc::{Document, NodeId};
 
 use super::kiwi::Kv;
 use super::map;

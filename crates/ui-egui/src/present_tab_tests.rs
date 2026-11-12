@@ -1,6 +1,6 @@
 use egui::accesskit::{Node, Role};
 use egui::{Key, Pos2, pos2};
-use figcraft_doc::proto::PrototypeSettings;
+use figiran_doc::proto::PrototypeSettings;
 use serde_json::{Value, json};
 
 use crate::present_tests::{Ui, id, setup};
@@ -161,16 +161,16 @@ fn a_tab_whose_file_closed_leaves_the_file_in_front_alone() {
 #[test]
 fn a_saved_file_opened_again_gets_its_tab_back() {
     let (mut u, a, ..) = setup();
-    let dir = std::env::temp_dir().join(format!("figcraft-present-tab-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("figiran-present-tab-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
-    let path = dir.join("Proto.figcraft").to_string_lossy().to_string();
+    let path = dir.join("Proto.figiran").to_string_lossy().to_string();
     u.run("file.saveAs", json!({"path": path}));
     u.run("proto.present", json!({"start": a}));
     click(&mut u, FILE_TAB);
     u.run("file.close", json!({"index": 0}));
     u.run("file.open", json!({"path": path}));
     u.run("proto.present", json!({"start": a}));
-    // Saved as Proto.figcraft: the file's title follows its name.
+    // Saved as Proto.figiran: the file's title follows its name.
     assert_eq!(tabs(&u), json!([{"name": "Proto - Page 1", "active": true}]));
     u.key(pos2(700.0, 500.0), Key::Escape);
     assert!(!u.app.ui.home, "back to its file");

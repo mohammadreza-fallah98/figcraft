@@ -3,7 +3,7 @@
 //! behave the same.
 
 use base64::Engine as _;
-use figcraft_engine::params::normalize_paint;
+use figiran_engine::params::normalize_paint;
 use serde_json::{Map, Value, json};
 
 use crate::backend::{Backend, decode_data, page_children};
@@ -65,7 +65,7 @@ fn ids_schema(desc: &str) -> Value {
     json!({"type": "array", "description": desc, "items": {"anyOf": [{"type": "integer"}, {"type": "string"}]}})
 }
 fn fields_schema() -> Value {
-    json!({"type": "array", "items": {"type": "string", "enum": figcraft_engine::inspect::NODE_KEYS},
+    json!({"type": "array", "items": {"type": "string", "enum": figiran_engine::inspect::NODE_KEYS},
         "description": "Exact, case-sensitive top-level node keys to include at every level, pages too (e.g. name, type, x, fills, characters, pluginData). Omit for all properties; [] keeps only ids and structure. id, children, childCount and the transport's truncated marker are always kept. Selecting visible emits an explicit boolean for every node. Unknown keys are an error."})
 }
 fn outline_schema() -> Value {
@@ -152,14 +152,14 @@ fn tools() -> Vec<Value> {
         tool(
             "list_commands",
             "List commands",
-            "List FigCraft commands: id, label, menu path, shortcut, whether it is undoable, and a parameter description. Every menu item, panel action and shortcut is a command; run one with run_command (or several as one undo step with batch). Most commands act on `ids` when given, else on the selection. Use `filter` to narrow (e.g. \"align\", \"layout\", \"variable\", \"style\", \"component\", \"proto\").",
+            "List FigIran commands: id, label, menu path, shortcut, whether it is undoable, and a parameter description. Every menu item, panel action and shortcut is a command; run one with run_command (or several as one undo step with batch). Most commands act on `ids` when given, else on the selection. Use `filter` to narrow (e.g. \"align\", \"layout\", \"variable\", \"style\", \"component\", \"proto\").",
             obj(json!({"filter": string("Case-insensitive substring matched against id, label, menu path and parameter docs")}), &[]),
             true,
         ),
         tool(
             "run_command",
             "Run command",
-            "Execute one FigCraft command by id with JSON params (ids and params from list_commands). Mutating commands are one undo step each; a failing command leaves the document unchanged. Examples: {\"command\":\"align.left\",\"params\":{\"ids\":[3,4]}}, {\"command\":\"layout.add\",\"params\":{\"ids\":[2],\"direction\":\"vertical\"}}, {\"command\":\"style.create\",\"params\":{\"type\":\"paint\",\"name\":\"Brand/Primary\",\"from\":5}}. Returns the command's result (creation commands return {\"id\"}). Programmatic calls never open dialogs.",
+            "Execute one FigIran command by id with JSON params (ids and params from list_commands). Mutating commands are one undo step each; a failing command leaves the document unchanged. Examples: {\"command\":\"align.left\",\"params\":{\"ids\":[3,4]}}, {\"command\":\"layout.add\",\"params\":{\"ids\":[2],\"direction\":\"vertical\"}}, {\"command\":\"style.create\",\"params\":{\"type\":\"paint\",\"name\":\"Brand/Primary\",\"from\":5}}. Returns the command's result (creation commands return {\"id\"}). Programmatic calls never open dialogs.",
             obj(
                 json!({"command": string("Command id, e.g. node.create, align.left, component.create, file.export"), "params": {"type": "object", "description": "Command parameters (see list_commands)"}}),
                 &["command"],
@@ -305,7 +305,7 @@ fn tools() -> Vec<Value> {
         tool(
             "open_file",
             "Open file",
-            "Open a .figcraft or .json document (FigCraft or REST API file JSON), a .fig or .sketch file (best effort, with `warnings` for what wasn't imported; .sketch from Sketch 48 or newer), an .svg (becomes vectors) or an image (becomes an image layer) as the active document. Returns the new document's summary.",
+            "Open a .figiran or .json document (FigIran or REST API file JSON), a .fig or .sketch file (best effort, with `warnings` for what wasn't imported; .sketch from Sketch 48 or newer), an .svg (becomes vectors) or an image (becomes an image layer) as the active document. Returns the new document's summary.",
             obj(
                 json!({
                     "path": string("File path"),
@@ -319,8 +319,8 @@ fn tools() -> Vec<Value> {
         tool(
             "save_file",
             "Save file",
-            "Save the active document as a .figcraft file. `path` is required the first time (an untitled document has no path); later saves reuse it. A `path` ending in .fig writes an experimental .fig export copy instead and leaves the document's own path and unsaved changes alone.",
-            obj(json!({"path": string("Output .figcraft path, or a .fig path for an experimental export copy")}), &[]),
+            "Save the active document as a .figiran file. `path` is required the first time (an untitled document has no path); later saves reuse it. A `path` ending in .fig writes an experimental .fig export copy instead and leaves the document's own path and unsaved changes alone.",
+            obj(json!({"path": string("Output .figiran path, or a .fig path for an experimental export copy")}), &[]),
             false,
         ),
         tool("undo", "Undo", "Undo the last change (one command, batch or gesture). Returns {undone: bool}.", empty(), false),
@@ -375,7 +375,7 @@ fn tools() -> Vec<Value> {
         tool(
             "wait_for_changes",
             "Wait for changes",
-            "Wait for new comment events in the attached FigCraft app. Returns pending events immediately; otherwise waits up to `timeoutMs` (default 20000, max 25000). Call it again with the returned `cursor` to keep watching. Headless returns immediately (no other writer). Events carry a sequence number, kind, document and a small payload (for comments, the thread id).",
+            "Wait for new comment events in the attached FigIran app. Returns pending events immediately; otherwise waits up to `timeoutMs` (default 20000, max 25000). Call it again with the returned `cursor` to keep watching. Headless returns immediately (no other writer). Events carry a sequence number, kind, document and a small payload (for comments, the thread id).",
             obj(
                 json!({
                     "after": int("Return events after this cursor (default 0)"),
@@ -446,12 +446,12 @@ fn req_s<'a>(a: &'a Map<String, Value>, k: &str) -> Result<&'a str, String> {
 fn n_arg(a: &Map<String, Value>, k: &str) -> Result<Option<f64>, String> {
     match a.get(k) {
         None | Some(Value::Null) => Ok(None),
-        Some(v) => figcraft_engine::params::f64_of(v).map(Some).ok_or_else(|| format!("`{k}` must be a finite number")),
+        Some(v) => figiran_engine::params::f64_of(v).map(Some).ok_or_else(|| format!("`{k}` must be a finite number")),
     }
 }
 
 fn id_arg(v: &Value) -> Result<u64, String> {
-    figcraft_engine::params::id_of(v).map(|i| i.0).ok_or_else(|| format!("{v} is not a layer id"))
+    figiran_engine::params::id_of(v).map(|i| i.0).ok_or_else(|| format!("{v} is not a layer id"))
 }
 
 fn ids_arg(a: &Map<String, Value>, k: &str) -> Result<Option<Vec<u64>>, String> {
@@ -483,7 +483,7 @@ fn bounds_of(b: &mut dyn Backend, ids: &[u64]) -> Option<(f64, f64, f64, f64)> {
 }
 
 /// Make paint/effect JSON friendlier than the engine's strict serde (see
-/// [`figcraft_engine::params::normalize_paint`]). The engine reads paints this way itself; effects
+/// [`figiran_engine::params::normalize_paint`]). The engine reads paints this way itself; effects
 /// still need it here.
 pub fn normalize_props(props: &mut Map<String, Value>) {
     for k in ["fills", "strokes", "effects"] {
@@ -787,7 +787,7 @@ fn node_at(b: &mut dyn Backend, id: u64, depth: u64, options: &Value) -> Result<
 
 fn inspection_options(a: &Map<String, Value>) -> Result<Value, String> {
     let options = Value::Object(a.iter().filter(|(k, _)| matches!(k.as_str(), "fields" | "outline")).map(|(k, v)| (k.clone(), v.clone())).collect());
-    figcraft_engine::inspect::InspectOptions::parse(&options)?;
+    figiran_engine::inspect::InspectOptions::parse(&options)?;
     Ok(options)
 }
 
@@ -1191,7 +1191,7 @@ fn pointer(b: &mut dyn Backend, a: &Map<String, Value>) -> Result<ToolResult, St
     p.insert("y".into(), json!(y));
     if let Some(to) = a.get("to").filter(|v| !v.is_null()) {
         let arr =
-            to.as_array().filter(|t| t.len() == 2 && t.iter().all(|v| figcraft_engine::params::f64_of(v).is_some())).ok_or("`to` must be [x, y]")?;
+            to.as_array().filter(|t| t.len() == 2 && t.iter().all(|v| figiran_engine::params::f64_of(v).is_some())).ok_or("`to` must be [x, y]")?;
         p.insert("to".into(), Value::Array(arr.clone()));
     }
     if let Some(s) = n_arg(a, "steps")? {

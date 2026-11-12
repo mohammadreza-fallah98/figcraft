@@ -1,9 +1,9 @@
 //! Vector networks: vertices joined by curved segments, any number of segments per vertex, plus
 //! filled regions made of closed loops.
 
-use figcraft_color::Paint;
-use figcraft_geom::kurbo::{CubicBez, ParamCurve, ParamCurveArclen, ParamCurveDeriv};
-use figcraft_geom::{Affine, BezPath, Point, Vec2};
+use figiran_color::Paint;
+use figiran_geom::kurbo::{CubicBez, ParamCurve, ParamCurveArclen, ParamCurveDeriv};
+use figiran_geom::{Affine, BezPath, Point, Vec2};
 use serde::{Deserialize, Serialize};
 
 use crate::{StrokeCap, StrokeJoin};
@@ -200,7 +200,7 @@ impl VectorNetwork {
 
     /// A network from a bezier path: each subpath becomes a chain (closed subpaths a loop + region).
     pub fn from_path(path: &BezPath) -> Self {
-        use figcraft_geom::kurbo::PathEl;
+        use figiran_geom::kurbo::PathEl;
         let mut net = VectorNetwork::default();
         let mut loop_segs: Vec<usize> = Vec::new();
         let mut first_v: Option<usize> = None;
@@ -346,9 +346,9 @@ impl VectorNetwork {
     }
 
     /// Segment `i` as a cubic bezier.
-    pub fn cubic(&self, i: usize) -> Option<figcraft_geom::kurbo::CubicBez> {
+    pub fn cubic(&self, i: usize) -> Option<figiran_geom::kurbo::CubicBez> {
         let (a, c1, c2, b) = self.seg_points(self.segments.get(i)?)?;
-        Some(figcraft_geom::kurbo::CubicBez::new(a, c1, c2, b))
+        Some(figiran_geom::kurbo::CubicBez::new(a, c1, c2, b))
     }
 
     /// One closed loop of segments as a path.
@@ -361,7 +361,7 @@ impl VectorNetwork {
     /// Whether the rendered fill covers `p` (the renderer fills every region with one rule: even-odd
     /// when any region asks for it).
     pub fn fill_contains(&self, p: Point) -> bool {
-        use figcraft_geom::Shape;
+        use figiran_geom::Shape;
         let path = self.fill_path();
         let w = path.winding(p);
         if self.regions.iter().any(|r| r.winding == WindingRule::EvenOdd) { w % 2 != 0 } else { w != 0 }
@@ -394,7 +394,7 @@ impl VectorNetwork {
 
     /// [`Self::rounded`] with the layer's corner smoothing (0..=1): a rounded point between two
     /// straight segments that both belong to a region's loops gets a smoothed corner, drawn with
-    /// the profile of a smoothed polygon's corners (`figcraft_geom::smoothed_corner`). Other
+    /// the profile of a smoothed polygon's corners (`figiran_geom::smoothed_corner`). Other
     /// rounded points (on open branches, or next to a curved segment) keep the plain arc, and a
     /// point without a radius stays sharp. Without smoothing this is [`Self::rounded`].
     pub fn rounded_smoothed(&self, smoothing: f64) -> Option<VectorNetwork> {
@@ -523,7 +523,7 @@ impl VectorNetwork {
             && is_line(&c2)
             && closed(s1)
             && closed(s2)
-            && let Some(curves) = figcraft_geom::smoothed_corner(c1.p0, u1, u2, l1.min(l2) / 2.0, r, smoothing)
+            && let Some(curves) = figiran_geom::smoothed_corner(c1.p0, u1, u2, l1.min(l2) / 2.0, r, smoothing)
             && let (Some(first), Some(last)) = (curves.first(), curves.last())
         {
             let (a, b) = (first.p0, last.p3);
@@ -743,8 +743,8 @@ impl VectorNetwork {
     }
 
     /// Bounds of the curves.
-    pub fn bounds(&self) -> Option<figcraft_geom::Rect> {
-        use figcraft_geom::Shape;
+    pub fn bounds(&self) -> Option<figiran_geom::Rect> {
+        use figiran_geom::Shape;
         let p = self.stroke_path();
         if p.elements().is_empty() { None } else { Some(p.bounding_box()) }
     }

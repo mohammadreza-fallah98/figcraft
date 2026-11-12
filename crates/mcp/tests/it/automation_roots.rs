@@ -3,17 +3,17 @@
 
 use std::path::PathBuf;
 
-use figcraft_engine::file_access::Roots;
-use figcraft_mcp::Server;
+use figiran_engine::file_access::Roots;
+use figiran_mcp::Server;
 use serde_json::{Value, json};
 
-/// `<tmp>/figcraft-mcp-roots-<name>-<pid>` with `in/` (read root), `out/` (write root),
+/// `<tmp>/figiran-mcp-roots-<name>-<pid>` with `in/` (read root), `out/` (write root),
 /// `outside/` and `out2/` (named like the write root, outside it).
 struct Dirs(PathBuf);
 
 impl Dirs {
     fn new(name: &str) -> Self {
-        let d = std::env::temp_dir().join(format!("figcraft-mcp-roots-{name}-{}", std::process::id()));
+        let d = std::env::temp_dir().join(format!("figiran-mcp-roots-{name}-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&d);
         for sub in ["in", "out", "outside", "out2"] {
             std::fs::create_dir_all(d.join(sub)).unwrap();
@@ -53,14 +53,14 @@ fn writes_go_only_into_the_write_root() {
     assert_eq!(call(&mut s, "create_node", json!({"type": "frame", "width": 40, "height": 20}))["isError"], false);
     assert_eq!(call(&mut s, "run_command", json!({"command": "export.add"}))["isError"], false);
     for (tool, args) in [
-        ("save_file", json!({"path": d.p("outside/a.figcraft")})),
-        ("save_file", json!({"path": d.p("out2/a.figcraft")})),
-        ("save_file", json!({"path": d.p("out/../outside/a.figcraft")})),
-        ("save_file", json!({"path": d.p("in/a.figcraft")})),
+        ("save_file", json!({"path": d.p("outside/a.figiran")})),
+        ("save_file", json!({"path": d.p("out2/a.figiran")})),
+        ("save_file", json!({"path": d.p("out/../outside/a.figiran")})),
+        ("save_file", json!({"path": d.p("in/a.figiran")})),
         ("export", json!({"format": "png", "path": d.p("outside/a.png")})),
         ("run_command", json!({"command": "file.export", "params": {"format": "svg", "path": d.p("outside/a.svg")}})),
         ("run_command", json!({"command": "file.exportLayers", "params": {"dir": d.p("outside")}})),
-        ("batch", json!({"commands": [{"command": "file.saveAs", "params": {"path": d.p("outside/b.figcraft")}}]})),
+        ("batch", json!({"commands": [{"command": "file.saveAs", "params": {"path": d.p("outside/b.figiran")}}]})),
     ] {
         let r = call(&mut s, tool, args.clone());
         assert_eq!(r["isError"], true, "{tool} {args}: {r}");
@@ -69,9 +69,9 @@ fn writes_go_only_into_the_write_root() {
     for sub in ["outside", "out2", "in"] {
         assert_eq!(std::fs::read_dir(d.0.join(sub)).unwrap().count(), 0, "nothing written in {sub}");
     }
-    assert_eq!(call(&mut s, "save_file", json!({"path": d.p("out/a.figcraft")}))["isError"], false);
+    assert_eq!(call(&mut s, "save_file", json!({"path": d.p("out/a.figiran")}))["isError"], false);
     assert_eq!(call(&mut s, "export", json!({"format": "png", "path": d.p("out/a.png")}))["isError"], false);
-    assert!(d.0.join("out/a.figcraft").is_file() && d.0.join("out/a.png").is_file());
+    assert!(d.0.join("out/a.figiran").is_file() && d.0.join("out/a.png").is_file());
     // Without a path the bytes come back, written nowhere.
     let r = call(&mut s, "export", json!({"format": "png"}));
     assert_eq!(r["content"][0]["type"], "image", "{r}");
@@ -83,25 +83,25 @@ fn reads_go_only_into_the_read_and_write_roots() {
     // Files made without roots: one in each folder.
     let mut free = Server::headless();
     assert_eq!(call(&mut free, "create_node", json!({"type": "frame", "width": 40, "height": 20, "name": "Made"}))["isError"], false);
-    for f in ["in/a.figcraft", "out/b.figcraft", "outside/c.figcraft"] {
-        assert_eq!(call(&mut free, "export", json!({"format": "svg", "path": d.p(&f.replace(".figcraft", ".svg"))}))["isError"], false);
+    for f in ["in/a.figiran", "out/b.figiran", "outside/c.figiran"] {
+        assert_eq!(call(&mut free, "export", json!({"format": "svg", "path": d.p(&f.replace(".figiran", ".svg"))}))["isError"], false);
         assert_eq!(call(&mut free, "run_command", json!({"command": "file.saveAs", "params": {"path": d.p(f)}}))["isError"], false);
     }
     let mut s = d.server();
     for (tool, args) in [
-        ("open_file", json!({"path": d.p("outside/c.figcraft")})),
-        ("open_file", json!({"path": d.p("in/../outside/c.figcraft")})),
-        ("open_file", json!({"path": d.p("in/a.figcraft"), "variables": d.p("outside/c.svg")})),
+        ("open_file", json!({"path": d.p("outside/c.figiran")})),
+        ("open_file", json!({"path": d.p("in/../outside/c.figiran")})),
+        ("open_file", json!({"path": d.p("in/a.figiran"), "variables": d.p("outside/c.svg")})),
         ("run_command", json!({"command": "file.import", "params": {"path": d.p("outside/c.svg")}})),
         ("run_command", json!({"command": "file.placeImage", "params": {"path": d.p("outside/c.svg")}})),
-        ("run_command", json!({"command": "library.add", "params": {"path": d.p("outside/c.figcraft")}})),
+        ("run_command", json!({"command": "library.add", "params": {"path": d.p("outside/c.figiran")}})),
     ] {
         let r = call(&mut s, tool, args.clone());
         assert_eq!(r["isError"], true, "{tool} {args}: {r}");
         assert!(text(&r).contains("automation path rejected"), "{tool}: {r}");
     }
-    assert_eq!(call(&mut s, "open_file", json!({"path": d.p("in/a.figcraft")}))["isError"], false);
-    assert_eq!(call(&mut s, "open_file", json!({"path": d.p("out/b.figcraft")}))["isError"], false, "a write root may be read");
+    assert_eq!(call(&mut s, "open_file", json!({"path": d.p("in/a.figiran")}))["isError"], false);
+    assert_eq!(call(&mut s, "open_file", json!({"path": d.p("out/b.figiran")}))["isError"], false, "a write root may be read");
     assert_eq!(call(&mut s, "run_command", json!({"command": "file.import", "params": {"path": d.p("in/a.svg")}}))["isError"], false);
 }
 
@@ -113,7 +113,7 @@ fn initialize_names_the_roots_and_no_roots_changes_nothing() {
         serde_json::from_str(&s.handle_line(r#"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18"}}"#).unwrap())
             .unwrap();
     let ins = r["result"]["instructions"].as_str().unwrap();
-    assert!(ins.contains("only these folders may be read") && ins.contains("figcraft-mcp-roots-init"), "{ins}");
+    assert!(ins.contains("only these folders may be read") && ins.contains("figiran-mcp-roots-init"), "{ins}");
     let mut free = Server::headless();
     let r: Value = serde_json::from_str(
         &free.handle_line(r#"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18"}}"#).unwrap(),

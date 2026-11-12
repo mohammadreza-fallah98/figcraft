@@ -6,7 +6,7 @@
 
 use std::collections::HashMap;
 
-use figcraft_doc::{Document, Variable, VariableId, VariableType, VariableValue};
+use figiran_doc::{Document, Variable, VariableId, VariableType, VariableValue};
 
 use crate::codegen::num;
 

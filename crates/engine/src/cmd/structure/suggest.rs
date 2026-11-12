@@ -2,8 +2,8 @@
 //! them, wrap each band that holds several layers in a frame of its own and do the same inside
 //! it, so the design gets as many auto layout frames as it needs and keeps its placement.
 
-use figcraft_doc::{AutoLayout, Document, LayoutMode, NodeId, NodeKind, Sizing};
-use figcraft_geom::Rect;
+use figiran_doc::{AutoLayout, Document, LayoutMode, NodeId, NodeKind, Sizing};
+use figiran_geom::Rect;
 use serde_json::{Value, json};
 
 use super::{Wrap, convert, infer_layout, sort_layout_children, wrap};
@@ -60,9 +60,9 @@ fn bands(boxes: &[(NodeId, Rect)], vertical: bool) -> Vec<Band> {
 /// isn't a finite number.
 fn flow_boxes(doc: &Document, frame: NodeId) -> Option<Vec<(NodeId, Rect)>> {
     let mut out = Vec::new();
-    for c in figcraft_layout::flow_children(doc, frame) {
+    for c in figiran_layout::flow_children(doc, frame) {
         let n = doc.node(c)?;
-        let r = figcraft_geom::transform_rect_bbox(n.transform, n.local_rect());
+        let r = figiran_geom::transform_rect_bbox(n.transform, n.local_rect());
         if ![r.x0, r.y0, r.x1, r.y1].iter().all(|v| v.is_finite()) {
             return None;
         }

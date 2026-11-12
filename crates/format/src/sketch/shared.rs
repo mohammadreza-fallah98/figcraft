@@ -1,9 +1,9 @@
 //! Sketch shared styles and swatches → REST style definitions and colour variables.
 //!
-//! A Sketch layer style holds fills, borders and effects together; FigCraft styles hold one kind
+//! A Sketch layer style holds fills, borders and effects together; FigIran styles hold one kind
 //! each, so a layer style becomes up to three styles named after it: its fills (a paint style),
 //! its border colours (a paint style for strokes; widths stay on the layers) and its effects. A
-//! text style becomes a text style; its colour stays on the layers, as FigCraft text styles carry
+//! text style becomes a text style; its colour stays on the layers, as FigIran text styles carry
 //! none. Layers link to them by `style.sharedObjectID`. Swatches (Color Variables, Sketch 69+)
 //! become colour variables in one collection; colours name theirs by `swatchID`.
 

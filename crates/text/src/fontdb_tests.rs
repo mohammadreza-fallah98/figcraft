@@ -80,7 +80,7 @@ fn indexed_test_font(bytes: &[u8], case: &str) -> Vec<u8> {
             let _ = std::fs::remove_file(&self.0);
         }
     }
-    let file = TempFile(std::env::temp_dir().join(format!("figcraft-font-index-{case}-{}.ttc", std::process::id())));
+    let file = TempFile(std::env::temp_dir().join(format!("figiran-font-index-{case}-{}.ttc", std::process::id())));
     std::fs::write(&file.0, bytes).unwrap();
     index_bytes(&file.0, bytes.len()).unwrap()
 }
@@ -140,7 +140,7 @@ fn macos_font_assets_are_found_in_the_asset_store() {
         }
     }
     // Created fresh: a directory or link already at this predictable name is refused, and not removed.
-    let root = std::env::temp_dir().join(format!("figcraft-font-assets-{}", std::process::id()));
+    let root = std::env::temp_dir().join(format!("figiran-font-assets-{}", std::process::id()));
     std::fs::create_dir(&root).unwrap();
     let tmp = TempDir(root);
     let store = tmp.0.join("AssetsV2");
@@ -176,7 +176,7 @@ fn the_scan_skips_named_pipes() {
     use std::process::{Command, Stdio};
     use std::time::{Duration, Instant};
 
-    const INPUT: &str = "FIGCRAFT_TEST_PIPE_FONT_DIR";
+    const INPUT: &str = "FIGIRAN_TEST_PIPE_FONT_DIR";
     if let Some(dir) = std::env::var_os(INPUT) {
         let mut pending = BTreeMap::new();
         scan_dir(std::path::Path::new(&dir), 0, &mut pending);
@@ -191,7 +191,7 @@ fn the_scan_skips_named_pipes() {
             let _ = std::fs::remove_dir_all(&self.0);
         }
     }
-    let path = std::env::temp_dir().join(format!("figcraft-font-pipe-{}", std::process::id()));
+    let path = std::env::temp_dir().join(format!("figiran-font-pipe-{}", std::process::id()));
     std::fs::create_dir(&path).unwrap();
     let dir = TempDir(path);
     // POSIX mkfifo is only a test fixture helper, never a runtime font dependency.
@@ -281,7 +281,7 @@ fn the_scan_reads_font_files_without_an_extension() {
         eprintln!("skipping: no installed font to stand in for an activated one");
         return;
     };
-    let dir = std::env::temp_dir().join(format!("figcraft-font-bare-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("figiran-font-bare-{}", std::process::id()));
     std::fs::create_dir_all(dir.join(".r")).unwrap();
     std::fs::copy(&font, dir.join(".r/.12345")).unwrap();
     std::fs::write(dir.join(".r/entitlements"), b"<xml/>").unwrap();
@@ -427,7 +427,7 @@ fn named_styles_keep_their_optical_size() {
     let face = Face::from_bytes(FontBytes::Shared(std::sync::Arc::new(bytes)), 0, None, None).unwrap();
     let opsz = face.axes.iter().position(|a| a.tag == "opsz").unwrap();
     let inst = face.instances.first().unwrap();
-    let mut style = figcraft_doc::TextStyle { font_style: inst.name.clone(), ..Default::default() };
+    let mut style = figiran_doc::TextStyle { font_style: inst.name.clone(), ..Default::default() };
     for size in [1.0, 12.0, 40.0, 200.0] {
         style.font_size = size;
         assert_eq!(face.axis_values(&style)[opsz], inst.coords[opsz], "{} at {size}", inst.name);
@@ -542,7 +542,7 @@ fn every_platform_has_a_thai_font_in_the_fallbacks() {
 }
 
 /// #1902: a web build has no system fonts, so a document's missing characters can only come from
-/// the embedded faces. Every script face craft-fonts can embed (`FIGCRAFT_EMBED_SCRIPTS`) is a
+/// the embedded faces. Every script face craft-fonts can embed (`FIGIRAN_EMBED_SCRIPTS`) is a
 /// document fallback after the Latin faces; else Hebrew or Devanagari typed into an Inter layer
 /// would stay missing glyphs with its face embedded.
 #[test]
@@ -596,7 +596,7 @@ fn a_font_file_outside_the_font_folders_is_indexed_from_its_path() {
         .into_iter()
         .find_map(|d| std::fs::read_dir(d).into_iter().flatten().flatten().map(|e| e.path()).find(|p| p.extension().is_some_and(|x| x == "ttf")));
     let Some(font) = installed else { return };
-    let tmp = TempDir(std::env::temp_dir().join(format!("figcraft-font-manager-{}", std::process::id())));
+    let tmp = TempDir(std::env::temp_dir().join(format!("figiran-font-manager-{}", std::process::id())));
     std::fs::create_dir_all(&tmp.0).unwrap();
     let copy = tmp.0.join("Activated.ttf");
     std::fs::copy(&font, &copy).unwrap();

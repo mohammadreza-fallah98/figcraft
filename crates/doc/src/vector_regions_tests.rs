@@ -2,7 +2,7 @@
 //! region winning where regions overlap, curved edges, loops with segments stored backwards, a
 //! region's points and empty or damaged networks.
 
-use figcraft_geom::Point;
+use figiran_geom::Point;
 
 use crate::vector::{Region, Segment, VectorNetwork, Vertex, WindingRule};
 
@@ -47,7 +47,7 @@ fn region_fills_default_to_inheritance_and_keep_explicit_empty() {
 #[test]
 fn region_paint_space_roundtrips_and_rejects_nonfinite_inverse() {
     use crate::RegionPaintSpace;
-    use figcraft_geom::Affine;
+    use figiran_geom::Affine;
     let mut r = region(Vec::new(), WindingRule::EvenOdd);
     assert_eq!(r.paint_frame(100.0, 40.0), (100.0, 40.0, Affine::IDENTITY));
     r.paint_space = Some(RegionPaintSpace { width: 30.0, height: 20.0, transform: Affine::translate((4.0, 8.0)) });
@@ -155,7 +155,7 @@ fn segments_stored_backwards_are_walked_the_right_way() {
     assert_eq!(n.region_at(p(100.0, 100.0)), Some(0));
     assert_eq!(n.region_at(p(300.0, 100.0)), None);
     // The walk equals the same loop stored consistently: one closed contour of the same area.
-    use figcraft_geom::Shape;
+    use figiran_geom::Shape;
     let mut consistent = VectorNetwork::default();
     square(&mut consistent, 0.0, 0.0, 200.0);
     consistent.regions = n.regions.clone();
@@ -175,7 +175,7 @@ fn a_loop_that_does_not_close_is_closed_implicitly() {
 
 #[test]
 fn missing_segments_are_skipped_wherever_they_sit_in_a_loop() {
-    use figcraft_geom::Shape;
+    use figiran_geom::Shape;
     let mut n = VectorNetwork::default();
     square(&mut n, 0.0, 0.0, 200.0);
     n.regions = vec![region(vec![vec![0, 1, 2]], WindingRule::NonZero)];

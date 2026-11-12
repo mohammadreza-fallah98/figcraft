@@ -5,7 +5,7 @@
 use crate::Session;
 use crate::components::tests::{ex, idv};
 use crate::tailwind::{classes, merge};
-use figcraft_doc::NodeId;
+use figiran_doc::NodeId;
 use serde_json::json;
 
 fn code(s: &mut Session, id: NodeId, extra: serde_json::Value) -> String {

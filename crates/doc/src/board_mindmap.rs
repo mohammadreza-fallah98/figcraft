@@ -2,7 +2,7 @@
 //! like `board_route`; the engine's normalize pass reads the tree from the branches and moves the
 //! layers (#2226).
 
-use figcraft_geom::{Point, Rect};
+use figiran_geom::{Point, Rect};
 
 use crate::NodeId;
 

@@ -8,14 +8,14 @@ pub(super) struct JobKey {
     scale: i64,
     size: (u32, u32),
     outline: bool,
-    outline_extras: figcraft_render::Outline,
+    outline_extras: figiran_render::Outline,
     outlined: Vec<NodeId>,
     skip: Vec<NodeId>,
     solo: Option<NodeId>,
     /// Text lays out anew when fonts arrive (system fonts load in the background).
     fonts: u64,
     proof: bool,
-    dots: Option<figcraft_render::Dots>,
+    dots: Option<figiran_render::Dots>,
 }
 
 /// Whether a finished render goes on screen: an image of the file and page shown (`shown`), and
@@ -39,14 +39,14 @@ pub(crate) fn shows(c: &CanvasState, done: &Done, shown: Option<(u64, NodeId)>) 
 }
 
 /// Whether `outer` shows all of the page that `inner` does.
-fn covers(outer: &figcraft_render::View, inner: &figcraft_render::View) -> bool {
+fn covers(outer: &figiran_render::View, inner: &figiran_render::View) -> bool {
     let (o, i) = (outer.page_rect(), inner.page_rect());
     // Rounding in the snapped origin, well under a device pixel.
     let eps = 1e-6 / inner.scale.max(1e-9);
     o.x0 <= i.x0 + eps && o.y0 <= i.y0 + eps && o.x1 >= i.x1 - eps && o.y1 >= i.y1 - eps
 }
 
-pub(super) fn request_render(app: &mut FigApp, worker: &mut Worker, ppp: f32, max_texture_side: u32, dots: Option<figcraft_render::Dots>) {
+pub(super) fn request_render(app: &mut FigApp, worker: &mut Worker, ppp: f32, max_texture_side: u32, dots: Option<figiran_render::Dots>) {
     let Ok(ds) = app.session.ds() else { return };
     let rect = app.canvas.rect;
     let (mut ox, mut oy) = ds.view.origin();
@@ -63,7 +63,7 @@ pub(super) fn request_render(app: &mut FigApp, worker: &mut Worker, ppp: f32, ma
     let doc = app.preedit_view().map(|p| p.doc.clone()).unwrap_or_else(|| ds.doc.clone());
     let outlined = if ds.view.outlines_selection { ds.selection.clone() } else { vec![] };
     let proof = ds.view.proof_srgb && !doc.color_profile.is_srgb();
-    let outline_extras = figcraft_render::Outline { hidden: ds.view.outline_hidden, bounds: ds.view.outline_bounds, light: false };
+    let outline_extras = figiran_render::Outline { hidden: ds.view.outline_hidden, bounds: ds.view.outline_bounds, light: false };
     // Render beyond the visible viewport. During a pan the previous texture then still covers
     // the screen while the worker renders newly exposed content. Request a new buffer before the
     // visible area reaches its edge, rather than exposing an empty strip each pointer move.
@@ -83,7 +83,7 @@ pub(super) fn request_render(app: &mut FigApp, worker: &mut Worker, ppp: f32, ma
         outlined: outlined.clone(),
         skip: vec![],
         solo: ds.focused(),
-        fonts: figcraft_text::layout_generation(),
+        fonts: figiran_text::layout_generation(),
         proof,
         dots,
     };
@@ -101,7 +101,7 @@ pub(super) fn request_render(app: &mut FigApp, worker: &mut Worker, ppp: f32, ma
     let job = Job {
         doc,
         page: ds.page,
-        view: figcraft_render::View { origin: requested, scale, width: size.0, height: size.1 },
+        view: figiran_render::View { origin: requested, scale, width: size.0, height: size.1 },
         outline: ds.view.outlines,
         outline_extras,
         outlined,

@@ -44,12 +44,12 @@ fn module(name: &str, mime: &str, data: &[u8], call: &str) -> Vec<u8> {
     let bytes = |b: &[u8]| b.iter().map(|b| format!("\\{b:02x}")).collect::<String>();
     let wat = format!(
         r#"(module
-          (import "figcraft" "save_file" (func $save_file (param i32 i32 i32 i32 i32 i32) (result i32)))
-          (import "figcraft" "reply_read" (func $reply_read (param i32 i32) (result i32)))
-          (import "figcraft" "set_output" (func $set_output (param i32 i32)))
+          (import "figiran" "save_file" (func $save_file (param i32 i32 i32 i32 i32 i32) (result i32)))
+          (import "figiran" "reply_read" (func $reply_read (param i32 i32) (result i32)))
+          (import "figiran" "set_output" (func $set_output (param i32 i32)))
           (memory (export "memory") 1)
           (data (i32.const 0) "{}") (data (i32.const 100) "{}") (data (i32.const 200) "{}")
-          (func (export "figcraft_run") (param $n i32) (result i32) (local $st i32)
+          (func (export "figiran_run") (param $n i32) (result i32) (local $st i32)
             (local.set $st {call})
             (call $set_output (i32.const 1000) (call $reply_read (i32.const 1000) (i32.const 100)))
             (local.get $st)))"#,
@@ -122,8 +122,8 @@ fn too_much_data_is_refused_and_bad_utf8_a_trap() {
 
 #[test]
 fn a_wrong_signature_is_rejected() {
-    let wat = r#"(module (import "figcraft" "save_file" (func (param i32 i32) (result i32)))
-        (memory (export "memory") 1) (func (export "figcraft_run") (param i32) (result i32) (i32.const 0)))"#;
+    let wat = r#"(module (import "figiran" "save_file" (func (param i32 i32) (result i32)))
+        (memory (export "memory") 1) (func (export "figiran_run") (param i32) (result i32) (i32.const 0)))"#;
     let wasm = wat::parse_str(wat).unwrap();
     assert!(matches!(crate::check_module(&wasm, &Limits::default()), Err(PluginError::InvalidModule(m)) if m.contains("wrong signature")));
 }

@@ -2,8 +2,8 @@
 //! a click) and the table's part of the bar over the selection.
 
 use egui::{Event, Modifiers, PointerButton, Pos2, pos2};
-use figcraft_doc::{BoardItem, NodeId};
-use figcraft_engine::Session;
+use figiran_doc::{BoardItem, NodeId};
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::layers_drag_tests::Ui;

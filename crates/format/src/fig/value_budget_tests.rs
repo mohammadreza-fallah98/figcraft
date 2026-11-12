@@ -1,6 +1,6 @@
 //! Dense legitimate canvases must open whole within the value budget their size gives them, and a
 //! small canvas that unpacks past the floor (tens of millions of values) must stay refused. The dense ones take seconds and gigabytes:
-//! `cargo test -p figcraft-format --release --lib value_budget -- --ignored --test-threads=1`.
+//! `cargo test -p figiran-format --release --lib value_budget -- --ignored --test-threads=1`.
 
 use super::kiwi::{Kv, Schema, encode};
 use super::tests::{Lcg, arr, at, f, g, node, o, s, schema, solid, u, xy};
@@ -161,5 +161,5 @@ fn a_small_canvas_that_unpacks_to_millions_of_values_is_refused() {
     let file = one_list_canvas(&Schema::parse("message Message uint[] xs").unwrap(), n, std::iter::repeat_n(0, n as usize));
     assert!(file.len() < 100_000, "{} bytes", file.len());
     let Err(e) = import(&file, "x") else { panic!("a {} byte canvas holding {n} values opened", file.len()) };
-    assert_eq!(e.to_string(), "not a valid FigCraft file: .fig file: message: too many values");
+    assert_eq!(e.to_string(), "not a valid FigIran file: .fig file: message: too many values");
 }

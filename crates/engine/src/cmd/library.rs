@@ -5,10 +5,10 @@
 use std::collections::BTreeSet;
 use std::sync::Arc;
 
-use figcraft_doc::{Document, ImportedComponent, ImportedRecord, LibraryLink, LibraryManifest, NodeId, PublishedLibrary, VariableId};
+use figiran_doc::{Document, ImportedComponent, ImportedRecord, LibraryLink, LibraryManifest, NodeId, PublishedLibrary, VariableId};
 use serde_json::{Value, json};
 
-use figcraft_collab::message::{AssetUsage, FileDetached, LibraryReply, LibraryReq, WeekActions};
+use figiran_collab::message::{AssetUsage, FileDetached, LibraryReply, LibraryReq, WeekActions};
 
 use super::CommandSpec;
 use crate::library::{
@@ -46,14 +46,14 @@ pub fn specs() -> Vec<CommandSpec> {
         spec!(
             "library.publishToServer",
             "Publish library to server",
-            "{server? (an edit link of this file on a figcraft-server; omit while this file is in a live session on a server, or give the server's address with its key to keep the file there first), key?, description?, include?, exclude? (as library.publish)}  publishes the library as the next version of the one kept on the server under this file (per-asset versions as library.publish); files that enabled it with a link of the file see the update → {id, version, components, styles, collections, variables, file?, edit?, view? (links when the file was kept there now)}",
+            "{server? (an edit link of this file on a figiran-server; omit while this file is in a live session on a server, or give the server's address with its key to keep the file there first), key?, description?, include?, exclude? (as library.publish)}  publishes the library as the next version of the one kept on the server under this file (per-asset versions as library.publish); files that enabled it with a link of the file see the update → {id, version, components, styles, collections, variables, file?, edit?, view? (links when the file was kept there now)}",
             false,
             publish_to_server
         ),
         spec!(
             "library.add",
             "Add library",
-            "{path (.figcraft file published as a library, or a share link of a file on a server: a view link is enough)}",
+            "{path (.figiran file published as a library, or a share link of a file on a server: a view link is enough)}",
             true,
             add
         ),
@@ -808,7 +808,7 @@ fn apply_style(s: &mut Session, p: &Value) -> Result<Value> {
 #[cfg(test)]
 mod detach_report_tests {
     use super::*;
-    use figcraft_collab::message::Detached;
+    use figiran_collab::message::Detached;
 
     /// A server that keeps detaches answers with them; one from before them refuses the request,
     /// which leaves the analytics without detaches instead of failing; waiting stays waiting.

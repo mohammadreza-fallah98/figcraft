@@ -2,7 +2,7 @@
 //! geometry, shared by the engine (board connectors that follow their layers) and the importers
 //! (connectors saved without their path).
 
-use figcraft_geom::{Point, Rect, Vec2};
+use figiran_geom::{Point, Rect, Vec2};
 
 use crate::{ConnectorPath, Routing, Side};
 

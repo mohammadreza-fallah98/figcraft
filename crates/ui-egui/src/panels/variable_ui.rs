@@ -8,8 +8,8 @@
 use std::sync::Arc;
 
 use egui::{Align2, Color32, CornerRadius, Id, Pos2, Rect, Sense, Stroke, Ui, pos2, vec2};
-use figcraft_doc::{Collection, Document, ModeId, NodeId, PublishedLibrary, Variable, VariableId, VariableType, VariableValue, Variables};
-use figcraft_engine::library;
+use figiran_doc::{Collection, Document, ModeId, NodeId, PublishedLibrary, Variable, VariableId, VariableType, VariableValue, Variables};
+use figiran_engine::library;
 use serde_json::json;
 
 use crate::FigApp;
@@ -159,7 +159,7 @@ pub fn variable_row(ui: &mut Ui, vars: &Variables, v: &Variable, width: f32) -> 
     let value = vars.resolve(&v.id, &std::collections::BTreeMap::new());
     let lead = Rect::from_center_size(pos2(r.min.x + 12.0, r.center().y), vec2(14.0, 14.0));
     match &value {
-        Some(VariableValue::Color(c)) => widgets::paint_swatch(ui.painter(), lead, &figcraft_color::Paint::solid(*c)),
+        Some(VariableValue::Color(c)) => widgets::paint_swatch(ui.painter(), lead, &figiran_color::Paint::solid(*c)),
         _ => icons::paint(ui.painter(), lead.shrink(1.0), Icon::Variable, t.menu_text),
     }
     let name_r = Rect::from_min_max(pos2(r.min.x + 26.0, r.min.y), pos2(r.max.x - 6.0, r.max.y));
@@ -396,13 +396,13 @@ pub fn picker(app: &mut FigApp, ctx: &egui::Context) {
     // Bindings offer variables scoped to the property; aliases, any that wouldn't loop (library
     // variables never lead back to this file's).
     let (scope, own) = match &p.target {
-        Target::Bind { ids, field } => (ids.first().and_then(|id| figcraft_engine::cmd::variables::field_scope(&doc, *id, field)), None),
+        Target::Bind { ids, field } => (ids.first().and_then(|id| figiran_engine::cmd::variables::field_scope(&doc, *id, field)), None),
         Target::Alias { variable, .. } => (None, doc.variables.get_by_id(variable)),
         Target::Proto(_) | Target::Style { .. } => (None, None),
     };
     // A style's fields offer variables scoped to one of the properties the field sets.
     let style_scopes = match &p.target {
-        Target::Style { style, field } => doc.style(style).and_then(|st| figcraft_engine::style_vars::field_scopes(&st.kind, field)),
+        Target::Style { style, field } => doc.style(style).and_then(|st| figiran_engine::style_vars::field_scopes(&st.kind, field)),
         _ => None,
     };
     // Prototypes and styles use this file's variables.
@@ -417,7 +417,7 @@ pub fn picker(app: &mut FigApp, ctx: &egui::Context) {
             && (q.is_empty() || v.name.to_lowercase().contains(&q))
             && scope.is_none_or(|s| v.in_scope(s))
             && style_scopes.is_none_or(|list| list.iter().any(|s| v.in_scope(s)))
-            && (lib.is_some() || own.is_none_or(|o| figcraft_engine::cmd::variables::alias_target(&doc.variables, o, &v.id).is_ok()))
+            && (lib.is_some() || own.is_none_or(|o| figiran_engine::cmd::variables::alias_target(&doc.variables, o, &v.id).is_ok()))
     };
     let groups = groups(&doc, &libs, keep);
     let mut chosen: Option<Pick> = None;
@@ -531,7 +531,7 @@ mod kind_tests {
 
 #[cfg(test)]
 mod scope_tests {
-    use figcraft_engine::Session;
+    use figiran_engine::Session;
 
     use super::*;
     use crate::layers_drag_tests::Ui as TestUi;
@@ -642,7 +642,7 @@ mod scope_tests {
     fn a_mixed_selections_fill_picker_offers_variables_scoped_to_every_layer() {
         let mut s = session();
         let r = s.selection()[0];
-        let f = s.doc().unwrap().nodes().find(|n| matches!(n.kind, figcraft_doc::NodeKind::Frame)).unwrap().id;
+        let f = s.doc().unwrap().nodes().find(|n| matches!(n.kind, figiran_doc::NodeKind::Frame)).unwrap().id;
         run(&mut s, "variable.create", json!({"collection": "Tokens", "name": "both fills", "type": "color", "values": {"Base": "#FFFF00"}}));
         run(&mut s, "variable.update", json!({"variable": "both fills", "scopes": ["FRAME_FILL", "SHAPE_FILL"]}));
         // The frame first: its scope alone would offer "frame fill" for the rectangle too.

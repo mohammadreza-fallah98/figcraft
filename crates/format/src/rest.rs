@@ -46,9 +46,9 @@ mod variables;
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
-use figcraft_doc::geom::{Affine, BezPath, Rect, Shape};
-use figcraft_doc::proto::Flow;
-use figcraft_doc::{
+use figiran_doc::geom::{Affine, BezPath, Rect, Shape};
+use figiran_doc::proto::Flow;
+use figiran_doc::{
     BoolOp, Document, ImageData, LayoutMode, Node, NodeId, NodeKind, PropDef, Style, StyleKind, VariableType, VectorNetwork, WindingRule,
 };
 use serde_json::Value;
@@ -112,7 +112,7 @@ pub fn is_variables_json(v: &Value) -> bool {
 /// The collections and variables of a local variables response (or its `meta`), checked like a
 /// file's, with the warnings about what was skipped (and when it holds no variables at all, or
 /// fewer than its collections list); None when `v` isn't one.
-pub fn read_variables(v: &Value) -> Option<(figcraft_doc::Variables, Vec<String>)> {
+pub fn read_variables(v: &Value) -> Option<(figiran_doc::Variables, Vec<String>)> {
     variables::source(v)?;
     let mut cx = Ctx::new(Document::new("Variables"), &no_images);
     cx.variables(v);
@@ -297,9 +297,9 @@ fn restore_stroke(n: &mut Node, original: &Value) -> bool {
     #[derive(serde::Deserialize)]
     struct Original {
         kind: NodeKind,
-        fills: Vec<figcraft_doc::color::Paint>,
-        strokes: Vec<figcraft_doc::color::Paint>,
-        stroke: figcraft_doc::StrokeProps,
+        fills: Vec<figiran_doc::color::Paint>,
+        strokes: Vec<figiran_doc::color::Paint>,
+        stroke: figiran_doc::StrokeProps,
     }
     let Ok(mut o) = serde_json::from_value::<Original>(original.clone()) else { return false };
     match &mut o.kind {
@@ -700,7 +700,7 @@ impl<'a> Ctx<'a> {
                 // Children of groups and booleans are placed in the enclosing frame's space; the
                 // absolute bounds settle which space the file used.
                 let err = |xf: Affine| {
-                    let r = figcraft_doc::geom::transform_rect_bbox(xf, box_rect);
+                    let r = figiran_doc::geom::transform_rect_bbox(xf, box_rect);
                     (r.x0 - b.x0).abs() + (r.y0 - b.y0).abs() + (r.x1 - b.x1).abs() + (r.y1 - b.y1).abs()
                 };
                 let (a, c) = (space.frame * rel, space.world * rel);
@@ -726,9 +726,9 @@ impl<'a> Ctx<'a> {
         }
         n.is_mask = flag(j, "isMask").unwrap_or(false);
         n.mask_type = match text(j, "maskType") {
-            Some("VECTOR") => figcraft_doc::MaskType::Vector,
-            Some("LUMINANCE") => figcraft_doc::MaskType::Luminance,
-            _ => figcraft_doc::MaskType::Alpha,
+            Some("VECTOR") => figiran_doc::MaskType::Vector,
+            Some("LUMINANCE") => figiran_doc::MaskType::Luminance,
+            _ => figiran_doc::MaskType::Alpha,
         };
         // The JSON lists every paint; a missing list means none (text keeps its default black).
         match props::paints(self, j, "fills") {
@@ -859,7 +859,7 @@ impl<'a> Ctx<'a> {
                 self.warn("very long vector paths were skipped");
                 continue;
             }
-            match figcraft_doc::geom::svg_path(d) {
+            match figiran_doc::geom::svg_path(d) {
                 Ok(bp) if sane(&bp) && out.elements().len() + bp.elements().len() <= MAX_PATH_ELEMENTS => {
                     winding.get_or_insert(if text(p, "windingRule") == Some("EVENODD") { WindingRule::EvenOdd } else { WindingRule::NonZero });
                     out.extend(bp);

@@ -1,7 +1,7 @@
 //! Pages.
 
-use figcraft_doc::proto::Flow;
-use figcraft_doc::{Guide, NodeId, NodeKind};
+use figiran_doc::proto::Flow;
+use figiran_doc::{Guide, NodeId, NodeKind};
 use serde_json::{Value, json};
 
 use super::{CommandSpec, ok};

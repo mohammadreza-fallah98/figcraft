@@ -2,9 +2,9 @@
 //! memory budget (#1061). Each scene renders the same with a mask's pixmaps cut to its area as with
 //! the whole view (how masks drew before).
 
-use figcraft_color::{Color, Paint};
-use figcraft_doc::{Document, Effect, EffectKind, MaskType, NodeId, NodeKind, Shadow};
-use figcraft_geom::Affine;
+use figiran_color::{Color, Paint};
+use figiran_doc::{Document, Effect, EffectKind, MaskType, NodeId, NodeKind, Shadow};
+use figiran_geom::Affine;
 use tiny_skia::Pixmap;
 
 use crate::draw::WHOLE_MASK_AREA;
@@ -53,7 +53,7 @@ fn scene() -> (Document, NodeId) {
     let c2 = shape(&mut d, g1, NodeKind::Rectangle, (150.0, 120.0, 160.0, 90.0), "2040E0");
     turn(&mut d, c2, 30.0);
     let pane = shape(&mut d, g1, NodeKind::Rectangle, (120.0, 100.0, 140.0, 80.0), "FFFFFF33");
-    d.get_mut(pane).unwrap().effects = vec![Effect { kind: EffectKind::BackgroundBlur(figcraft_doc::Blur::uniform(6.0)), visible: true }];
+    d.get_mut(pane).unwrap().effects = vec![Effect { kind: EffectKind::BackgroundBlur(figiran_doc::Blur::uniform(6.0)), visible: true }];
     // Nested: a turned luminance mask inside the first group.
     let (g2, m2) = mask_group(&mut d, g1, NodeKind::Rectangle, (200.0, 140.0, 150.0, 110.0), MaskType::Luminance);
     turn(&mut d, m2, 20.0);

@@ -8,7 +8,7 @@ use serde_json::json;
 use crate::Session;
 use crate::tools::{PointerEvent, PointerKind, ToolId};
 use crate::vectoredit::VTool;
-use figcraft_doc::{NodeId, NodeKind};
+use figiran_doc::{NodeId, NodeKind};
 
 fn press(s: &mut Session, kinds: &[PointerKind], x: f64, y: f64) {
     for kind in kinds {

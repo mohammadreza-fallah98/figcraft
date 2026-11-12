@@ -7,8 +7,8 @@
 use std::sync::Arc;
 
 use egui::{Align2, Color32, CornerRadius, Id, Rect, Sense, Stroke, StrokeKind, Ui, pos2, vec2};
-use figcraft_doc::{DevStatus, Document, NodeId};
-use figcraft_engine::devcompare::{self, ChangeKind, Comparison, LayerChange};
+use figiran_doc::{DevStatus, Document, NodeId};
+use figiran_engine::devcompare::{self, ChangeKind, Comparison, LayerChange};
 use serde_json::json;
 
 use crate::FigApp;
@@ -55,7 +55,7 @@ impl CompareView {
     /// The view `dev.compare {show}` (or `ui.set`) asks for: `data` holds the layer's `id` and the
     /// `version` to compare with.
     pub fn requested(data: &serde_json::Value) -> Option<Self> {
-        let id = data.get("id").and_then(figcraft_engine::params::id_of)?;
+        let id = data.get("id").and_then(figiran_engine::params::id_of)?;
         Some(Self::new(id, data.get("version").and_then(serde_json::Value::as_str).map(str::to_string)))
     }
 }
@@ -77,14 +77,14 @@ type VersionRow = (String, String, u64);
 /// One version rendered: its texture, the page area it shows and where each listed layer is.
 pub(crate) struct Shot {
     tex: egui::TextureHandle,
-    area: figcraft_geom::Rect,
-    boxes: Vec<(NodeId, ChangeKind, figcraft_geom::Rect)>,
+    area: figiran_geom::Rect,
+    boxes: Vec<(NodeId, ChangeKind, figiran_geom::Rect)>,
 }
 
 impl Shot {
     /// Layer `id` of `doc` rendered, the layers `marks` outlined.
     pub(crate) fn new(ctx: &egui::Context, doc: &Document, id: NodeId, marks: impl Iterator<Item = (NodeId, ChangeKind)>) -> Option<Self> {
-        let area = figcraft_render::export_bounds(doc, id)?;
+        let area = figiran_render::export_bounds(doc, id)?;
         let tex = crate::assets_panel::thumbnail(ctx, doc, id, TEXTURE_SIDE)?;
         let boxes = marks.filter_map(|(c, kind)| doc.world_bounds(c).map(|b| (c, kind, b))).collect();
         Some(Self { tex, area, boxes })
@@ -239,7 +239,7 @@ fn compared(ui: &mut Ui, r: Rect, cache: &Cached, version_name: Option<&str>, mo
             tr("This version can't be read.")
         } else if cache.cmp.changed {
             tr(
-                "What this changed from isn't known: it changed before FigCraft kept a copy of ready-for-dev frames. Resolve the change (or mark it ready again) to compare from now on.",
+                "What this changed from isn't known: it changed before FigIran kept a copy of ready-for-dev frames. Resolve the change (or mark it ready again) to compare from now on.",
             )
         } else {
             tr("Nothing changed since this was marked ready for dev.")

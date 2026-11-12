@@ -14,7 +14,7 @@ fn many(from: u32, n: usize) -> Vec<Peer> {
 #[test]
 fn a_flood_of_joins_keeps_at_most_the_cap() {
     let (mut s, script) = session();
-    s.execute("collab.join", &json!({"link": "figcraft://join?host=a:1&file=f&token=t"})).unwrap();
+    s.execute("collab.join", &json!({"link": "figiran://join?host=a:1&file=f&token=t"})).unwrap();
     push(&script, vec![Event::Welcome { info: info(Role::Guest, 1), peers: many(2, MAX_PEERS + 100) }]);
     s.live_poll();
     assert_eq!(s.live().peers.len(), MAX_PEERS, "a welcome listing too many");

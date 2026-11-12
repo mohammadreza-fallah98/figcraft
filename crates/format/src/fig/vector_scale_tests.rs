@@ -1,6 +1,6 @@
 //! Per-point radii follow the scale of their vector-data row, not the resized layer's box.
 
-use figcraft_doc::{Document, Node, NodeKind, VectorNetwork};
+use figiran_doc::{Document, Node, NodeKind, VectorNetwork};
 
 use super::kiwi::Kv;
 use super::network::{self, Network, Region, Segment, Vertex};

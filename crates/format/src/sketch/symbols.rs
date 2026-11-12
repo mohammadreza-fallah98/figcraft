@@ -11,7 +11,7 @@
 
 use std::collections::BTreeMap;
 
-use figcraft_doc::geom::Affine;
+use figiran_doc::geom::Affine;
 use serde_json::{Map as JsonMap, Value, json};
 
 use super::shared::Shared;

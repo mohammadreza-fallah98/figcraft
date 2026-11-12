@@ -16,8 +16,8 @@
 
 use std::f64::consts::TAU;
 
-use figcraft_doc::{Document, NodeId, NodeKind};
-use figcraft_geom::{Affine, Point, Vec2};
+use figiran_doc::{Document, NodeId, NodeKind};
+use figiran_geom::{Affine, Point, Vec2};
 use serde::Serialize;
 
 /// One of an ellipse's arc handles.

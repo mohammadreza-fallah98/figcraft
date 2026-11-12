@@ -1,7 +1,7 @@
-//! Ruler guides in `.figcraft` files: a reopened page keeps its guides, and files saved with a
+//! Ruler guides in `.figiran` files: a reopened page keeps its guides, and files saved with a
 //! page's guides written twice open again (#1476).
 
-use figcraft_doc::{Document, Guide, NodeKind};
+use figiran_doc::{Document, Guide, NodeKind};
 
 use super::*;
 

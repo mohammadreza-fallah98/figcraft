@@ -54,7 +54,7 @@ pub struct Tokens {
     pub focus: Color32,
 }
 
-/// FigCraft's brand green for solid surfaces.
+/// FigIran's brand green for solid surfaces.
 pub const BRAND: Color32 = Color32::from_rgb(0x02, 0xDA, 0x96);
 /// Contrast-safe green for thin selection outlines and white-on-green labels.
 /// It reaches 4.5:1 on white and 3:1 on the dark canvas.
@@ -62,7 +62,7 @@ pub const ACCENT: Color32 = Color32::from_rgb(0x00, 0x87, 0x5F);
 /// Ink on the bright green brand surface (white would not have enough contrast).
 pub const ACCENT_ON: Color32 = Color32::from_rgb(0x07, 0x35, 0x2A);
 /// Id of the canvas overlays' green for this frame ([`set_canvas_page`]).
-const CANVAS_ACCENT: &str = "figcraft-canvas-accent";
+const CANVAS_ACCENT: &str = "figiran-canvas-accent";
 
 /// Remember the page colour the canvas shows. Its overlays (outlines, handles, arrows) take
 /// whichever green contrasts more with it: the bright one on a dark page, the darker on a light one.
@@ -72,8 +72,8 @@ pub fn set_canvas_page(ctx: &Context, page: Color32) {
 }
 
 /// `x` (opaque) as a document colour, for its contrast with another.
-fn c(x: Color32) -> figcraft_color::Color {
-    figcraft_color::Color::new(f32::from(x.r()) / 255.0, f32::from(x.g()) / 255.0, f32::from(x.b()) / 255.0, 1.0)
+fn c(x: Color32) -> figiran_color::Color {
+    figiran_color::Color::new(f32::from(x.r()) / 255.0, f32::from(x.g()) / 255.0, f32::from(x.b()) / 255.0, 1.0)
 }
 
 /// The green for overlays drawn on the page ([`set_canvas_page`]); [`ACCENT`] before a page shows.
@@ -194,7 +194,7 @@ impl Tokens {
 
 /// Stable id for temporary theme tokens.
 fn tokens_id() -> egui::Id {
-    egui::Id::unique("figcraft_tokens")
+    egui::Id::unique("figiran_tokens")
 }
 
 /// egui's default for how long hover fades and openings animate.
@@ -294,7 +294,7 @@ pub fn on_dark<R>(ui: &mut egui::Ui, f: impl FnOnce(&mut egui::Ui) -> R) -> R {
 /// built-in faces are the whole RTL fallback, so tests and releases do not depend on installed fonts.
 pub fn install_fonts(ctx: &Context, system: bool, cjk: u8) {
     let mut fonts = FontDefinitions::default();
-    let find = |family: &str, style: &str| figcraft_text::CRAFT_FONTS.iter().find(|f| f.family == family && f.style == style).map(|f| f.bytes);
+    let find = |family: &str, style: &str| figiran_text::CRAFT_FONTS.iter().find(|f| f.family == family && f.style == style).map(|f| f.bytes);
     let regular = find("Inter", "Regular");
     let semibold = find("Inter", "SemiBold").or_else(|| find("Inter", "Bold"));
     if let Some(r) = regular {
@@ -318,7 +318,7 @@ pub fn install_fonts(ctx: &Context, system: bool, cjk: u8) {
     // Keep the logo's typeface independent of UI text. System Archivo is used when available;
     // releases with craft-fonts embed it so the wordmark does not depend on installation.
     let archivo = find("Archivo", "SemiBold").map(FontData::from_static).or_else(|| {
-        system.then(|| figcraft_text::find_face("Archivo", "SemiBold")).flatten().filter(|face| face.family == "Archivo").map(|face| font_data(&face))
+        system.then(|| figiran_text::find_face("Archivo", "SemiBold")).flatten().filter(|face| face.family == "Archivo").map(|face| font_data(&face))
     });
     let mut brand = Vec::new();
     if let Some(data) = archivo {
@@ -327,14 +327,14 @@ pub fn install_fonts(ctx: &Context, system: bool, cjk: u8) {
     }
     brand.extend(fonts.families.get(&FontFamily::Name("semibold".into())).cloned().unwrap_or_default());
     fonts.families.insert(FontFamily::Name("brand".into()), brand);
-    // CJK and other scripts from craft-fonts as fallbacks (Noto Sans CJK only with FIGCRAFT_EMBED_CJK).
+    // CJK and other scripts from craft-fonts as fallbacks (Noto Sans CJK only with FIGIRAN_EMBED_CJK).
     const BUILT_IN: [&str; 7] =
         ["Inter", "BIZ UDPGothic", "Noto Sans CJK SC", "Noto Sans Arabic", "Noto Sans Hebrew", "Noto Sans Georgian", "Noto Sans Thai"];
     let lang = crate::i18n::current().map_or("en", |l| l.code);
     // A Chinese UI draws Han in a Chinese face: the built-in Japanese one goes after the system faces.
     let late = |family: &str| family == "BIZ UDPGothic" && crate::cjk::language(lang) == crate::cjk::HAN;
     let craft = |last: bool| {
-        figcraft_text::CRAFT_FONTS
+        figiran_text::CRAFT_FONTS
             .iter()
             .filter(move |f| f.family != "Inter" && f.style == "Regular" && BUILT_IN.contains(&f.family) && late(f.family) == last)
             .map(|f| (format!("craft-{}", f.family), FontData::from_static(f.bytes)))
@@ -345,8 +345,8 @@ pub fn install_fonts(ctx: &Context, system: bool, cjk: u8) {
         let embedded = |c: char| {
             BUILT_IN
                 .into_iter()
-                .filter(|f| !late(f) && figcraft_text::CRAFT_FONTS.iter().any(|cf| cf.family == *f))
-                .filter_map(|f| figcraft_text::find_face(f, "Regular"))
+                .filter(|f| !late(f) && figiran_text::CRAFT_FONTS.iter().any(|cf| cf.family == *f))
+                .filter_map(|f| figiran_text::find_face(f, "Regular"))
                 .any(|x| x.has_char(c))
         };
         let mut taken = Vec::new();
@@ -366,14 +366,14 @@ pub fn install_fonts(ctx: &Context, system: bool, cjk: u8) {
     ctx.set_fonts(fonts);
 }
 
-/// The glyphs macOS shortcuts are written with ([`figcraft_engine::keymap::display`]).
+/// The glyphs macOS shortcuts are written with ([`figiran_engine::keymap::display`]).
 const KEY_SYMBOLS: &str = "⌃⌥⇧⌘⌫↵⇥⇞⇟←→↑↓";
 /// System families that have them, in order of preference.
 const KEY_FAMILIES: [&str; 6] = ["Lucida Grande", "Apple Symbols", "Segoe UI Symbol", "DejaVu Sans", "Noto Sans Symbols 2", "FreeSans"];
 
 /// System faces for the shortcut glyphs the UI's own fonts lack (egui's default face has ⌘ but
 /// not ⌥ or ↵); `taken` as for [`system_fallbacks`].
-fn key_symbol_fallbacks(have: &dyn Fn(char) -> bool, taken: &mut Vec<Arc<figcraft_text::Face>>) -> Vec<(String, FontData)> {
+fn key_symbol_fallbacks(have: &dyn Fn(char) -> bool, taken: &mut Vec<Arc<figiran_text::Face>>) -> Vec<(String, FontData)> {
     system_fallbacks(KEY_SYMBOLS.chars(), &KEY_FAMILIES, have, taken)
 }
 
@@ -384,14 +384,14 @@ pub(crate) fn system_fallbacks(
     samples: impl IntoIterator<Item = char>,
     families: &[&str],
     have: &dyn Fn(char) -> bool,
-    taken: &mut Vec<Arc<figcraft_text::Face>>,
+    taken: &mut Vec<Arc<figiran_text::Face>>,
 ) -> Vec<(String, FontData)> {
     let mut out = Vec::new();
     for c in samples {
         if have(c) || taken.iter().any(|f| f.has_char(c)) {
             continue;
         }
-        let Some(face) = figcraft_text::face_with_char(c, families) else { continue };
+        let Some(face) = figiran_text::face_with_char(c, families) else { continue };
         out.push((format!("system-{}-{}", face.family, face.style), font_data(&face)));
         taken.push(face);
     }
@@ -401,10 +401,10 @@ pub(crate) fn system_fallbacks(
 /// egui font data over a face's bytes, without copying them (CJK faces are 10–20 MB). Font
 /// database faces are never dropped, so a system face's shared bytes are kept for good: leaking
 /// one more reference to them costs a pointer and gives egui the `'static` slice it needs.
-pub fn font_data(face: &figcraft_text::Face) -> FontData {
+pub fn font_data(face: &figiran_text::Face) -> FontData {
     let bytes: &'static [u8] = match &face.bytes {
-        figcraft_text::fontdb::FontBytes::Static(b) => b,
-        figcraft_text::fontdb::FontBytes::Shared(v) => Box::leak(Box::new(v.clone())).as_slice(),
+        figiran_text::fontdb::FontBytes::Static(b) => b,
+        figiran_text::fontdb::FontBytes::Shared(v) => Box::leak(Box::new(v.clone())).as_slice(),
     };
     let mut data = FontData::from_static(bytes);
     data.index = face.index;
@@ -425,14 +425,14 @@ pub fn paint_wordmark(painter: &egui::Painter, left_center: egui::Pos2, size: f3
     let fig = painter.layout_no_wrap("Fig".into(), font.clone(), t.text);
     let fig_width = fig.size().x;
     painter.galley(egui::pos2(left_center.x, left_center.y - fig.size().y / 2.0), fig, t.text);
-    painter.text(egui::pos2(left_center.x + fig_width, left_center.y), egui::Align2::LEFT_CENTER, "Craft", font, t.accent_text);
+    painter.text(egui::pos2(left_center.x + fig_width, left_center.y), egui::Align2::LEFT_CENTER, "Iran", font, t.accent_text);
 }
 
-/// Paint the owner's original chameleon icon from the existing app asset.
+/// Paint the owner's original F icon from the existing app asset.
 pub fn paint_app_icon(ui: &egui::Ui, rect: egui::Rect) {
     static ICON: OnceLock<Option<egui::ColorImage>> = OnceLock::new();
     let image = ICON.get_or_init(|| {
-        let rgba = image::load_from_memory(include_bytes!("../../../assets/app-icon/figcraft-64.png")).ok()?.to_rgba8();
+        let rgba = image::load_from_memory(include_bytes!("../../../assets/app-icon/figiran-64.png")).ok()?.to_rgba8();
         Some(egui::ColorImage::from_rgba_unmultiplied([rgba.width() as usize, rgba.height() as usize], rgba.as_raw()))
     });
     let Some(image) = image else {
@@ -440,9 +440,9 @@ pub fn paint_app_icon(ui: &egui::Ui, rect: egui::Rect) {
         crate::icons::paint(ui.painter(), rect.shrink(rect.width() * 0.22), crate::icons::Icon::Logo, ACCENT_ON);
         return;
     };
-    let id = egui::Id::unique("figcraft_original_app_icon");
+    let id = egui::Id::unique("figiran_original_app_icon");
     let texture = ui.ctx().data(|data| data.get_temp::<egui::TextureHandle>(id)).unwrap_or_else(|| {
-        let texture = ui.ctx().load_texture("figcraft-original-app-icon", image.clone(), egui::TextureOptions::LINEAR);
+        let texture = ui.ctx().load_texture("figiran-original-app-icon", image.clone(), egui::TextureOptions::LINEAR);
         ui.ctx().data_mut(|data| data.insert_temp(id, texture.clone()));
         texture
     });
@@ -453,27 +453,27 @@ pub fn regular(size: f32) -> FontId {
     FontId::new(size, FontFamily::Proportional)
 }
 
-pub fn c32(c: figcraft_color::Color) -> Color32 {
+pub fn c32(c: figiran_color::Color) -> Color32 {
     let [r, g, b, a] = c.to_rgba8();
     Color32::from_rgba_unmultiplied(r, g, b, a)
 }
 
 /// Stable id for the current document-to-screen colour conversion.
 fn screen_conversion_id() -> egui::Id {
-    egui::Id::unique("figcraft_screen_conversion")
+    egui::Id::unique("figiran_screen_conversion")
 }
 
 /// Remember the colour profile of the document on screen (once per frame): document colours drawn
 /// by the UI ([`doc_c32`]) go from it to the screen's sRGB.
-pub fn set_doc_profile(ctx: &Context, profile: figcraft_color::ColorProfile) {
-    let conv = profile.conversion_to(figcraft_color::ColorProfile::Srgb);
+pub fn set_doc_profile(ctx: &Context, profile: figiran_color::ColorProfile) {
+    let conv = profile.conversion_to(figiran_color::ColorProfile::Srgb);
     ctx.data_mut(|d| d.insert_temp(screen_conversion_id(), conv));
 }
 
 /// A document colour (a paint, swatch, background) for the screen: converted from the document's
 /// colour profile to sRGB. UI chrome colours use [`c32`].
-pub fn doc_c32(ctx: &Context, c: figcraft_color::Color) -> Color32 {
-    let conv = ctx.data(|d| d.get_temp::<figcraft_color::ProfileConversion>(screen_conversion_id()));
+pub fn doc_c32(ctx: &Context, c: figiran_color::Color) -> Color32 {
+    let conv = ctx.data(|d| d.get_temp::<figiran_color::ProfileConversion>(screen_conversion_id()));
     c32(conv.map_or(c, |k| k.apply(c)))
 }
 
@@ -526,8 +526,8 @@ mod tests {
 
     #[test]
     fn ui_font_draws_every_mac_shortcut_glyph() {
-        figcraft_text::scan_system_fonts();
-        let lacking: String = KEY_SYMBOLS.chars().filter(|c| figcraft_text::face_with_char(*c, &KEY_FAMILIES).is_none()).collect();
+        figiran_text::scan_system_fonts();
+        let lacking: String = KEY_SYMBOLS.chars().filter(|c| figiran_text::face_with_char(*c, &KEY_FAMILIES).is_none()).collect();
         if !lacking.is_empty() {
             eprintln!("no system face here draws {lacking}; skipping");
             return;
@@ -550,7 +550,7 @@ mod tests {
     fn ui_font_draws_thai_with_the_built_in_thai_face() {
         // The web build has no system fonts: Thai layer names, frame labels and field text are drawn
         // by craft-fonts' Noto Sans Thai, a built-in fallback, when the build embeds it.
-        if !figcraft_text::CRAFT_FONTS.iter().any(|f| f.family == "Noto Sans Thai") {
+        if !figiran_text::CRAFT_FONTS.iter().any(|f| f.family == "Noto Sans Thai") {
             eprintln!("built without craft-fonts' Noto Sans Thai; skipping");
             return;
         }

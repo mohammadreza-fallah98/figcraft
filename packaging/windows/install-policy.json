@@ -1,123 +1,122 @@
 {
-  "id": "figcraft",
-  "name": "FigCraft",
+  "id": "figiran",
+  "name": "FigIran",
   "upgradeCode": "7F8B9827-D065-41B7-A514-2A454B21F484",
   "sources": [
-    "figcraft.wxs"
+    "figiran.wxs"
   ],
-  "icon": "assets/app-icon/figcraft.ico",
+  "icon": "assets/app-icon/figiran.ico",
   "localization": [
-    "figcraft.en-us.wxl"
+    "figiran.en-us.wxl"
   ],
   "extensions": [
     "UI",
     "Util"
   ],
   "payloads": [
-    "NOTICE",
-    "figcraft-cli.exe",
-    "figcraft.exe"
+    "figiran-cli.exe",
+    "figiran.exe"
   ],
   "registry": [
     [
       "-1",
-      "Software\\Classes\\Figcraft.Image\\shell\\open\\command",
+      "Software\\Classes\\Figiran.Image\\shell\\open\\command",
       "",
-      "\"[#FigcraftExe]\" \"%1\""
+      "\"[#FigiranExe]\" \"%1\""
     ],
     [
       "-1",
       "Software\\Classes\\.svg\\OpenWithProgids",
-      "Figcraft.Image",
+      "Figiran.Image",
       ""
     ],
     [
       "-1",
       "Software\\Classes\\.png\\OpenWithProgids",
-      "Figcraft.Image",
+      "Figiran.Image",
       ""
     ],
     [
       "-1",
       "Software\\Classes\\.jpg\\OpenWithProgids",
-      "Figcraft.Image",
+      "Figiran.Image",
       ""
     ],
     [
       "-1",
       "Software\\Classes\\.jpeg\\OpenWithProgids",
-      "Figcraft.Image",
+      "Figiran.Image",
       ""
     ],
     [
       "-1",
-      "Software\\Classes\\Figcraft.Sketch\\shell\\open\\command",
+      "Software\\Classes\\Figiran.Sketch\\shell\\open\\command",
       "",
-      "\"[#FigcraftExe]\" \"%1\""
+      "\"[#FigiranExe]\" \"%1\""
     ],
     [
       "-1",
       "Software\\Classes\\.sketch\\OpenWithProgids",
-      "Figcraft.Sketch",
+      "Figiran.Sketch",
       ""
     ],
     [
       "-1",
-      "Software\\Classes\\Applications\\figcraft.exe",
+      "Software\\Classes\\Applications\\figiran.exe",
       "FriendlyAppName",
-      "FigCraft"
+      "FigIran"
     ],
     [
       "-1",
-      "Software\\Classes\\Applications\\figcraft.exe\\shell\\open\\command",
+      "Software\\Classes\\Applications\\figiran.exe\\shell\\open\\command",
       "",
-      "\"[#FigcraftExe]\" \"%1\""
+      "\"[#FigiranExe]\" \"%1\""
     ],
     [
       "-1",
-      "Software\\Classes\\Applications\\figcraft.exe\\SupportedTypes",
-      ".figcraft",
+      "Software\\Classes\\Applications\\figiran.exe\\SupportedTypes",
+      ".figiran",
       ""
     ],
     [
       "-1",
-      "Software\\Classes\\Applications\\figcraft.exe\\SupportedTypes",
+      "Software\\Classes\\Applications\\figiran.exe\\SupportedTypes",
       ".svg",
       ""
     ],
     [
       "-1",
-      "Software\\Classes\\Applications\\figcraft.exe\\SupportedTypes",
+      "Software\\Classes\\Applications\\figiran.exe\\SupportedTypes",
       ".png",
       ""
     ],
     [
       "-1",
-      "Software\\Classes\\Applications\\figcraft.exe\\SupportedTypes",
+      "Software\\Classes\\Applications\\figiran.exe\\SupportedTypes",
       ".jpg",
       ""
     ],
     [
       "-1",
-      "Software\\Classes\\Applications\\figcraft.exe\\SupportedTypes",
+      "Software\\Classes\\Applications\\figiran.exe\\SupportedTypes",
       ".jpeg",
       ""
     ],
     [
       "-1",
-      "Software\\Classes\\Applications\\figcraft.exe\\SupportedTypes",
+      "Software\\Classes\\Applications\\figiran.exe\\SupportedTypes",
       ".sketch",
       ""
     ],
     [
       "-1",
-      "Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\figcraft.exe",
+      "Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\figiran.exe",
       "",
-      "[#FigcraftExe]"
+      "[#FigiranExe]"
     ],
     [
       "-1",
-      "Software\\FigCraft",
+      "Software\\FigIran",
       "InstallDir",
       "[INSTALLFOLDER]"
     ]

@@ -1,7 +1,7 @@
 //! Sketch styles → paints, strokes, effects, opacity, blend modes and masks.
 
-use figcraft_doc::color::{BlendMode, ColorProfile, GradientKind, ImageScaleMode, PaintKind};
-use figcraft_doc::{Document, EffectKind, NodeKind, StrokeAlign, StrokeCap, StrokeJoin};
+use figiran_doc::color::{BlendMode, ColorProfile, GradientKind, ImageScaleMode, PaintKind};
+use figiran_doc::{Document, EffectKind, NodeKind, StrokeAlign, StrokeCap, StrokeJoin};
 use serde_json::{Value, json};
 
 use super::fixture::*;
@@ -16,7 +16,7 @@ fn open(layers: Vec<Value>) -> (Document, Vec<String>) {
     open_doc(document(&["P"]), layers, &[])
 }
 
-fn node<'d>(doc: &'d Document, name: &str) -> &'d figcraft_doc::Node {
+fn node<'d>(doc: &'d Document, name: &str) -> &'d figiran_doc::Node {
     doc.nodes().find(|n| n.name == name).unwrap_or_else(|| panic!("no layer named {name}"))
 }
 
@@ -326,7 +326,7 @@ fn alpha_masks_draw_no_copy() {
     let m = styled(with(with(r("Fade"), "hasClippingMask", json!(true)), "clippingMaskMode", json!(1)), "fills", fill);
     let (doc, _) = open(vec![group("G", 0.0, 0.0, 100.0, 50.0, vec![m, r("Photo")])]);
     assert!(!doc.nodes().any(|n| n.name == "Fade (drawn)"));
-    assert_eq!(node(&doc, "Fade").mask_type, figcraft_doc::MaskType::Alpha);
+    assert_eq!(node(&doc, "Fade").mask_type, figiran_doc::MaskType::Alpha);
 }
 
 /// A progressive opacity (Fade: `contextSettings.isProgressive` with a gradient) becomes an alpha
@@ -344,7 +344,7 @@ fn fades_become_alpha_masks() {
     assert_eq!(wrap.name, "Photo");
     assert!(matches!(wrap.kind, NodeKind::Group), "{:?}", wrap.kind);
     let mask = doc.node(wrap.children[0]).unwrap();
-    assert!(mask.is_mask && mask.mask_type == figcraft_doc::MaskType::Alpha);
+    assert!(mask.is_mask && mask.mask_type == figiran_doc::MaskType::Alpha);
     assert!(matches!(mask.fills[0].kind, PaintKind::Gradient(_)));
     assert_eq!(doc.world_bounds(mask.id), doc.world_bounds(photo.id));
     let b = doc.world_bounds(photo.id).unwrap();
@@ -368,7 +368,7 @@ fn linear_gradients_are_square_in_pixels() {
 // Rules below were read off Sketch's own renders (sketchtool) of files built for each case.
 
 /// Sketch's blur radius is the blur's standard deviation (Gaussian, background and motion blurs);
-/// FigCraft's radius is twice it. A zoom blur stays a plain blur of half its radius.
+/// FigIran's radius is twice it. A zoom blur stays a plain blur of half its radius.
 #[test]
 fn blur_radii_are_deviations() {
     let blur = |ty: i64| json!({"_class": "blur", "isEnabled": true, "radius": 6, "type": ty});
@@ -406,15 +406,15 @@ fn bitmap_brightness_adds_after_contrast() {
         let (doc, _) = open_doc(document(&["P"]), vec![bitmap], &[("images/a.png", &png)]);
         let PaintKind::Image(img) = &node(&doc, "Photo").fills[0].kind else { panic!("no image") };
         let (e, c) = (2f64.powf(f64::from(img.filters.exposure) * 2.0), 1.0 + f64::from(img.filters.contrast));
-        // Past FigCraft's ranges the slope stays exact and only the offset gives.
+        // Past FigIran's ranges the slope stays exact and only the offset gives.
         assert!((e * c - contrast).abs() < 1e-4, "{brightness} {contrast}: slope {}", e * c);
         if !(-0.5..=0.375).contains(&brightness) {
             continue;
         }
         for v in [0.1, 0.4, 0.6, 0.9] {
-            let figcraft = (v * e - 0.5) * c + 0.5;
+            let figiran = (v * e - 0.5) * c + 0.5;
             let sketch = (v - 0.5) * contrast + 0.5 + brightness;
-            assert!((figcraft - sketch).abs() < 1e-4, "{brightness} {contrast} at {v}: {figcraft} vs {sketch}");
+            assert!((figiran - sketch).abs() < 1e-4, "{brightness} {contrast} at {v}: {figiran} vs {sketch}");
         }
     }
 }
@@ -470,7 +470,7 @@ fn faded_masks_fade_what_they_clip() {
     assert!((alpha_parent.opacity - 1.0).abs() < 1e-6, "{}", alpha_parent.opacity);
 }
 
-/// `colorInterpolation` 1 mixes a gradient in OKLab, 2 in OKLCH; FigCraft gets sRGB stops along
+/// `colorInterpolation` 1 mixes a gradient in OKLab, 2 in OKLCH; FigIran gets sRGB stops along
 /// the same colours (values from Sketch's render of this gradient), and a note.
 #[test]
 fn oklab_gradients_become_srgb_stops() {

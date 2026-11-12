@@ -14,7 +14,7 @@ use serde_json::{Value, json};
 use crate::Session;
 use crate::params::id_of;
 use crate::tools::{PointerEvent, PointerKind};
-use figcraft_doc::NodeId;
+use figiran_doc::NodeId;
 
 fn ex(s: &mut Session, cmd: &str, p: Value) -> Value {
     s.execute(cmd, &p).unwrap_or_else(|e| panic!("{cmd}: {e}"))
@@ -514,9 +514,9 @@ fn fill_opacity_star_ratio_and_arc_ratio_read_a_percent_suffix() {
     let fill = s.doc().unwrap().node(r).unwrap().fills[0].opacity;
     assert!((fill - 0.01).abs() < 1e-6, "fill opacity \"1%\" gave {fill}");
     let star = id(&ex(&mut s, "shape.star", json!({"x": 0, "y": 0, "width": 100, "height": 100, "props": {"innerRadius": "1%"}})));
-    let figcraft_doc::NodeKind::Star { inner_ratio, .. } = s.doc().unwrap().node(star).unwrap().kind else { panic!("star") };
+    let figiran_doc::NodeKind::Star { inner_ratio, .. } = s.doc().unwrap().node(star).unwrap().kind else { panic!("star") };
     assert!((inner_ratio - 0.01).abs() < 1e-9, "innerRadius \"1%\" gave {inner_ratio}");
     let arc = id(&ex(&mut s, "shape.ellipse", json!({"x": 0, "y": 0, "width": 100, "height": 100, "props": {"arcInner": "1%"}})));
-    let figcraft_doc::NodeKind::Ellipse { inner, .. } = s.doc().unwrap().node(arc).unwrap().kind else { panic!("ellipse") };
+    let figiran_doc::NodeKind::Ellipse { inner, .. } = s.doc().unwrap().node(arc).unwrap().kind else { panic!("ellipse") };
     assert!((inner - 0.01).abs() < 1e-9, "arcInner \"1%\" gave {inner}");
 }

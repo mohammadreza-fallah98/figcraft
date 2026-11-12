@@ -1,7 +1,7 @@
 //! A client renamed in a session (a `name` signal): the server keeps the new name and tells
 //! everyone with the client's `PeerJoined`; newcomers' welcomes list it (#1380).
 
-use figcraft_doc::Document;
+use figiran_doc::Document;
 
 use crate::message::{ClientMsg, Hello, Peer, ServerMsg, Signal, client_version};
 use crate::{Client, Limits, Outgoing, Server};

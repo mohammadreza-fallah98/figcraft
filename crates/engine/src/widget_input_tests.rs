@@ -11,7 +11,7 @@ use crate::plugins_tests::{install, undo_len};
 use crate::tools::{PointerEvent, PointerKind};
 use crate::widgets_tests::{W, err, state};
 use crate::{Session, textedit};
-use figcraft_doc::NodeId;
+use figiran_doc::NodeId;
 
 const ID: &str = "org.test.note";
 
@@ -147,7 +147,7 @@ fn fields_and_menus_need_api_4_and_forged_menus_are_ignored() {
     let (mut s, w) = session();
     let deep = "[".repeat(100_000);
     for junk in ["not json", r#"[{"item": "has space"}]"#, r#"[{"item": "c", "type": "color"}]"#, "{}", deep.as_str()] {
-        s.ds_mut().unwrap().doc_mut().get_mut(w).unwrap().plugin_data.insert("figcraft.widget.menu".into(), junk.to_string());
+        s.ds_mut().unwrap().doc_mut().get_mut(w).unwrap().plugin_data.insert("figiran.widget.menu".into(), junk.to_string());
         assert!(crate::widgets::menu_of(s.doc().unwrap(), w).is_empty(), "{}", &junk[..junk.len().min(40)]);
         assert!(err(&mut s, "widget.menu", json!({"id": w, "item": "c"})).contains("no menu item"));
     }
@@ -206,6 +206,6 @@ fn a_field_edit_syncs_in_a_live_session() {
     push(&script, back);
     s.live_poll();
     let theirs = server.document().node(w).unwrap();
-    assert_eq!(theirs.plugin_data.get("figcraft.widget.state").map(String::as_str), Some(r#"{"label":"Shared"}"#));
-    assert!(theirs.plugin_data.contains_key("figcraft.widget.menu"), "the menu travels with the widget");
+    assert_eq!(theirs.plugin_data.get("figiran.widget.state").map(String::as_str), Some(r#"{"label":"Shared"}"#));
+    assert!(theirs.plugin_data.contains_key("figiran.widget.menu"), "the menu travels with the widget");
 }

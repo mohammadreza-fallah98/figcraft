@@ -1,13 +1,13 @@
 //! Dev Mode "Compare changes": what changed in a ready-for-dev frame or section since it was
 //! marked, or in any frame or section since a saved version. The document keeps a snapshot of a
-//! ready-for-dev layer from just before its first change ([`figcraft_doc::handoff`]); this compares
+//! ready-for-dev layer from just before its first change ([`figiran_doc::handoff`]); this compares
 //! it (or the layer in the version) with the layer as it is now, layer by layer
 //! (matched by id): layers added and removed, and for the others their properties formatted the
 //! way Inspect shows them (`width 120 → 136`, `fill #FF0000 → #E03030`).
 
 use std::collections::BTreeSet;
 
-use figcraft_doc::{DevStatus, Document, MAX_SNAPSHOT_NODES, Node, NodeId, NodeKind};
+use figiran_doc::{DevStatus, Document, MAX_SNAPSHOT_NODES, Node, NodeId, NodeKind};
 use serde::Serialize;
 
 use crate::devinspect::{Prop, Section, properties};

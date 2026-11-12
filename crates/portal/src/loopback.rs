@@ -1,7 +1,7 @@
 //! The loopback redirect of a sign-in (RFC 8252 section 7.3): the app listens on `127.0.0.1` on a
 //! port the system picks, the portal's login page sends the browser to
 //! `http://127.0.0.1:<port>/auth?code=…&state=…`, and the page shown tells the person to return to
-//! the app. It works in every browser, unlike the `figcraft://` scheme some browsers refuse.
+//! the app. It works in every browser, unlike the `figiran://` scheme some browsers refuse.
 //!
 //! One listener serves one sign-in. It answers only a request that carries the expected `state`
 //! (random, per login) and a `Host` of this very address (so a web page can't reach it through a
@@ -23,9 +23,9 @@ const POLL: Duration = Duration::from_millis(20);
 /// How long one client gets to send its request.
 const CLIENT_TIME: Duration = Duration::from_secs(2);
 
-const PAGE: &str = "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>FigCraft</title>\
+const PAGE: &str = "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>FigIran</title>\
 <style>body{font:16px system-ui,sans-serif;margin:4rem auto;max-width:28rem;text-align:center}</style></head>\
-<body><h1>FigCraft</h1><p>Signed in. You can close this tab and return to FigCraft.</p></body></html>";
+<body><h1>FigIran</h1><p>Signed in. You can close this tab and return to FigIran.</p></body></html>";
 
 /// A running listener; dropping it (or [`Loopback::stop`]) closes the port.
 pub struct Loopback {
@@ -43,7 +43,7 @@ impl Loopback {
         let stop = Arc::new(AtomicBool::new(false));
         let flag = stop.clone();
         std::thread::Builder::new()
-            .name("figcraft-login-callback".into())
+            .name("figiran-login-callback".into())
             .spawn(move || serve(&listener, port, &state, lifetime, &flag, on_code))
             .map_err(|e| e.to_string())?;
         Ok(Self { port, stop })

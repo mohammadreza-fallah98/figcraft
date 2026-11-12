@@ -1,14 +1,14 @@
 //! Recent file rows keep their full accessible name.
 
 use egui::{Context, Id, Pos2, RawInput, Rect, accesskit::Role, vec2};
-use figcraft_engine::Session;
-use figcraft_ui_egui::{FigApp, NoServices};
+use figiran_engine::Session;
+use figiran_ui_egui::{FigApp, NoServices};
 
 /// Render the home screen in `view` with `path` (and a single-space control) as recents and return
 /// the row's (label, shortcut, focused name).
 fn row(view: &str, path: &str, prefix: &str, exclude: &str) -> (String, Option<String>, String) {
     let mut session = Session::empty();
-    session.prefs.recent_files = vec![path.into(), "Q3 report.figcraft".into()];
+    session.prefs.recent_files = vec![path.into(), "Q3 report.figiran".into()];
     session.prefs.getting_started_dismissed = true;
     session.prefs.home_views.insert("recents".into(), view.into());
     let mut app = FigApp::new(session, Box::new(NoServices));
@@ -39,7 +39,7 @@ fn row(view: &str, path: &str, prefix: &str, exclude: &str) -> (String, Option<S
             found = Some((
                 n.label().unwrap_or_default().to_string(),
                 n.keyboard_shortcut().map(str::to_string),
-                figcraft_ui_egui::a11y::focused_name(&ctx),
+                figiran_ui_egui::a11y::focused_name(&ctx),
             ));
         }
     }
@@ -49,14 +49,14 @@ fn row(view: &str, path: &str, prefix: &str, exclude: &str) -> (String, Option<S
 #[test]
 fn recent_file_names_preserve_spaces() {
     for view in ["grid", "list"] {
-        for (path, prefix, full) in [("Q3  report.figcraft", "Q3", "Q3  report"), ("Notes  A.figcraft", "Notes", "Notes  A")] {
+        for (path, prefix, full) in [("Q3  report.figiran", "Q3", "Q3  report"), ("Notes  A.figiran", "Notes", "Notes  A")] {
             // The single-space control "Q3 report" also starts with "Q3"; it is not the row under test.
             let (label, shortcut, focused) = row(view, path, prefix, "Q3 report");
             assert!(label.starts_with(full), "{view}: label {label:?}");
             assert_eq!(shortcut, None, "{view}: {path}");
             assert!(focused.starts_with(full), "{view}: focused {focused:?}");
         }
-        let (label, shortcut, _) = row(view, "Q3  report.figcraft", "Q3 report", "");
+        let (label, shortcut, _) = row(view, "Q3  report.figiran", "Q3 report", "");
         assert!(label.starts_with("Q3 report"), "{view}: control {label:?}");
         assert_eq!(shortcut, None);
     }

@@ -1,10 +1,10 @@
 //! Boards: the file kind, sticky notes, shapes with text, connectors that follow what they join
 //! (locally, through undo and in live sessions), stamps, ink and the eraser, and refusals.
 
-use figcraft_doc::{
+use figiran_doc::{
     BOARD_PAGE, BoardItem, BoardShape, Connector, End, FileKind, Node, NodeId, NodeKind, Routing, Side, Stamp, StrokeCap, board_color,
 };
-use figcraft_geom::Point;
+use figiran_geom::Point;
 use serde_json::{Value, json};
 
 use crate::board::{route, sticky_font_size};
@@ -51,14 +51,14 @@ fn a_board_is_a_kind_of_file_that_saves_and_reopens() {
     let doc = s.doc().unwrap();
     assert_eq!(doc.kind, FileKind::Board);
     assert!(matches!(doc.node(doc.pages[0]).unwrap().kind, NodeKind::Page { background, .. } if background == BOARD_PAGE));
-    let (back, _) = figcraft_format::from_json(&figcraft_format::to_json(doc).unwrap().to_string()).unwrap();
+    let (back, _) = figiran_format::from_json(&figiran_format::to_json(doc).unwrap().to_string()).unwrap();
     assert_eq!(back.kind, FileKind::Board);
     // Files from before boards (no kind) are design files, and design files don't write one.
     let mut d = Session::new();
     d.execute("file.new", &json!({})).unwrap();
-    let json = figcraft_format::to_json(d.doc().unwrap()).unwrap();
+    let json = figiran_format::to_json(d.doc().unwrap()).unwrap();
     assert!(json.get("kind").is_none());
-    assert_eq!(figcraft_format::from_json(&json.to_string()).unwrap().0.kind, FileKind::Design);
+    assert_eq!(figiran_format::from_json(&json.to_string()).unwrap().0.kind, FileKind::Design);
     assert_eq!(crate::inspect::document(&s, 0, false)["kind"], "board", "inspect shows the kind");
 }
 
@@ -91,7 +91,7 @@ fn a_sticky_is_a_square_frame_whose_note_shrinks_as_it_grows() {
     assert_eq!(node(&s, note).kind.text().unwrap().style.font_size, 24.0);
     // A click on the note picks the sticky whole.
     let doc = s.doc().unwrap();
-    assert_eq!(figcraft_doc::geometry::select_target(doc, note, &[], false), st);
+    assert_eq!(figiran_doc::geometry::select_target(doc, note, &[], false), st);
     // A long note takes a smaller size; a very long one grows the sticky past its square.
     let long = "word ".repeat(120);
     s.execute("node.set", &json!({"id": note, "props": {"characters": long}})).unwrap();

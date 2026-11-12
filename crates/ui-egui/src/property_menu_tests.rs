@@ -2,8 +2,8 @@
 //! copies that one paint or effect, and on another layer's row pastes it there.
 
 use egui::{Event, Modifiers, PointerButton, Pos2};
-use figcraft_doc::NodeId;
-use figcraft_engine::Session;
+use figiran_doc::NodeId;
+use figiran_engine::Session;
 use serde_json::json;
 
 use crate::layers_drag_tests::Ui;

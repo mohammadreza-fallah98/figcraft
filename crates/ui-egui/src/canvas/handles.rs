@@ -5,9 +5,9 @@
 //! and row gaps, with the grid's tracks outlined).
 
 use egui::{Align2, Color32, CornerRadius, Id, Pos2, Rect, Shape, Stroke, StrokeKind, pos2, vec2};
-use figcraft_color::{ImagePaint, ImageScaleMode, Paint, PaintKind};
-use figcraft_doc::{Blur, ContentAlign, Effect, LayoutMode, NodeId};
-use figcraft_geom::Point;
+use figiran_color::{ImagePaint, ImageScaleMode, Paint, PaintKind};
+use figiran_doc::{Blur, ContentAlign, Effect, LayoutMode, NodeId};
+use figiran_geom::Point;
 use serde_json::json;
 
 use crate::colorpicker::PickerTarget;
@@ -47,11 +47,11 @@ type UnitRect = (f64, f64, f64, f64);
 /// regions' or characters' fills differ. Writes go through `fill.set`, which edits the selected
 /// regions or moves the characters' list to the layer first, so the handles read and write the
 /// same paint.
-fn edited_list(app: &FigApp, n: &figcraft_doc::Node, fills: bool) -> Option<Vec<Paint>> {
-    if fills && let Some(regions) = figcraft_engine::vectoredit::selected_region_fills(&app.session, n.id) {
+fn edited_list(app: &FigApp, n: &figiran_doc::Node, fills: bool) -> Option<Vec<Paint>> {
+    if fills && let Some(regions) = figiran_engine::vectoredit::selected_region_fills(&app.session, n.id) {
         return regions;
     }
-    if fills { figcraft_engine::cmd::lists::character_fills(n) } else { Some(n.strokes.clone()) }
+    if fills { figiran_engine::cmd::lists::character_fills(n) } else { Some(n.strokes.clone()) }
 }
 
 /// The paint open in the colour picker, else the image fill in crop mode (while its layer is the
@@ -94,9 +94,9 @@ const GHOST_MAX_SIDE: usize = 2048;
 /// The image paint's texture for the crop overlay and the image's own size: uploaded once (from
 /// the renderer's decoded copy, at most [`GHOST_MAX_SIDE`] a side) and kept while the same image,
 /// adjustments and colour profile are cropped.
-fn ghost_texture(ctx: &egui::Context, doc: &figcraft_doc::Document, img: &ImagePaint) -> Option<(egui::TextureId, f64, f64)> {
-    type Entry = std::sync::Arc<(String, figcraft_color::ImageFilters, figcraft_color::ColorProfile, egui::TextureHandle, f64, f64)>;
-    let id = Id::unique("figcraft_crop_ghost");
+fn ghost_texture(ctx: &egui::Context, doc: &figiran_doc::Document, img: &ImagePaint) -> Option<(egui::TextureId, f64, f64)> {
+    type Entry = std::sync::Arc<(String, figiran_color::ImageFilters, figiran_color::ColorProfile, egui::TextureHandle, f64, f64)>;
+    let id = Id::unique("figiran_crop_ghost");
     if let Some(e) = ctx.data(|d| d.get_temp::<Entry>(id))
         && e.0 == img.image
         && e.1 == img.filters
@@ -104,7 +104,7 @@ fn ghost_texture(ctx: &egui::Context, doc: &figcraft_doc::Document, img: &ImageP
     {
         return Some((e.3.id(), e.4, e.5));
     }
-    let pm = figcraft_render::images::get(&img.image, doc.images.get(&img.image), &img.filters, doc.color_profile)?;
+    let pm = figiran_render::images::get(&img.image, doc.images.get(&img.image), &img.filters, doc.color_profile)?;
     let (w, h) = (pm.width() as usize, pm.height() as usize);
     let step = w.max(h).div_ceil(GHOST_MAX_SIDE).max(1);
     let (tw, th) = (w.div_ceil(step), h.div_ceil(step));
@@ -135,8 +135,8 @@ fn crop_ghost(app: &FigApp, painter: &egui::Painter, id: NodeId, img: &ImagePain
     let Some((tex, iw, ih)) = ghost_texture(painter.ctx(), doc, img) else { return };
     let (w, h) = (n.width.max(1e-9), n.height.max(1e-9));
     // Unit box → image pixels → texture coordinates.
-    let t = figcraft_render::paint::image_transform(img, iw, ih, w, h);
-    let to_image = figcraft_geom::Affine::new([t.sx, t.ky, t.kx, t.sy, t.tx, t.ty].map(f64::from)).inverse();
+    let t = figiran_render::paint::image_transform(img, iw, ih, w, h);
+    let to_image = figiran_geom::Affine::new([t.sx, t.ky, t.kx, t.sy, t.tx, t.ty].map(f64::from)).inverse();
     if !to_image.as_coeffs().iter().all(|c| c.is_finite()) {
         return;
     }
@@ -190,13 +190,13 @@ fn crop_marks(app: &FigApp, painter: &egui::Painter, id: NodeId) {
 /// Whether screen point `pos` is on a resize handle (a corner or an edge) of the selection's box.
 fn on_resize_handle(app: &FigApp, pos: Pos2) -> bool {
     let Ok(ds) = app.session.ds() else { return false };
-    let handle = figcraft_engine::tools::handle_at(&ds.doc, &ds.selection, app.to_page(pos), ds.view.zoom);
-    matches!(handle, Some(figcraft_engine::tools::Handle::Corner(_) | figcraft_engine::tools::Handle::Edge(_)))
+    let handle = figiran_engine::tools::handle_at(&ds.doc, &ds.selection, app.to_page(pos), ds.view.zoom);
+    matches!(handle, Some(figiran_engine::tools::Handle::Corner(_) | figiran_engine::tools::Handle::Edge(_)))
 }
 
 /// Stable egui id for handle dragging.
 fn drag_id() -> Id {
-    Id::unique("figcraft_handle_drag")
+    Id::unique("figiran_handle_drag")
 }
 
 /// Whether a gradient handle or stop on the canvas is being dragged, the press that starts it
@@ -227,7 +227,7 @@ pub fn end_released_drag(app: &mut FigApp, ctx: &egui::Context) -> bool {
 }
 
 /// The gradient being edited (single node, picker open on a gradient paint).
-fn gradient_target(app: &FigApp) -> Option<(NodeId, bool, usize, figcraft_color::Gradient)> {
+fn gradient_target(app: &FigApp) -> Option<(NodeId, bool, usize, figiran_color::Gradient)> {
     let Some(PickerTarget::Paint { fills, index, ids }) = &app.ui.picker else { return None };
     let id = *ids.first()?;
     if ids.len() != 1 {
@@ -272,7 +272,7 @@ fn line_param(a: Pos2, b: Pos2, p: Pos2) -> Option<(f64, f32)> {
     Some((f64::from(t), (a + ab * t - p).length()))
 }
 
-fn set_gradient(app: &mut FigApp, id: NodeId, fills: bool, index: usize, g: figcraft_color::Gradient) {
+fn set_gradient(app: &mut FigApp, id: NodeId, fills: bool, index: usize, g: figiran_color::Gradient) {
     let Some(n) = app.session.doc().ok().and_then(|d| d.node(id)).cloned() else { return };
     let Some(list) = edited_list(app, &n, fills) else { return };
     let Some(mut paint) = list.get(index).cloned() else { return };
@@ -342,7 +342,7 @@ fn al_zones(app: &FigApp) -> Option<Zones> {
     let al = n.layout.as_ref()?;
     // Only for unrotated frames (axis-aligned bands).
     let w = doc.world_transform(id);
-    if figcraft_geom::rotation_degrees(w).abs() > 0.01 {
+    if figiran_geom::rotation_degrees(w).abs() > 0.01 {
         return None;
     }
     let to = |x: f64, y: f64| {
@@ -367,7 +367,7 @@ fn al_zones(app: &FigApp) -> Option<Zones> {
         |rect: Rect, vertical: bool, dist: f64| GapZone { rect, key: "crossGap", value: if auto_cross { dist } else { al.cross_gap }, vertical };
     let mut gaps = Vec::new();
     let mut tracks = Vec::new();
-    if let Some(g) = figcraft_layout::grid_geometry(doc, id) {
+    if let Some(g) = figiran_layout::grid_geometry(doc, id) {
         // Grid: bands between columns (column gap) and between rows (row gap), and the tracks.
         let (top, bottom) = (g.rows.first().map(|r| r.0).unwrap_or(pt), g.rows.last().map(|r| r.1).unwrap_or(fh - pb));
         let (left, right) = (g.columns.first().map(|c| c.0).unwrap_or(pl), g.columns.last().map(|c| c.1).unwrap_or(fw - pr));
@@ -393,24 +393,24 @@ fn al_zones(app: &FigApp) -> Option<Zones> {
         // Worked out along x: a vertical flow is a horizontal one turned on its side (`flip`
         // swaps the axes, `fband` swaps them back).
         let vertical = al.mode == LayoutMode::Vertical;
-        let flip = |r: figcraft_geom::Rect| if vertical { figcraft_geom::Rect::new(r.y0, r.x0, r.y1, r.x1) } else { r };
+        let flip = |r: figiran_geom::Rect| if vertical { figiran_geom::Rect::new(r.y0, r.x0, r.y1, r.x1) } else { r };
         let fband = |x0: f64, y0: f64, x1: f64, y1: f64| if vertical { band(y0, x0, y1, x1) } else { band(x0, y0, x1, y1) };
         // Main-axis length and padding, cross-axis length and padding.
         let (mw, mp0, mp1, cw, cp0, cp1) = if vertical { (fh, pt, pb, fw, pl, pr) } else { (fw, pl, pr, fh, pt, pb) };
-        let boxes: Vec<figcraft_geom::Rect> = figcraft_layout::flow_children(doc, id)
+        let boxes: Vec<figiran_geom::Rect> = figiran_layout::flow_children(doc, id)
             .into_iter()
             .filter_map(|c| doc.node(c))
-            .map(|c| flip(figcraft_geom::transform_rect_bbox(c.transform, c.local_rect())))
+            .map(|c| flip(figiran_geom::transform_rect_bbox(c.transform, c.local_rect())))
             .collect();
         // Lines: a wrapped item starts before the end of the previous one.
-        let mut lines: Vec<Vec<figcraft_geom::Rect>> = Vec::new();
+        let mut lines: Vec<Vec<figiran_geom::Rect>> = Vec::new();
         for b in boxes {
             match lines.last_mut() {
                 Some(line) if !al.wrap || line.last().is_some_and(|a| b.x0 >= a.x1 - 1e-6) => line.push(b),
                 _ => lines.push(vec![b]),
             }
         }
-        let span = |line: &[figcraft_geom::Rect]| line.iter().fold((f64::INFINITY, f64::NEG_INFINITY), |(a, b), r| (a.min(r.y0), b.max(r.y1)));
+        let span = |line: &[figiran_geom::Rect]| line.iter().fold((f64::INFINITY, f64::NEG_INFINITY), |(a, b), r| (a.min(r.y0), b.max(r.y1)));
         for line in &lines {
             let (y0, y1) = if al.wrap { span(line) } else { (cp0, cw - cp1) };
             for pair in line.windows(2) {
@@ -430,13 +430,13 @@ fn al_zones(app: &FigApp) -> Option<Zones> {
 }
 
 /// The gradient's line, stops and end handles on the canvas.
-fn draw_gradient(app: &FigApp, painter: &egui::Painter, id: NodeId, g: &figcraft_color::Gradient) {
+fn draw_gradient(app: &FigApp, painter: &egui::Painter, id: NodeId, g: &figiran_color::Gradient) {
     let (Some(a), Some(b), Some(c)) = (unit_to_screen(app, id, g.from), unit_to_screen(app, id, g.to), unit_to_screen(app, id, g.width)) else {
         return;
     };
     painter.line_segment([a, b], Stroke::new(2.0, Color32::WHITE));
     painter.line_segment([a, b], Stroke::new(1.0, Color32::from_black_alpha(120)));
-    if g.kind != figcraft_color::GradientKind::Linear {
+    if g.kind != figiran_color::GradientKind::Linear {
         painter.add(Shape::dashed_line(&[a, c], Stroke::new(1.0, Color32::WHITE), 4.0, 3.0));
     }
     let selected: usize = painter.ctx().data(|d| d.get_temp(crate::colorpicker::stop_id())).unwrap_or(0);
@@ -455,7 +455,7 @@ fn draw_gradient(app: &FigApp, painter: &egui::Painter, id: NodeId, g: &figcraft
         }
     }
     for (i, p) in [a, b, c].iter().enumerate() {
-        if i == 2 && g.kind == figcraft_color::GradientKind::Linear {
+        if i == 2 && g.kind == figiran_color::GradientKind::Linear {
             continue;
         }
         painter.circle_filled(*p, 5.0, Color32::WHITE);
@@ -508,7 +508,7 @@ pub fn draw(app: &mut FigApp, painter: &egui::Painter) {
         return;
     }
     let hover = painter.ctx().input(|i| i.pointer.hover_pos());
-    let tool_move = app.session.tool.tool == figcraft_engine::ToolId::Move && !app.session.tool.busy();
+    let tool_move = app.session.tool.tool == figiran_engine::ToolId::Move && !app.session.tool.busy();
     let dragging: Option<Drag> = painter.ctx().data(|d| d.get_temp(drag_id()));
     if !tool_move && dragging.is_none() {
         return;
@@ -576,7 +576,7 @@ pub fn input(app: &mut FigApp, ctx: &egui::Context, pos: Pos2) -> bool {
     if let Some((id, fills, index, g)) = gradient_target(app) {
         let pts = [unit_to_screen(app, id, g.from), unit_to_screen(app, id, g.to), unit_to_screen(app, id, g.width)];
         for (which, p) in pts.iter().enumerate() {
-            if which == 2 && g.kind == figcraft_color::GradientKind::Linear {
+            if which == 2 && g.kind == figiran_color::GradientKind::Linear {
                 continue;
             }
             if let Some(p) = p
@@ -608,7 +608,7 @@ pub fn input(app: &mut FigApp, ctx: &egui::Context, pos: Pos2) -> bool {
                 None => {
                     let pos01 = t.map(|(t, _)| t).unwrap_or(0.5) as f32;
                     let mut g2 = g.clone();
-                    g2.stops.push(figcraft_color::ColorStop { position: pos01, color: g.sample(pos01) });
+                    g2.stops.push(figiran_color::ColorStop { position: pos01, color: g.sample(pos01) });
                     let _ = app.session.begin_interaction("Add gradient stop");
                     set_gradient(app, id, fills, index, g2);
                     g.stops.len()
@@ -663,7 +663,7 @@ pub fn input(app: &mut FigApp, ctx: &egui::Context, pos: Pos2) -> bool {
         }
         return true;
     }
-    if app.session.tool.tool != figcraft_engine::ToolId::Move || app.session.tool.busy() {
+    if app.session.tool.tool != figiran_engine::ToolId::Move || app.session.tool.busy() {
         return false;
     }
     let Some(Zones { id, bands, gaps, .. }) = al_zones(app) else { return false };
@@ -713,7 +713,7 @@ fn apply(app: &mut FigApp, drag: &Drag, pos: Pos2, shift: bool) {
                     }
                 }
                 // An end of a linear gradient moved: its bands stay square to it.
-                if *which < 2 && g.kind == figcraft_color::GradientKind::Linear {
+                if *which < 2 && g.kind == figiran_color::GradientKind::Linear {
                     g.square_linear_width(n.width, n.height);
                 }
             }

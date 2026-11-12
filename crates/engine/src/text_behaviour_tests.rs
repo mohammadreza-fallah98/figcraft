@@ -1,4 +1,4 @@
-//! Text behaviour through commands (the rules of `figcraft_text`'s behaviour suite that involve
+//! Text behaviour through commands (the rules of `figiran_text`'s behaviour suite that involve
 //! editing or settings): caret moves, deletes and word selection by grapheme cluster and by script,
 //! vertical trim and paragraph indent through `node.set`, and renders and exports from one layout.
 
@@ -7,7 +7,7 @@ use serde_json::{Value, json};
 use crate::Session;
 use crate::params::id_of;
 use crate::textedit::{begin, key, select_word};
-use figcraft_doc::{LeadingTrim, NodeId, NodeKind};
+use figiran_doc::{LeadingTrim, NodeId, NodeKind};
 
 fn id(v: Value) -> NodeId {
     id_of(&v["id"]).unwrap()
@@ -128,7 +128,7 @@ fn ime_composition_with_cjk() {
     assert_eq!((range, cursor), ((0, 10), 10));
     assert_eq!(chars(&s, t), "", "the document waits for the commit");
     let shown = doc.node(t).unwrap();
-    if let Some((l, _)) = figcraft_text::layout_node(shown).filter(|(l, _)| !l.glyphs.is_empty()) {
+    if let Some((l, _)) = figiran_text::layout_node(shown).filter(|(l, _)| !l.glyphs.is_empty()) {
         assert!(l.lines.len() > 1, "a long composition wraps in the 60 px box");
         assert!((shown.height - l.height).abs() < 1e-6, "the box grows with it");
     }
@@ -167,7 +167,7 @@ fn ime_delete_surrounding_bytes_is_exact_and_one_undo_step() {
 #[test]
 fn ime_delete_surrounding_bytes_keeps_partial_characters_and_selection() {
     // The fork deletes the byte range exactly and leaves a character the range only partly
-    // covers. FigCraft's editor counts characters with the same rule (mirroring egui's
+    // covers. FigIran's editor counts characters with the same rule (mirroring egui's
     // `surrounding_bytes_to_chars`), including around a selection.
     let mut s = Session::new();
     let t = text(&mut s, "\u{e9}x\u{1F600}", json!({"fontSize": 24}));
@@ -198,7 +198,7 @@ fn ime_delete_surrounding_bytes_keeps_partial_characters_and_selection() {
 fn vertical_trim_through_node_set() {
     let mut s = Session::new();
     let t = text(&mut s, "Hello\nworld", json!({"fontSize": 40, "lineHeight": 60}));
-    let Some((l, _)) = figcraft_text::layout_node(s.doc().unwrap().node(t).unwrap()) else { return };
+    let Some((l, _)) = figiran_text::layout_node(s.doc().unwrap().node(t).unwrap()) else { return };
     if l.glyphs.is_empty() {
         return;
     }
@@ -207,22 +207,22 @@ fn vertical_trim_through_node_set() {
     s.execute("node.set", &json!({"id": t, "props": {"leadingTrim": "capHeight"}})).unwrap();
     let n = s.doc().unwrap().node(t).unwrap();
     assert_eq!(n.kind.text().unwrap().leading_trim, LeadingTrim::CapHeight);
-    let (l, _) = figcraft_text::layout_node(n).unwrap();
+    let (l, _) = figiran_text::layout_node(n).unwrap();
     let cap = l.lines[0].baseline;
     // The auto-size box now runs from the first cap height to the last baseline: cap + 60.
     assert!((n.height - (cap + 60.0)).abs() < 1e-6 && cap > 10.0 && cap < 40.0, "{} vs {cap}", n.height);
     assert_eq!(n.width, w, "the width doesn't change");
     // Descenders hang below the trimmed box: exports reach past it to keep them.
-    let eb = figcraft_render::export_bounds(s.doc().unwrap(), t).unwrap();
+    let eb = figiran_render::export_bounds(s.doc().unwrap(), t).unwrap();
     assert!(eb.y1 > n.height + 10.0, "{eb:?}");
     // The PNG's ink starts at the box's top (cap height at y = 0; ascenders like "l" may poke a few
     // px above it, by how much depends on the font); SVG and PDF use the same layout.
-    let pix = figcraft_render::render_node(s.doc().unwrap(), t, 1.0).unwrap();
+    let pix = figiran_render::render_node(s.doc().unwrap(), t, 1.0).unwrap();
     let first_ink = (0..pix.height()).find(|y| (0..pix.width()).any(|x| pix.pixel(x, *y).is_some_and(|p| p.alpha() > 64)));
     assert!(first_ink.is_some_and(|y| (-8.0..=2.0).contains(&(f64::from(y) + eb.y0))), "{first_ink:?} {eb:?}");
-    let svg = figcraft_svg::export_svg(s.doc().unwrap(), &[t], &figcraft_svg::SvgOptions::default()).unwrap();
+    let svg = figiran_svg::export_svg(s.doc().unwrap(), &[t], &figiran_svg::SvgOptions::default()).unwrap();
     assert!(!svg.contains("NaN"));
-    assert!(figcraft_pdf::export_nodes_pdf(s.doc().unwrap(), &[t]).is_ok());
+    assert!(figiran_pdf::export_nodes_pdf(s.doc().unwrap(), &[t]).is_ok());
     // Inspect and code say so; one undo step back; junk is refused.
     let css = crate::codegen::css_decls(s.doc().unwrap(), s.doc().unwrap().node(t).unwrap(), &mut Default::default(), (true, true));
     assert!(css.contains("text-box: trim-both cap alphabetic"), "{css}");
@@ -237,11 +237,11 @@ fn vertical_trim_through_node_set() {
 
 #[test]
 fn paragraph_indent_only_moves_left_aligned_text() {
-    figcraft_text::scan_system_fonts();
+    figiran_text::scan_system_fonts();
     let mut s = Session::new();
     let t = text(&mut s, "Indented paragraph", json!({"fontSize": 20, "paragraphIndent": 30}));
     let first_x = |s: &Session| {
-        let (l, _) = figcraft_text::layout_node(s.doc().unwrap().node(t).unwrap()).unwrap();
+        let (l, _) = figiran_text::layout_node(s.doc().unwrap().node(t).unwrap()).unwrap();
         (l.glyphs.first().map(|g| g.x), l.width)
     };
     // Without any font there are no glyphs, but the indent alone still gives the box a width.
@@ -254,7 +254,7 @@ fn paragraph_indent_only_moves_left_aligned_text() {
 
 /// A new text made with the Text tool by a press at `from`, a drag to `to` and a release, holding
 /// `chars`: its box and resize mode.
-fn text_tool(from: (f64, f64), to: (f64, f64), chars: &str) -> (figcraft_geom::Rect, figcraft_doc::TextAutoResize) {
+fn text_tool(from: (f64, f64), to: (f64, f64), chars: &str) -> (figiran_geom::Rect, figiran_doc::TextAutoResize) {
     use crate::tools::{PointerEvent, PointerKind, ToolId};
     let mut s = Session::new();
     s.set_tool(ToolId::Text);
@@ -272,8 +272,8 @@ fn text_tool(from: (f64, f64), to: (f64, f64), chars: &str) -> (figcraft_geom::R
 fn a_drag_with_the_text_tool_makes_a_fixed_size_box() {
     // #360: the drag's size, its top-left where the drag started, and its text wraps in it; a
     // click, or a drag within a few pixels, still makes auto-width text.
-    use figcraft_doc::TextAutoResize;
-    figcraft_text::scan_system_fonts();
+    use figiran_doc::TextAutoResize;
+    figiran_text::scan_system_fonts();
     let long = "A sentence much longer than eighty pixels";
     let (line, auto) = text_tool((100.0, 100.0), (100.0, 100.0), long);
     assert_eq!(auto, TextAutoResize::WidthAndHeight);
@@ -292,8 +292,8 @@ fn a_drag_with_the_text_tool_makes_a_fixed_size_box() {
 #[test]
 fn new_text_starts_in_the_builds_default_font() {
     // `text.create` without a fontFamily and a click with the Text tool both start in
-    // `figcraft_doc::DEFAULT_FONT` (Inter, unless the build names another with
-    // `FIGCRAFT_DEFAULT_FONT`), and the family is written with the text.
+    // `figiran_doc::DEFAULT_FONT` (Inter, unless the build names another with
+    // `FIGIRAN_DEFAULT_FONT`), and the family is written with the text.
     use crate::tools::{PointerEvent, PointerKind, ToolId};
     let mut s = Session::new();
     let made = text(&mut s, "Text", json!({}));
@@ -306,19 +306,19 @@ fn new_text_starts_in_the_builds_default_font() {
     let doc = s.doc().unwrap();
     for t in [made, typed] {
         let td = doc.node(t).unwrap().kind.text().unwrap();
-        assert_eq!(td.style.font_family, figcraft_doc::DEFAULT_FONT);
-        assert_eq!(serde_json::to_value(td).unwrap()["style"]["font_family"], figcraft_doc::DEFAULT_FONT);
+        assert_eq!(td.style.font_family, figiran_doc::DEFAULT_FONT);
+        assert_eq!(serde_json::to_value(td).unwrap()["style"]["font_family"], figiran_doc::DEFAULT_FONT);
     }
 }
 
-fn resize_mode(s: &Session, t: NodeId) -> figcraft_doc::TextAutoResize {
+fn resize_mode(s: &Session, t: NodeId) -> figiran_doc::TextAutoResize {
     s.doc().unwrap().node(t).unwrap().kind.text().unwrap().auto_resize
 }
 
 #[test]
 fn a_truncated_text_keeps_truncating_when_its_box_is_resized() {
     // #1376: a truncating text is already fixed both ways, so an explicit size changes its box only.
-    use figcraft_doc::TextAutoResize;
+    use figiran_doc::TextAutoResize;
     let mut s = Session::new();
     let t = text(&mut s, "Lorem consectetur", json!({"textAutoResize": "truncate", "width": 100, "height": 24}));
     assert_eq!(resize_mode(&s, t), TextAutoResize::Truncate);
@@ -342,8 +342,8 @@ fn a_truncated_text_keeps_truncating_when_its_box_is_resized() {
 fn max_lines_on_auto_height_text_hugs_that_many_lines() {
     // #1377: an auto-height text with max lines grows up to that many lines and ends in an
     // ellipsis; the layer reports its max lines.
-    use figcraft_doc::TextAutoResize;
-    figcraft_text::scan_system_fonts();
+    use figiran_doc::TextAutoResize;
+    figiran_text::scan_system_fonts();
     let mut s = Session::new();
     let t = text(&mut s, "Lorem ipsum dolor sit amet consectetur", json!({"fontSize": 16, "lineHeight": 24}));
     s.execute("node.set", &json!({"id": t, "props": {"textAutoResize": "height", "width": 100}})).unwrap();
@@ -380,7 +380,7 @@ fn text_direction_is_forced_per_paragraph() {
     let mut s = Session::new();
     let t = text(&mut s, "abc def\nghi\njkl", json!({"fontFamily": font, "fontSize": 16, "lineHeight": 24}));
     let rtl = |s: &Session| -> Vec<bool> {
-        let (l, _) = figcraft_text::layout_node(s.doc().unwrap().node(t).unwrap()).unwrap();
+        let (l, _) = figiran_text::layout_node(s.doc().unwrap().node(t).unwrap()).unwrap();
         l.lines.iter().map(|l| l.rtl).collect()
     };
     let inspect = |s: &Session| crate::inspect::node_json(s.doc().unwrap(), t, 0);
@@ -441,7 +441,7 @@ fn balance_and_pretty_wrap_styles_break_lines_as_documented() {
     let t = text(&mut s, "aaa bbb ccc ddd eee", json!({"fontFamily": font, "fontSize": 16, "lineHeight": 24}));
     s.execute("node.set", &json!({"id": t, "props": {"textAutoResize": "height", "width": 136}})).unwrap();
     let lines = |s: &Session| -> Vec<(usize, usize)> {
-        let (l, _) = figcraft_text::layout_node(s.doc().unwrap().node(t).unwrap()).unwrap();
+        let (l, _) = figiran_text::layout_node(s.doc().unwrap().node(t).unwrap()).unwrap();
         l.lines.iter().map(|l| (l.char_start, l.char_end)).collect()
     };
     // 136 px holds 17 characters: Auto fills the first line with four words and strands the fifth.
@@ -500,7 +500,7 @@ fn max_lines_on_auto_width_text_keeps_auto_width_and_hugs_that_many_lines() {
     // "Max lines is available only if truncate text is enabled, and: Text resizing is set to
     // auto height or auto width" (Explore text properties): an auto-width text with max lines
     // stays auto width, growing with its longest line and hugging up to that many lines.
-    use figcraft_doc::TextAutoResize;
+    use figiran_doc::TextAutoResize;
     // The synthetic font: every character 8 px wide at 16 px, so the widths are the same
     // everywhere and never depend on what the system has installed.
     let font = test_mono_font();
@@ -533,7 +533,7 @@ fn superscript_and_subscript_are_synthesised_without_glyphs_for_them() {
     let mut s = Session::new();
     let t = text(&mut s, "x2", json!({"fontFamily": font, "fontSize": 40}));
     let glyphs = |s: &Session| -> Vec<(f64, f64, f64)> {
-        let (l, _) = figcraft_text::layout_node(s.doc().unwrap().node(t).unwrap()).unwrap();
+        let (l, _) = figiran_text::layout_node(s.doc().unwrap().node(t).unwrap()).unwrap();
         l.glyphs.iter().map(|g| (g.size, g.y, g.advance)).collect()
     };
     let plain = glyphs(&s);
@@ -566,10 +566,10 @@ fn superscript_and_subscript_are_synthesised_without_glyphs_for_them() {
 /// A synthetic monospaced TrueType font (outline-less glyphs, every printable ASCII character 500 of
 /// 1000 units wide), loaded into the font database so text measures the same on every machine.
 fn test_mono_font() -> &'static str {
-    const FAMILY: &str = "FigCraft Test Mono";
+    const FAMILY: &str = "FigIran Test Mono";
     static LOADED: std::sync::OnceLock<()> = std::sync::OnceLock::new();
     LOADED.get_or_init(|| {
-        let families = figcraft_text::load_font_bytes(synthetic_mono_font(FAMILY));
+        let families = figiran_text::load_font_bytes(synthetic_mono_font(FAMILY));
         assert_eq!(families, [FAMILY], "the synthetic font loads");
     });
     FAMILY
@@ -661,7 +661,7 @@ fn synthetic_mono_font(family: &str) -> Vec<u8> {
 /// The world position of a text's top-right corner (where right-aligned text is anchored).
 fn top_right(s: &Session, t: NodeId) -> (f64, f64) {
     let doc = s.doc().unwrap();
-    let p = doc.world_transform(t) * figcraft_geom::kurbo::Point::new(doc.node(t).unwrap().width, 0.0);
+    let p = doc.world_transform(t) * figiran_geom::kurbo::Point::new(doc.node(t).unwrap().width, 0.0);
     (p.x, p.y)
 }
 
@@ -777,7 +777,7 @@ fn a_text_has_a_max_height_or_max_lines_not_both() {
 /// underline: Mac: Command U, Windows: Control U" (Add links to text).
 #[test]
 fn a_link_is_underlined_by_default_and_underline_takes_it_off() {
-    use figcraft_doc::TextDecoration;
+    use figiran_doc::TextDecoration;
     let mut s = Session::new();
     let t = text(&mut s, "docs", json!({}));
     let style = |s: &Session| s.doc().unwrap().node(t).unwrap().kind.text().unwrap().style.clone();

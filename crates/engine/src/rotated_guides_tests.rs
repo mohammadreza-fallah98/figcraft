@@ -2,8 +2,8 @@
 //! frame's coordinates, a ruler guide dropped on a turned frame takes its nearer axis, and layers in
 //! the frame snap to its guides (and siblings, and edges) along those axes.
 
-use figcraft_doc::NodeId;
-use figcraft_geom::{Affine, Point, Vec2};
+use figiran_doc::NodeId;
+use figiran_geom::{Affine, Point, Vec2};
 use serde_json::json;
 
 use crate::Session;

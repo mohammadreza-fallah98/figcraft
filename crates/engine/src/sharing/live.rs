@@ -3,21 +3,21 @@
 //!
 //! The engine holds what everyone sees ([`Live`]: status, peers and their presence, who you
 //! follow) and the `collab.*` commands. The networking lives in a higher layer
-//! (`figcraft-collab-net`), which the app installs as a [`LiveLink`]: the engine never opens a
+//! (`figiran-collab-net`), which the app installs as a [`LiveLink`]: the engine never opens a
 //! socket, so nothing below the UI layer depends on networking. Without a link (the CLI, tests)
 //! the commands say live sessions aren't available.
 //!
 //! Peers, presence and document changes are the wire types of the collaboration core
-//! ([`figcraft_collab::message`]). Each participant runs a core [`Client`]: the host's session
+//! ([`figiran_collab::message`]). Each participant runs a core [`Client`]: the host's session
 //! document is the one it shared, a guest gets the host's file as a new tab from the welcome.
 //! Every command, gesture or group on the session document is synced as one batch and is one step
 //! of the user's own undo history ([`Session::record`]); undo and redo there take back only the
-//! user's own steps ([`figcraft_collab::Client::undo`]). Batches from the host's server are applied
+//! user's own steps ([`figiran_collab::Client::undo`]). Batches from the host's server are applied
 //! through the client and installed with [`Session::apply_remote`], which never touches the undo
 //! history. After a dropped connection the client resumes with its id and catches up; what it
 //! made meanwhile goes out then.
 //!
-//! A file can also live on a `figcraft-server`: `collab.publish` uploads the open document and
+//! A file can also live on a `figiran-server`: `collab.publish` uploads the open document and
 //! syncs that tab through the server, whose share links let others edit or only view. A view link
 //! makes the synced document read-only here (every edit is refused before it is sent; the server
 //! refuses it too).
@@ -31,7 +31,7 @@
 //! Sharing with a join code (`collab.share`): online, the open document is published to the
 //! server in Preferences and the server names its links with short codes; on the local network
 //! the app hosts and the code carries the host's address and the session's secret
-//! ([`figcraft_collab::code`]). `collab.join` takes a code of either kind, or an invite link.
+//! ([`figiran_collab::code`]). `collab.join` takes a code of either kind, or an invite link.
 //!
 //! Cursor chat (`collab.cursorChat`) and spotlights (`collab.spotlight`) travel as signals:
 //! short-lived presence the host passes on to everyone, never stored. A spotlight makes everyone
@@ -41,17 +41,17 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::net::IpAddr;
 use std::sync::Arc;
 
-use figcraft_collab::Client;
-use figcraft_collab::code::{self, Code};
-pub use figcraft_collab::message::Signal;
-use figcraft_collab::message::{Admin, AdminReply, ClientMsg, EditingText, LibraryReply, LibraryReq, PluginReply, PluginReq, ServerMsg};
+use figiran_collab::Client;
+use figiran_collab::code::{self, Code};
+pub use figiran_collab::message::Signal;
+use figiran_collab::message::{Admin, AdminReply, ClientMsg, EditingText, LibraryReply, LibraryReq, PluginReply, PluginReq, ServerMsg};
 
-pub use figcraft_collab::message::{Access, HostInfo, Resume, utc_date};
-use figcraft_doc::{Document, NodeId};
+pub use figiran_collab::message::{Access, HostInfo, Resume, utc_date};
+use figiran_doc::{Document, NodeId};
 use serde::Serialize;
 use serde_json::{Value, json};
 
-pub use figcraft_collab::message::{Peer, Presence};
+pub use figiran_collab::message::{Peer, Presence};
 
 use crate::cmd::CommandSpec;
 use crate::collab::EngineRecompute;
@@ -151,7 +151,7 @@ struct Stranded {
     /// The invite link you joined with (it holds the token: never shown).
     link: String,
     /// The server's state when it stopped: what's different from it in the tab is your own work.
-    confirmed: Box<figcraft_collab::Replica>,
+    confirmed: Box<figiran_collab::Replica>,
     /// Who you were: the layers you made are in that client's id space.
     resume: Resume,
 }
@@ -256,7 +256,7 @@ pub struct Lives {
     last: SessionId,
     /// What a document that isn't in a session shows.
     off: Live,
-    /// Registers the app as the opener of `figcraft://` invite links (the desktop app on Windows
+    /// Registers the app as the opener of `figiran://` invite links (the desktop app on Windows
     /// installs one; see [`crate::invite_links`]).
     pub links: Option<Box<dyn crate::invite_links::LinkRegistrar>>,
     /// The recorded online files or your team libraries changed since the app last saved the

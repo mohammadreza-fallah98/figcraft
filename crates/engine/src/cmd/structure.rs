@@ -1,11 +1,11 @@
 //! Structure: groups, frames, masks, boolean groups, flatten, outline stroke, auto layout, pages.
 
-use figcraft_color::{Color, Paint};
-use figcraft_doc::{
+use figiran_color::{Color, Paint};
+use figiran_doc::{
     AutoLayout, BoolOp, Corners, Document, LayoutMode, Node, NodeId, NodeKind, Region, RegionPaintSpace, Segment, Sizing, StrokeAlign, StrokeJoin,
     StrokeProps, VectorNetwork, WindingRule, proto,
 };
-use figcraft_geom::{Affine, BezPath, Rect, Shape};
+use figiran_geom::{Affine, BezPath, Rect, Shape};
 use serde_json::{Value, json};
 
 use super::edit::{roots, z_sorted};
@@ -81,7 +81,7 @@ pub fn specs() -> Vec<CommandSpec> {
                 let n = doc.get_mut(i)?;
                 n.layout = None;
                 super::props::drop_layout_bindings(n);
-                figcraft_layout::coherent_sizing(doc, i);
+                figiran_layout::coherent_sizing(doc, i);
             }
             ok()
         }),
@@ -96,7 +96,7 @@ pub fn specs() -> Vec<CommandSpec> {
                 let mut removed = Vec::new();
                 for root in ids {
                     for i in doc.subtree(root) {
-                        let strip = doc.node(i).is_some_and(|n| n.layout.is_some() && !matches!(n.kind, figcraft_doc::NodeKind::Instance { .. }))
+                        let strip = doc.node(i).is_some_and(|n| n.layout.is_some() && !matches!(n.kind, figiran_doc::NodeKind::Instance { .. }))
                             && !crate::assets::components::inside_instance(doc, i);
                         if !strip {
                             continue;
@@ -104,7 +104,7 @@ pub fn specs() -> Vec<CommandSpec> {
                         let n = doc.get_mut(i)?;
                         n.layout = None;
                         super::props::drop_layout_bindings(n);
-                        figcraft_layout::coherent_sizing(doc, i);
+                        figiran_layout::coherent_sizing(doc, i);
                         removed.push(i);
                     }
                 }
@@ -124,12 +124,12 @@ pub fn specs() -> Vec<CommandSpec> {
             let doc = s.doc_mut()?;
             for n in doc.ids().collect::<Vec<_>>() {
                 if let Some(node) = doc.node(n)
-                    && node.plugin_data.contains_key("figcraft.thumbnail")
+                    && node.plugin_data.contains_key("figiran.thumbnail")
                 {
-                    doc.get_mut(n)?.plugin_data.remove("figcraft.thumbnail");
+                    doc.get_mut(n)?.plugin_data.remove("figiran.thumbnail");
                 }
             }
-            doc.get_mut(id)?.plugin_data.insert("figcraft.thumbnail".into(), "true".into());
+            doc.get_mut(id)?.plugin_data.insert("figiran.thumbnail".into(), "true".into());
             ok()
         }),
         spec!("object.rasterize", "Rasterize selection", "{ids?, scale? (default 2)}", true, rasterize),
@@ -211,7 +211,7 @@ fn wrap(s: &mut Session, p: &Value, cmd: &str, w: Wrap) -> Result<Value> {
         bounds = bounds.inflate(SECTION_PAD, SECTION_PAD);
     }
     let pw = doc.world_transform(parent);
-    let local = figcraft_geom::transform_rect_bbox(pw.inverse(), bounds);
+    let local = figiran_geom::transform_rect_bbox(pw.inverse(), bounds);
     let (kind, base) = match &w {
         Wrap::Group => (NodeKind::Group, "Group"),
         Wrap::Frame => (NodeKind::Frame, "Frame"),
@@ -234,7 +234,7 @@ fn wrap(s: &mut Session, p: &Value, cmd: &str, w: Wrap) -> Result<Value> {
             g.stroke = first.stroke.clone();
             g.effects = first.effects.clone();
         }
-        g.blend = figcraft_color::BlendMode::Normal;
+        g.blend = figiran_color::BlendMode::Normal;
     }
     if let Wrap::Frame = w {
         g.clip = true;
@@ -309,7 +309,7 @@ fn convert(s: &mut Session, p: &Value, cmd: &'static str, to_frame: bool) -> Res
             // Out of the flow there is nothing to fill or to be absolute against.
             doc.get_mut(k)?.child_layout.absolute = false;
         }
-        figcraft_layout::coherent_sizing(doc, *i);
+        figiran_layout::coherent_sizing(doc, *i);
         doc.fit_to_children(*i)?;
     }
     Ok(json!({"ids": todo}))
@@ -347,7 +347,7 @@ fn convert_to_section(s: &mut Session, p: &Value) -> Result<Value> {
             // Out of the flow there is nothing to fill or to be absolute against.
             doc.get_mut(k)?.child_layout.absolute = false;
         }
-        figcraft_layout::coherent_sizing(doc, *i);
+        figiran_layout::coherent_sizing(doc, *i);
     }
     Ok(json!({"ids": todo}))
 }
@@ -406,7 +406,7 @@ fn mask(s: &mut Session, p: &Value) -> Result<Value> {
 /// The outline of a node in its parent's space (shapes, text, booleans, groups).
 pub fn outline_in_parent(doc: &Document, id: NodeId) -> Option<BezPath> {
     let n = doc.node(id)?;
-    let (mut p, _) = figcraft_render::subtree_outline(doc, n, 0)?;
+    let (mut p, _) = figiran_render::subtree_outline(doc, n, 0)?;
     p.apply_affine(n.transform);
     Some(p)
 }
@@ -452,7 +452,7 @@ fn flatten(s: &mut Session, p: &Value) -> Result<Value> {
         v.stroke = StrokeProps { align: StrokeAlign::Center, ..f.stroke.clone() };
         v.effects = f.effects.clone();
         v.opacity = f.opacity;
-        v.blend = if matches!(f.blend, figcraft_color::BlendMode::PassThrough) { figcraft_color::BlendMode::Normal } else { f.blend };
+        v.blend = if matches!(f.blend, figiran_color::BlendMode::PassThrough) { figiran_color::BlendMode::Normal } else { f.blend };
     }
     doc.insert(v, parent, index)?;
     for i in &ids {
@@ -480,7 +480,7 @@ fn collect_flatten_parts(
         // visible descendants in stacking order. Child clipping remains the container's outline rule.
         if node.kind.is_frame_like()
             && node.fills.iter().any(|paint| paint.visible)
-            && let Some(path) = figcraft_doc::geometry::shape_path(node)
+            && let Some(path) = figiran_doc::geometry::shape_path(node)
         {
             let frame = VectorNetwork::from_path(&path);
             let into_parent = parent_world.inverse() * doc.world_transform(id);
@@ -522,15 +522,15 @@ fn collect_flatten_parts(
 /// none). A boolean group has no outline only past the path operations' caps; flattening it would
 /// drop it, so that is refused.
 fn outline_part(doc: &Document, node: &Node) -> Result<Option<VectorNetwork>> {
-    let Some((path, rule)) = figcraft_render::node_outline(doc, node) else {
+    let Some((path, rule)) = figiran_render::node_outline(doc, node) else {
         if matches!(node.kind, NodeKind::BooleanOp { .. }) {
-            return Err(bad("vector.flatten", figcraft_pathops::PathOpsError::TooComplex.to_string()));
+            return Err(bad("vector.flatten", figiran_pathops::PathOpsError::TooComplex.to_string()));
         }
         return Ok(None);
     };
     let mut part = VectorNetwork::from_path(&path);
     for region in &mut part.regions {
-        if rule == figcraft_render::FillRule::EvenOdd {
+        if rule == figiran_render::FillRule::EvenOdd {
             region.winding = WindingRule::EvenOdd;
         }
     }
@@ -577,19 +577,19 @@ fn outline_stroke(s: &mut Session, p: &Value) -> Result<Value> {
         if !n.has_visible_stroke() {
             continue;
         }
-        let closed = figcraft_doc::geometry::is_closed(&n);
+        let closed = figiran_doc::geometry::is_closed(&n);
         let Some((area, rule)) = (match &n.kind {
-            NodeKind::Text(_) => figcraft_render::node_outline(doc, &n)
-                .map(|(p, _)| (figcraft_render::draw::stroke_area(&n, &p, closed), figcraft_render::FillRule::Winding)),
-            _ => figcraft_render::stroke_fill(doc, &n),
+            NodeKind::Text(_) => figiran_render::node_outline(doc, &n)
+                .map(|(p, _)| (figiran_render::draw::stroke_area(&n, &p, closed), figiran_render::FillRule::Winding)),
+            _ => figiran_render::stroke_fill(doc, &n),
         }) else {
             continue;
         };
         let mut path = (*area).clone();
         // Simplify non-zero strokes into even-odd contours. Inside/outside rings already use
         // even-odd: interpreting their same-direction contours as non-zero would fill the hole.
-        if rule == figcraft_render::FillRule::Winding
-            && let Ok(u) = figcraft_pathops::simplify(&path)
+        if rule == figiran_render::FillRule::Winding
+            && let Ok(u) = figiran_pathops::simplify(&path)
         {
             path = u;
         }
@@ -637,10 +637,10 @@ fn outline_stroke(s: &mut Session, p: &Value) -> Result<Value> {
 /// Infer direction, gap and padding from visible, non-absolute children, matching the layout flow.
 fn infer_layout(doc: &Document, frame: NodeId) -> AutoLayout {
     let Some(f) = doc.node(frame) else { return AutoLayout::default() };
-    let boxes: Vec<Rect> = figcraft_layout::flow_children(doc, frame)
+    let boxes: Vec<Rect> = figiran_layout::flow_children(doc, frame)
         .iter()
         .filter_map(|c| doc.node(*c))
-        .map(|c| figcraft_geom::transform_rect_bbox(c.transform, c.local_rect()))
+        .map(|c| figiran_geom::transform_rect_bbox(c.transform, c.local_rect()))
         .collect();
     if boxes.is_empty() {
         return AutoLayout { padding: [10.0; 4], gap: 10.0, ..Default::default() };
@@ -670,8 +670,8 @@ fn sort_layout_children(doc: &Document, kids: &mut [NodeId], vertical: bool) {
         }
         if !masked && let Some(span) = kids.get_mut(start..end) {
             span.sort_by(|a, b| {
-                let pa = doc.node(*a).map(|n| figcraft_geom::transform_rect_bbox(n.transform, n.local_rect())).unwrap_or_default();
-                let pb = doc.node(*b).map(|n| figcraft_geom::transform_rect_bbox(n.transform, n.local_rect())).unwrap_or_default();
+                let pa = doc.node(*a).map(|n| figiran_geom::transform_rect_bbox(n.transform, n.local_rect())).unwrap_or_default();
+                let pb = doc.node(*b).map(|n| figiran_geom::transform_rect_bbox(n.transform, n.local_rect())).unwrap_or_default();
                 if vertical { pa.y0.total_cmp(&pb.y0) } else { pa.x0.total_cmp(&pb.x0) }
             });
         }
@@ -759,19 +759,19 @@ fn rasterize(s: &mut Session, p: &Value) -> Result<Value> {
     let mut out = Vec::new();
     for i in ids {
         let doc = s.doc()?;
-        let Some(pix) = figcraft_render::render_node(doc, i, scale) else { continue };
-        let png = figcraft_render::encode_png(&pix).map_err(EngineError::Other)?;
-        let b = figcraft_render::export_bounds(doc, i).unwrap_or_default();
+        let Some(pix) = figiran_render::render_node(doc, i, scale) else { continue };
+        let png = figiran_render::encode_png(&pix).map_err(EngineError::Other)?;
+        let b = figiran_render::export_bounds(doc, i).unwrap_or_default();
         let parent = doc.get(i)?.parent.ok_or_else(|| bad("object.rasterize", "page"))?;
         let idx = doc.index_in_parent(i);
         let pw = doc.world_transform(parent);
         let name = doc.get(i)?.name.clone();
         let docm = s.doc_mut()?;
-        let (hash, _, _) = figcraft_format::add_image(docm, png).map_err(|e| EngineError::Other(e.to_string()))?;
+        let (hash, _, _) = figiran_format::add_image(docm, png).map_err(|e| EngineError::Other(e.to_string()))?;
         let rid = docm.alloc_id();
         let mut r = Node::new(rid, NodeKind::Rectangle, name, b.width(), b.height());
         r.transform = pw.inverse() * Affine::translate((b.x0, b.y0));
-        r.fills = vec![Paint::image(hash, figcraft_color::ImageScaleMode::Fill)];
+        r.fills = vec![Paint::image(hash, figiran_color::ImageScaleMode::Fill)];
         docm.insert(r, parent, idx.map(|x| x + 1))?;
         docm.remove(i)?;
         out.push(rid);
@@ -789,7 +789,7 @@ fn simplify(s: &mut Session, p: &Value) -> Result<Value> {
         if let NodeKind::Vector { network } = &mut n.kind {
             let source = network.clone();
             // The regions as the layer draws them: rounded points with the layer's corner smoothing.
-            let drawn = figcraft_doc::geometry::drawn_network(&source, smoothing);
+            let drawn = figiran_doc::geometry::drawn_network(&source, smoothing);
             let mut net = VectorNetwork::default();
             let legacy = source.regions.iter().all(|region| region.fills.is_none() && region.paint_space.is_none());
             if legacy && !source.regions.is_empty() {
@@ -799,8 +799,8 @@ fn simplify(s: &mut Session, p: &Value) -> Result<Value> {
                     WindingRule::NonZero
                 };
                 let path = drawn.fill_path();
-                let path = figcraft_geom::kurbo::simplify::simplify_bezpath(path.iter(), tol, &Default::default());
-                let (path, output_winding) = match figcraft_pathops::simplify_with_rule(&path, winding == WindingRule::EvenOdd) {
+                let path = figiran_geom::kurbo::simplify::simplify_bezpath(path.iter(), tol, &Default::default());
+                let (path, output_winding) = match figiran_pathops::simplify_with_rule(&path, winding == WindingRule::EvenOdd) {
                     Ok(path) => (path, WindingRule::EvenOdd),
                     Err(_) => (path, winding),
                 };
@@ -809,8 +809,8 @@ fn simplify(s: &mut Session, p: &Value) -> Result<Value> {
             } else {
                 for (index, region) in source.regions.iter().enumerate() {
                     let Some(path) = drawn.region_path(index) else { continue };
-                    let path = figcraft_geom::kurbo::simplify::simplify_bezpath(path.iter(), tol, &Default::default());
-                    let path = figcraft_pathops::simplify_with_rule(&path, region.winding == WindingRule::EvenOdd).unwrap_or(path);
+                    let path = figiran_geom::kurbo::simplify::simplify_bezpath(path.iter(), tol, &Default::default());
+                    let path = figiran_pathops::simplify_with_rule(&path, region.winding == WindingRule::EvenOdd).unwrap_or(path);
                     append_region_path(&mut net, &path, region, region.winding);
                 }
             }
@@ -826,7 +826,7 @@ fn simplify(s: &mut Session, p: &Value) -> Result<Value> {
                 open.regions.clear();
                 if !open.segments.is_empty() {
                     let path = open.stroke_path();
-                    let simplified = figcraft_geom::kurbo::simplify::simplify_bezpath(path.iter(), tol, &Default::default());
+                    let simplified = figiran_geom::kurbo::simplify::simplify_bezpath(path.iter(), tol, &Default::default());
                     let mut loose = VectorNetwork::from_path(&simplified);
                     loose.regions.clear();
                     append_network(&mut net, loose);
@@ -834,7 +834,7 @@ fn simplify(s: &mut Session, p: &Value) -> Result<Value> {
             }
             if source.regions.is_empty() {
                 let path = source.stroke_path();
-                let simplified = figcraft_geom::kurbo::simplify::simplify_bezpath(path.iter(), tol, &Default::default());
+                let simplified = figiran_geom::kurbo::simplify::simplify_bezpath(path.iter(), tol, &Default::default());
                 net = VectorNetwork::from_path(&simplified);
                 net.regions.clear();
             }
@@ -858,12 +858,12 @@ fn offset_path(s: &mut Session, p: &Value) -> Result<Value> {
         }
         let props = StrokeProps { weight: d.abs() * 2.0, join: StrokeJoin::Round, align: StrokeAlign::Center, ..Default::default() };
         let NodeKind::Vector { network: source } = &n.kind else {
-            let Some((path, _)) = figcraft_render::node_outline(doc, &n) else { continue };
-            let ring = figcraft_pathops::stroke_center(&path, d.abs() * 2.0, &props);
+            let Some((path, _)) = figiran_render::node_outline(doc, &n) else { continue };
+            let ring = figiran_pathops::stroke_center(&path, d.abs() * 2.0, &props);
             let result = if d >= 0.0 {
-                figcraft_pathops::boolean(&[path, ring], BoolOp::Union)
+                figiran_pathops::boolean(&[path, ring], BoolOp::Union)
             } else {
-                figcraft_pathops::boolean(&[path, ring], BoolOp::Subtract)
+                figiran_pathops::boolean(&[path, ring], BoolOp::Subtract)
             }
             .map_err(|error| bad("vector.offset", error.to_string()))?;
             let mut result = result;
@@ -879,12 +879,12 @@ fn offset_path(s: &mut Session, p: &Value) -> Result<Value> {
         let mut net = VectorNetwork::default();
         let legacy = source.regions.iter().all(|region| region.fills.is_none() && region.paint_space.is_none());
         if source.regions.is_empty() {
-            let Some((path, _)) = figcraft_render::node_outline(doc, &n) else { continue };
-            let ring = figcraft_pathops::stroke_center(&path, d.abs() * 2.0, &props);
+            let Some((path, _)) = figiran_render::node_outline(doc, &n) else { continue };
+            let ring = figiran_pathops::stroke_center(&path, d.abs() * 2.0, &props);
             let mut res = if d >= 0.0 {
-                figcraft_pathops::boolean(&[path.clone(), ring], BoolOp::Union)
+                figiran_pathops::boolean(&[path.clone(), ring], BoolOp::Union)
             } else {
-                figcraft_pathops::boolean(&[path.clone(), ring], BoolOp::Subtract)
+                figiran_pathops::boolean(&[path.clone(), ring], BoolOp::Subtract)
             }
             .map_err(|error| bad("vector.offset", error.to_string()))?;
             let bb = res.bounding_box();
@@ -897,16 +897,16 @@ fn offset_path(s: &mut Session, p: &Value) -> Result<Value> {
             continue;
         }
         // The regions as the layer draws them: rounded points with the layer's corner smoothing.
-        let drawn = figcraft_doc::geometry::drawn_network(source, n.corners.smoothing);
+        let drawn = figiran_doc::geometry::drawn_network(source, n.corners.smoothing);
         if legacy {
             let path = drawn.fill_path();
             let even_odd = source.regions.iter().any(|region| region.winding == WindingRule::EvenOdd);
-            let path = figcraft_pathops::simplify_with_rule(&path, even_odd).map_err(|error| bad("vector.offset", error.to_string()))?;
-            let ring = figcraft_pathops::stroke_center(&path, d.abs() * 2.0, &props);
+            let path = figiran_pathops::simplify_with_rule(&path, even_odd).map_err(|error| bad("vector.offset", error.to_string()))?;
+            let ring = figiran_pathops::stroke_center(&path, d.abs() * 2.0, &props);
             let result = if d >= 0.0 {
-                figcraft_pathops::boolean(&[path.clone(), ring], BoolOp::Union)
+                figiran_pathops::boolean(&[path.clone(), ring], BoolOp::Union)
             } else {
-                figcraft_pathops::boolean(&[path, ring], BoolOp::Subtract)
+                figiran_pathops::boolean(&[path, ring], BoolOp::Subtract)
             }
             .map_err(|error| bad("vector.offset", error.to_string()))?;
             let mut part = VectorNetwork::from_path(&result);
@@ -923,13 +923,13 @@ fn offset_path(s: &mut Session, p: &Value) -> Result<Value> {
                 let mut paint_region = region.clone();
                 let (paint_width, paint_height, paint_transform) = region.paint_frame(n.width, n.height);
                 paint_region.paint_space = Some(RegionPaintSpace { width: paint_width, height: paint_height, transform: paint_transform });
-                let path = figcraft_pathops::simplify_with_rule(&path, region.winding == WindingRule::EvenOdd)
+                let path = figiran_pathops::simplify_with_rule(&path, region.winding == WindingRule::EvenOdd)
                     .map_err(|error| bad("vector.offset", error.to_string()))?;
-                let ring = figcraft_pathops::stroke_center(&path, d.abs() * 2.0, &props);
+                let ring = figiran_pathops::stroke_center(&path, d.abs() * 2.0, &props);
                 let res = if d >= 0.0 {
-                    figcraft_pathops::boolean(&[path.clone(), ring], BoolOp::Union)
+                    figiran_pathops::boolean(&[path.clone(), ring], BoolOp::Union)
                 } else {
-                    figcraft_pathops::boolean(&[path.clone(), ring], BoolOp::Subtract)
+                    figiran_pathops::boolean(&[path.clone(), ring], BoolOp::Subtract)
                 }
                 .map_err(|error| bad("vector.offset", error.to_string()))?;
                 // A collapsed negative offset removes this region, while other source regions stay.
@@ -1019,9 +1019,9 @@ fn resize_to_fit(s: &mut Session, p: &Value) -> Result<Value> {
             continue;
         }
         // Children's bounds in the container's own coordinates.
-        let mut b: Option<figcraft_geom::Rect> = None;
+        let mut b: Option<figiran_geom::Rect> = None;
         for c in n.children.iter().filter_map(|c| doc.node(*c)).filter(|c| c.visible) {
-            let r = figcraft_geom::transform_rect_bbox(c.transform, c.local_rect());
+            let r = figiran_geom::transform_rect_bbox(c.transform, c.local_rect());
             if r.x0.is_finite() && r.y0.is_finite() && r.x1.is_finite() && r.y1.is_finite() {
                 b = Some(b.map_or(r, |u| u.union(r)));
             }

@@ -9,12 +9,12 @@ pub(super) fn stroke(c: Color32, w: f32) -> Stroke {
 /// A text layer's layout placed on the canvas: where carets and selected characters show (yours
 /// and other people's in a live session).
 pub(crate) struct TextOnScreen {
-    pub layout: Arc<figcraft_text::TextLayout>,
+    pub layout: Arc<figiran_text::TextLayout>,
     /// How many characters the text has.
     pub chars: usize,
     /// The layout's vertical offset in the box (vertical alignment).
     dy: f64,
-    world: figcraft_geom::Affine,
+    world: figiran_geom::Affine,
 }
 
 impl TextOnScreen {
@@ -22,7 +22,7 @@ impl TextOnScreen {
     pub(crate) fn of(doc: &Document, id: NodeId) -> Option<Self> {
         let n = doc.node(id)?;
         let NodeKind::Text(t) = &n.kind else { return None };
-        let (layout, dy) = figcraft_text::layout_node(n)?;
+        let (layout, dy) = figiran_text::layout_node(n)?;
         Some(Self { layout, chars: t.char_count(), dy, world: doc.world_transform(id) })
     }
 
@@ -98,7 +98,7 @@ pub(super) fn slot_badges(app: &FigApp, painter: &egui::Painter, doc: &Arc<Docum
 /// The slots [`slot_badges`] shows, with their names: those of the selected components and
 /// instances (and of the ones the selected layers are in), and the slot being dropped onto.
 fn slots_shown(doc: &Document, sel: &[NodeId], drop: Option<NodeId>) -> Vec<(NodeId, String)> {
-    use figcraft_engine::components::{owning_component, owning_instance, slot_name, slots_of};
+    use figiran_engine::components::{owning_component, owning_instance, slot_name, slots_of};
     let mut roots: Vec<NodeId> = Vec::new();
     for id in sel {
         let root = match doc.node(*id).map(|n| &n.kind) {
@@ -144,7 +144,7 @@ pub(super) fn swap_highlight(app: &FigApp, painter: &egui::Painter, doc: &Docume
 /// The outline colour for a layer: purple for components, sets and instances and every layer in
 /// them, the page's overlay `green` otherwise.
 pub(super) fn outline_colour(doc: &Document, id: NodeId, green: Color32) -> Color32 {
-    use figcraft_engine::components::{owning_component, owning_instance};
+    use figiran_engine::components::{owning_component, owning_instance};
     let set = matches!(doc.node(id).map(|n| &n.kind), Some(NodeKind::ComponentSet { .. }));
     if set || owning_component(doc, id).is_some() || owning_instance(doc, id).is_some() { COMPONENT } else { green }
 }
@@ -153,7 +153,7 @@ pub(super) fn outline_colour(doc: &Document, id: NodeId, green: Color32) -> Colo
 /// its box: the shape of ellipses, vectors, polygons, stars and boolean groups, and of rectangles
 /// and frames with rounded corners (each corner's radius and the smoothing, as the fill draws them,
 /// whatever the stroke's alignment).
-pub(super) fn outline_path(doc: &Document, n: &figcraft_doc::Node) -> Option<figcraft_geom::kurbo::BezPath> {
+pub(super) fn outline_path(doc: &Document, n: &figiran_doc::Node) -> Option<figiran_geom::kurbo::BezPath> {
     let shaped = match n.kind {
         NodeKind::Ellipse { .. } | NodeKind::Vector { .. } | NodeKind::Polygon { .. } | NodeKind::Star { .. } | NodeKind::BooleanOp { .. } => true,
         NodeKind::Rectangle
@@ -167,7 +167,7 @@ pub(super) fn outline_path(doc: &Document, n: &figcraft_doc::Node) -> Option<fig
     if !shaped {
         return None;
     }
-    figcraft_render::node_outline(doc, n).map(|(p, _)| p)
+    figiran_render::node_outline(doc, n).map(|(p, _)| p)
 }
 
 /// [`outline_path`] on screen, flattened into polylines.
@@ -177,8 +177,8 @@ fn outline_shape(app: &FigApp, doc: &Document, id: NodeId) -> Option<Vec<Vec<Pos
     let w = doc.world_transform(id);
     let mut out = Vec::new();
     let mut cur: Vec<Pos2> = Vec::new();
-    figcraft_geom::kurbo::flatten(path.iter(), 0.5 / app.session.ds().map(|d| d.view.zoom).unwrap_or(1.0), |el| {
-        use figcraft_geom::kurbo::PathEl::*;
+    figiran_geom::kurbo::flatten(path.iter(), 0.5 / app.session.ds().map(|d| d.view.zoom).unwrap_or(1.0), |el| {
+        use figiran_geom::kurbo::PathEl::*;
         match el {
             MoveTo(p) => {
                 if cur.len() > 1 {

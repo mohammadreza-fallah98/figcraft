@@ -24,7 +24,7 @@ const TABLE: &[(&str, u8)] = &[
     ("mcp", 6),
     // Live sessions over the network (WebSockets): above the engine, beside the UI.
     ("collab-net", 6),
-    // Company portal login (HTTPS client, credential store): no FigCraft crate below it, used by the UI.
+    // Company portal login (HTTPS client, credential store): no FigIran crate below it, used by the UI.
     ("portal", 6),
 ];
 
@@ -38,7 +38,7 @@ pub fn check(root: &std::path::Path) -> bool {
         .output();
     let Ok(out) = out else { return false };
     let Ok(v) = serde_json::from_slice::<serde_json::Value>(&out.stdout) else { return false };
-    let layer: BTreeMap<String, u8> = TABLE.iter().map(|(n, l)| (format!("figcraft-{n}"), *l)).collect();
+    let layer: BTreeMap<String, u8> = TABLE.iter().map(|(n, l)| (format!("figiran-{n}"), *l)).collect();
     let mut ok = true;
     for pkg in v["packages"].as_array().cloned().unwrap_or_default() {
         let name = pkg["name"].as_str().unwrap_or("").to_string();
@@ -76,9 +76,9 @@ fn same_layer_ok(from: &str, to: &str) -> bool {
     // within L6 the MCP server joins live sessions through collab-net.
     matches!(
         (from, to),
-        ("figcraft-color", "figcraft-geom")
-            | ("figcraft-render", "figcraft-format")
-            | ("figcraft-mcp", "figcraft-collab-net")
-            | ("figcraft-ui-egui", "figcraft-portal")
+        ("figiran-color", "figiran-geom")
+            | ("figiran-render", "figiran-format")
+            | ("figiran-mcp", "figiran-collab-net")
+            | ("figiran-ui-egui", "figiran-portal")
     )
 }

@@ -8,9 +8,9 @@
 //! through its whole size (as in Figma, with no overflow setting), while content past the frame's
 //! own edges scrolls only as its overflow allows and is otherwise clipped. A responsive prototype's frame is instead resized to the screen
 //! (the device's, else the player's whole area) and laid out again, its constraints and auto layout
-//! responding (`figcraft_engine::cmd::proto::respond`, on the player's copy, from the design each
+//! responding (`figiran_engine::cmd::proto::respond`, on the player's copy, from the design each
 //! time). Device bodies are drawn in code in the device's colour. Every frame is rendered through
-//! `figcraft_render::render_node`
+//! `figiran_render::render_node`
 //! into a texture. Smart animate interpolates a temporary document between the outgoing and
 //! incoming states ([`smart_interpolate`]) and renders it each animation frame; the other
 //! transitions move or fade the two cached textures ([`transition_frames`]).
@@ -24,13 +24,13 @@ use std::collections::{BTreeMap, HashMap, HashSet, VecDeque};
 use std::sync::Arc;
 
 use egui::{Align2, Color32, CornerRadius, Id, Pos2, Rect, Sense, Stroke, StrokeKind, Ui, Vec2, pos2, vec2};
-use figcraft_color::{Color, Paint, PaintKind};
-use figcraft_doc::proto::{
+use figiran_color::{Color, Paint, PaintKind};
+use figiran_doc::proto::{
     Action, Device, DeviceColor, Direction, Easing, KeyMods, Overflow, OverlayAnchor, OverlayPosition, PrototypeSettings, ScrollPosition, Transition,
     Trigger,
 };
-use figcraft_doc::{Document, HConstraint, Node, NodeId, NodeKind, VConstraint};
-use figcraft_geom::{Affine, Point};
+use figiran_doc::{Document, HConstraint, Node, NodeId, NodeKind, VConstraint};
+use figiran_geom::{Affine, Point};
 use serde_json::{Value, json};
 
 use crate::FigApp;
@@ -91,7 +91,7 @@ pub struct OverlayState {
     pub background: Option<Color>,
     /// The layer that opened it, in page units of the presented frame (so it follows the frame
     /// when the window resizes or the view pans).
-    pub anchor: Option<figcraft_geom::Rect>,
+    pub anchor: Option<figiran_geom::Rect>,
     /// Manual position: the overlay's top-left from the anchor's (page units).
     pub offset: Option<[f64; 2]>,
     pub anchor_to: OverlayAnchor,
@@ -107,7 +107,7 @@ struct FrameTex {
     key: (u64, u64, u64),
     tex: egui::TextureHandle,
     /// Page-space rect the texture covers.
-    bounds: figcraft_geom::Rect,
+    bounds: figiran_geom::Rect,
 }
 
 /// A transition in progress from a captured state to the current one.
@@ -424,10 +424,10 @@ impl Presenter {
     }
 
     /// Screen rect `r` in page units of the frame shown last.
-    fn page_rect(&self, r: Option<Rect>) -> Option<figcraft_geom::Rect> {
+    fn page_rect(&self, r: Option<Rect>) -> Option<figiran_geom::Rect> {
         let (r, (_, place, _)) = (r?, self.shown?);
         let (a, b) = (place.page(r.min), place.page(r.max));
-        Some(figcraft_geom::Rect::new(a.x, a.y, b.x, b.y))
+        Some(figiran_geom::Rect::new(a.x, a.y, b.x, b.y))
     }
 }
 

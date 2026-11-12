@@ -7,7 +7,7 @@
 use std::sync::Arc;
 
 use egui::{Align2, CornerRadius, Id, Rect, Sense, Stroke, StrokeKind, Ui, pos2, vec2};
-use figcraft_doc::{AutoLayout, CellAlign, ContentAlign, CrossAlign, Document, LayoutMode, MainAlign, Node, NodeId, NodeKind, Sizing};
+use figiran_doc::{AutoLayout, CellAlign, ContentAlign, CrossAlign, Document, LayoutMode, MainAlign, Node, NodeId, NodeKind, Sizing};
 use serde_json::json;
 
 use crate::FigApp;
@@ -574,7 +574,7 @@ fn advanced(app: &mut FigApp, ui: &mut Ui, ids: &[NodeId], l: &AutoLayout) {
 fn tracks(app: &mut FigApp, ui: &mut Ui, doc: &Document, ids: &[NodeId]) {
     let Some(id) = ids.first().copied() else { return };
     let Some(l) = doc.node(id).and_then(|n| n.layout.clone()) else { return };
-    let Some(g) = figcraft_layout::grid_geometry(doc, id) else { return };
+    let Some(g) = figiran_layout::grid_geometry(doc, id) else { return };
     let col = widgets::col_width(ui.available_width());
     for (axis, specs, ranges) in [("columns", &l.column_tracks, &g.columns), ("rows", &l.row_tracks, &g.rows)] {
         widgets::sublabels(ui, if axis == "columns" { tr("Column sizes") } else { tr("Row sizes") }, None);
@@ -631,7 +631,7 @@ fn grid_cell(app: &mut FigApp, ui: &mut Ui, doc: &Document, sel: &[NodeId]) {
     let col = widgets::col_width(ui.available_width());
     if let [id] = sel
         && let Some(cell) =
-            parent_of(doc, *id).and_then(|p| figcraft_layout::grid_geometry(doc, p.id)).and_then(|g| g.cells.into_iter().find(|c| c.id == *id))
+            parent_of(doc, *id).and_then(|p| figiran_layout::grid_geometry(doc, p.id)).and_then(|g| g.cells.into_iter().find(|c| c.id == *id))
     {
         let anchored = doc.node(*id).is_some_and(|n| n.child_layout.grid_column.is_some() || n.child_layout.grid_row.is_some());
         widgets::sublabels(ui, tr("Column"), Some(tr("Row")));

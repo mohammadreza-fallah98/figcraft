@@ -3,43 +3,43 @@ resolver = "3"
 members = ["crates/*", "apps/*", "xtask"]
 # The plugin SDK and examples build for wasm32 in a workspace of their own (`cargo xtask plugins`).
 exclude = ["plugins"]
-# default-members = ["crates/*", "apps/figcraft", "apps/figcraft-cli", "xtask"]
+# default-members = ["crates/*", "apps/figiran", "apps/figiran-cli", "xtask"]
 
 [workspace.package]
 version = "0.18.1"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 rust-version = "1.95"
-repository = "https://github.com/storytold/figcraft"
+repository = "https://github.com/mohammadreza-fallah98/figiran"
 
 [workspace.dependencies]
 # internal
-figcraft-geom = { path = "crates/geom" }
-figcraft-color = { path = "crates/color" }
-figcraft-doc = { path = "crates/doc" }
-figcraft-layout = { path = "crates/layout" }
-figcraft-text = { path = "crates/text" }
-figcraft-pathops = { path = "crates/pathops" }
-figcraft-render = { path = "crates/render" }
-figcraft-svg = { path = "crates/svg" }
-figcraft-pdf = { path = "crates/pdf" }
-figcraft-vectordrawable = { path = "crates/vectordrawable" }
-figcraft-format = { path = "crates/format" }
-figcraft-tools = { path = "crates/tools" }
-figcraft-collab = { path = "crates/collab" }
-figcraft-engine = { path = "crates/engine" }
-figcraft-ui-egui = { path = "crates/ui-egui" }
-figcraft-mcp = { path = "crates/mcp" }
-figcraft-collab-net = { path = "crates/collab-net" }
-figcraft-plugin = { path = "crates/plugin" }
-figcraft-portal = { path = "crates/portal" }
+figiran-geom = { path = "crates/geom" }
+figiran-color = { path = "crates/color" }
+figiran-doc = { path = "crates/doc" }
+figiran-layout = { path = "crates/layout" }
+figiran-text = { path = "crates/text" }
+figiran-pathops = { path = "crates/pathops" }
+figiran-render = { path = "crates/render" }
+figiran-svg = { path = "crates/svg" }
+figiran-pdf = { path = "crates/pdf" }
+figiran-vectordrawable = { path = "crates/vectordrawable" }
+figiran-format = { path = "crates/format" }
+figiran-tools = { path = "crates/tools" }
+figiran-collab = { path = "crates/collab" }
+figiran-engine = { path = "crates/engine" }
+figiran-ui-egui = { path = "crates/ui-egui" }
+figiran-mcp = { path = "crates/mcp" }
+figiran-collab-net = { path = "crates/collab-net" }
+figiran-plugin = { path = "crates/plugin" }
+figiran-portal = { path = "crates/portal" }
 
 # Keep coupled craft-libs crates on one rev. craft-update has no sibling-crate
 # dependencies and is pinned separately for the suite updater rollout.
 # Which paths stored in a document may be followed (craft-libs).
 craft-docpath = { version = "0.1.0", git = "https://github.com/storytold/craft-libs", rev = "e11f9d9aebea5f6b8e74643c1ea1ed172ba5f545" }
 # Who draws the window frame on Linux — the compositor or the app — so every Craft app shows the
-# same native titlebar per desktop (craft-libs). FigCraft only reads the probe result and maps it
+# same native titlebar per desktop (craft-libs). FigIran only reads the probe result and maps it
 # to its own `TitleBar`, so it does not enable craft-window's optional `egui` helpers (which would
 # pull a second egui family version).
 craft-window = { git = "https://github.com/storytold/craft-libs", rev = "e11f9d9aebea5f6b8e74643c1ea1ed172ba5f545" }
@@ -60,7 +60,7 @@ craft-settings = { git = "https://github.com/storytold/craft-libs", rev = "e11f9
 # foundation
 kurbo = { version = "0.13", features = ["serde"] }
 thiserror = "2"
-# Command-line parsing for figcraft-cli (craft-contrib RFC-0012: clap derive, as photocraft does).
+# Command-line parsing for figiran-cli (craft-contrib RFC-0012: clap derive, as photocraft does).
 clap = { version = "4", features = ["derive"] }
 serde = { version = "1", features = ["derive", "rc"] }
 serde_json = { version = "1", features = ["float_roundtrip"] }
@@ -87,7 +87,7 @@ unicode-bidi = "0.3"
 unicode-segmentation = "1.13"
 # Line breaks between the words of Thai, Lao, Khmer and Burmese, which are written without spaces
 # (#1219): ICU4X's line segmenter with its compiled data (pure Rust, Unicode-3.0 like the icu_*
-# crates already in the lock, whose version it matches). figcraft-text picks the dictionaries, or
+# crates already in the lock, whose version it matches). figiran-text picks the dictionaries, or
 # in the browser the smaller LSTM models.
 icu_segmenter = { version = "2.3", default-features = false, features = ["compiled_data"] }
 # Code export: layer names transliterated into ASCII identifiers (pure Rust data tables, zero
@@ -131,7 +131,7 @@ dbg_macro = "warn"
 # Style lints from newer toolchains that fight index-heavy pixel code.
 needless_range_loop = "allow"
 chunks_exact_to_as_chunks = "allow"
-# FigCraft never crashes: shipped code returns `Result`/`Option` instead of panicking (see
+# FigIran never crashes: shipped code returns `Result`/`Option` instead of panicking (see
 # AGENTS.md › Never crash). Tests may unwrap (clippy.toml).
 unwrap_used = "deny"
 expect_used = "deny"
@@ -154,7 +154,7 @@ debug = false
 lto = "thin"
 codegen-units = 4
 
-# The browser build only (apps/figcraft-web/index.html: data-cargo-profile). Optimised for size:
+# The browser build only (apps/figiran-web/index.html: data-cargo-profile). Optimised for size:
 # packaging/web/package.sh fails a .wasm over 24 MiB (Cloudflare's per-file cap is 25 MiB).
 # wasm32-unknown-unknown always aborts on panic, so panic = "abort" changes nothing there.
 [profile.web-release]

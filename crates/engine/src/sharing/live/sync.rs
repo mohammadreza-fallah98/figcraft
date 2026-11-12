@@ -146,7 +146,7 @@ impl Session {
         }
         let doc = Arc::new(client.document().clone());
         // Edits the server refused were rolled back: say why (the UI's toast).
-        let notices: Vec<String> = client.take_notices().iter().map(figcraft_collab::Notice::message).collect();
+        let notices: Vec<String> = client.take_notices().iter().map(figiran_collab::Notice::message).collect();
         live.synced = Some(doc.clone());
         if !notices.is_empty() {
             self.message = Some(notices.join("; "));

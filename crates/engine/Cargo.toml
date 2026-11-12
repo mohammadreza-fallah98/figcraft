@@ -1,28 +1,28 @@
 [package]
-name = "figcraft-engine"
+name = "figiran-engine"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "FigCraft engine: sessions, undo history, the command registry every surface (UI, CLI, control channel, MCP) dispatches through, pointer tools, components and the Figma menu catalog"
+description = "FigIran engine: sessions, undo history, the command registry every surface (UI, CLI, control channel, MCP) dispatches through, pointer tools, components and the Figma menu catalog"
 
 [lints]
 workspace = true
 
 [dependencies]
-figcraft-geom = { workspace = true }
-figcraft-color = { workspace = true }
-figcraft-doc = { workspace = true }
-figcraft-collab = { workspace = true }
-figcraft-layout = { workspace = true }
-figcraft-text = { workspace = true }
-figcraft-pathops = { workspace = true }
-figcraft-render = { workspace = true }
-figcraft-format = { workspace = true }
-figcraft-svg = { workspace = true }
-figcraft-pdf = { workspace = true }
-figcraft-vectordrawable = { workspace = true }
+figiran-geom = { workspace = true }
+figiran-color = { workspace = true }
+figiran-doc = { workspace = true }
+figiran-collab = { workspace = true }
+figiran-layout = { workspace = true }
+figiran-text = { workspace = true }
+figiran-pathops = { workspace = true }
+figiran-render = { workspace = true }
+figiran-format = { workspace = true }
+figiran-svg = { workspace = true }
+figiran-pdf = { workspace = true }
+figiran-vectordrawable = { workspace = true }
 craft-docpath = { workspace = true }
-figcraft-plugin = { workspace = true }
+figiran-plugin = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
