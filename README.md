@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/app-icon/hicolor/256x256/apps/ai.storyteller.figcraft.png" width="128" height="128" alt="FigCraft icon: an engraved chameleon on a mint-green tile">
+  <img src="assets/app-icon/hicolor/256x256/apps/ai.storyteller.figcraft.png" width="128" height="128" alt="FigCraft icon: a colourful rounded F on a dark navy tile">
 </p>
 
 <h1 align="center">FigCraft</h1>
