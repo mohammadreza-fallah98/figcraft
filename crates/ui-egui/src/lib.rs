@@ -28,6 +28,7 @@ pub mod menus;
 pub mod pending_open;
 pub mod popover;
 pub mod portal;
+pub mod portal_upload;
 pub mod present;
 pub mod shortcuts;
 pub mod tabs;
@@ -221,6 +222,8 @@ mod popover_tests;
 mod popup_width_tests;
 #[cfg(test)]
 mod portal_tests;
+#[cfg(test)]
+mod portal_upload_tests;
 #[cfg(test)]
 mod present_links_tests;
 #[cfg(test)]

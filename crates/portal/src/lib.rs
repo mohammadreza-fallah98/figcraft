@@ -23,10 +23,12 @@ pub mod loopback;
 pub mod pkce;
 pub mod secret;
 pub mod session;
+pub mod upload;
 
 pub use api::{Access, Login, OpenedProject, PortalError, ProjectEntry};
 pub use deeplink::{AuthLink, LinkError, is_auth_link, parse_auth_link};
 pub use session::{Portal, Status, View};
+pub use upload::{Company, UploadError, UploadJob, UploadPhase, UploadRole, UploadView};
 
 #[cfg(test)]
 mod api_tests;
@@ -44,3 +46,5 @@ mod loopback_tests;
 mod pkce_tests;
 #[cfg(test)]
 mod session_tests;
+#[cfg(test)]
+mod upload_tests;

@@ -31,6 +31,21 @@ pub trait Api: Send + Sync {
     fn open_project(&self, access_token: &str, project_id: i64) -> Result<OpenedProject, PortalError>;
     /// End the app session on the portal (`401` is an error the caller may ignore: already ended).
     fn logout(&self, access_token: &str, refresh_token: &str) -> Result<(), PortalError>;
+    /// The companies a project may be uploaded to (`GET api/v1/companies`).
+    fn companies(&self, _access_token: &str) -> Result<Vec<crate::upload::Company>, PortalError> {
+        Err(PortalError::Network("This portal connection can't list companies.".into()))
+    }
+    /// `POST` a multipart project upload: `body` holds `length` bytes of `content_type`. Any status
+    /// is the caller's to read, except `401`, which is [`PortalError::Unauthorized`].
+    fn send_upload(
+        &self,
+        _access_token: &str,
+        _content_type: &str,
+        _length: u64,
+        _body: &mut dyn std::io::Read,
+    ) -> Result<(u16, String), PortalError> {
+        Err(PortalError::Network("This portal connection can't upload files.".into()))
+    }
 }
 
 /// How long a started login waits for its browser callback.
@@ -125,11 +140,11 @@ struct State {
     restored: bool,
 }
 
-struct Inner {
+pub(crate) struct Inner {
     base: String,
-    api: Arc<dyn Api>,
+    pub(crate) api: Arc<dyn Api>,
     store: Box<dyn SecretStore>,
-    wake: Box<dyn Fn() + Send + Sync>,
+    pub(crate) wake: Box<dyn Fn() + Send + Sync>,
     spawn: Spawn,
     /// The settings folder, where a login leaves its note for another copy of the app.
     notes: Option<PathBuf>,
@@ -142,16 +157,18 @@ struct Inner {
     bridge: Mutex<Option<Bridge>>,
     /// Invite links the bridge received, for the app to open.
     invites: Mutex<std::collections::VecDeque<String>>,
+    /// The project upload under way (or its outcome) and the company list: see [`crate::upload`].
+    pub(crate) uploads: Mutex<crate::upload::UploadShared>,
 }
 
 /// The portal at one address.
 #[derive(Clone)]
-pub struct Portal(Arc<Inner>);
+pub struct Portal(pub(crate) Arc<Inner>);
 
 /// Links waiting to be opened.
 const MAX_INVITES: usize = 4;
 
-fn lock<T>(m: &Mutex<T>) -> MutexGuard<'_, T> {
+pub(crate) fn lock<T>(m: &Mutex<T>) -> MutexGuard<'_, T> {
     m.lock().unwrap_or_else(PoisonError::into_inner)
 }
 
@@ -176,7 +193,7 @@ impl Portal {
             notice: None,
             restored: false,
         };
-        Portal(Arc::new(Inner { base: base.to_string(), api, store, wake, spawn, notes, state: Mutex::new(state), refreshing: Mutex::new(()), loopback: Mutex::new(None), bridge: Mutex::new(None), invites: Mutex::new(std::collections::VecDeque::new()) }))
+        Portal(Arc::new(Inner { base: base.to_string(), api, store, wake, spawn, notes, state: Mutex::new(state), refreshing: Mutex::new(()), loopback: Mutex::new(None), bridge: Mutex::new(None), invites: Mutex::new(std::collections::VecDeque::new()), uploads: Mutex::new(crate::upload::UploadShared::default()) }))
     }
 
     /// The portal at the configured address, over HTTPS, with the system's credential store.
@@ -212,7 +229,7 @@ impl Portal {
         (self.0.wake)();
     }
 
-    fn run(&self, job: impl FnOnce(Portal) + Send + 'static) {
+    pub(crate) fn run(&self, job: impl FnOnce(Portal) + Send + 'static) {
         let me = self.clone();
         (self.0.spawn)(Box::new(move || job(me)));
     }
@@ -550,7 +567,7 @@ impl Portal {
 
     /// `call` with an access token; a token the portal refuses is renewed once, and a session the
     /// portal no longer knows ends here.
-    fn with_token<T>(&self, call: impl Fn(&dyn Api, &str) -> Result<T, PortalError>) -> Result<T, PortalError> {
+    pub(crate) fn with_token<T>(&self, call: impl Fn(&dyn Api, &str) -> Result<T, PortalError>) -> Result<T, PortalError> {
         let result = self.access_token(false).and_then(|t| match call(&*self.0.api, &t) {
             Err(PortalError::Unauthorized(_)) => self.access_token(true).and_then(|t| call(&*self.0.api, &t)),
             other => other,

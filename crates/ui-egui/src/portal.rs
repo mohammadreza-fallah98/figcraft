@@ -41,6 +41,8 @@ pub struct PortalUi {
     /// Live sessions started by opening a portal project (profile menu or the web page's button):
     /// they end, with their document, when the portal login ends.
     opened: Vec<Opened>,
+    /// The «Upload current file to portal…» dialog (`portal_upload`).
+    pub(crate) upload: crate::portal_upload::UploadDialog,
 }
 
 /// A live session that came from a portal project, and the document it syncs once that is open.
@@ -130,6 +132,9 @@ pub fn top_bar(app: &mut FigApp, ui: &mut Ui, top: Rect) -> f32 {
         p.restore();
         apply_results(app, p, ui.ctx());
         keep_awake(ui.ctx(), view.as_ref());
+        if let Some(v) = view.as_ref() {
+            crate::portal_upload::show(app, ui.ctx(), p, v);
+        }
     }
     if view.as_ref().is_some_and(|v| v.status == Status::SignedIn) {
         return start;
@@ -197,6 +202,7 @@ pub fn profile_top(app: &mut FigApp, ui: &mut Ui) {
         app.services.open_url(&portal_page_url(portal.base_url(), PORTAL_PROFILE_PATH));
         ui.close();
     }
+    crate::portal_upload::menu_entry(app, ui, &portal, &view);
     ui.separator();
 }
 
