@@ -329,7 +329,7 @@ fn body(app: &mut FigApp, ui: &mut Ui, t: &Tokens, portal: &Portal, view: &View)
         }
         Status::SignedOut | Status::Failed(_) => {
             if let Status::Failed(message) = &view.status {
-                widgets::label(ui, message, t.danger);
+                widgets::label(ui, tr(message), t.danger);
             }
             widgets::label(ui, tr("Log in to your company portal to open the projects shared with you."), t.text_secondary);
             if widgets::button(ui, tr("Log in"), true, true).clicked() {

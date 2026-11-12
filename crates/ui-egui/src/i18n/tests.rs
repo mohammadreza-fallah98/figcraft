@@ -123,6 +123,7 @@ const DATA_LABELS: &[&str] = &[
     "Watch",
     "Wedge",
     "Weight",
+    "Your session ended. Log in again.",
 ];
 
 /// Labels of engine enums the UI shows through `tr(x.label())`, read from the engine, plus [`DATA_LABELS`].
