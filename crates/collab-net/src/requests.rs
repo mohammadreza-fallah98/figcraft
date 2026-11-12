@@ -33,12 +33,25 @@ pub(crate) fn server_key(given: Option<String>, query: Vec<(String, String)>) ->
 }
 
 /// Refuse to send the server's key (its whole administrative authority, reusable) in the clear:
-/// `ws://` is only for a server on this machine; anywhere else needs `wss://`.
+/// `ws://` is only for a server on this machine or on a private network; anywhere else needs `wss://`.
 pub(crate) fn key_over_tls(server: &Endpoint, key: Option<&str>) -> Result<(), String> {
-    if key.is_some_and(|k| !k.trim().is_empty()) && !server.secure && !server.loopback() {
-        return Err("the server's key is only sent over wss:// (or ws:// to this machine): it would be readable on the network".into());
+    if key.is_some_and(|k| !k.trim().is_empty()) && !server.secure && !server.loopback() && !private_ip_literal(server) {
+        return Err("the server's key is only sent over wss:// (or ws:// to this machine or a private network address): it would be readable on the network".into());
     }
     Ok(())
+}
+
+/// FigIran fork rule: the host is an IP literal in a private range (10/8, 172.16/12, 192.168/16,
+/// IPv6 fc00::/7), so plain `ws://` is accepted there like on loopback. This exists for the
+/// internal test network, which has no TLS yet; production must use `wss://`. Host names are
+/// never accepted here (they could resolve to a public address); loopback and `localhost` are
+/// handled by [`Endpoint::loopback`].
+fn private_ip_literal(server: &Endpoint) -> bool {
+    match server.host.parse::<std::net::SocketAddr>() {
+        Ok(std::net::SocketAddr::V4(a)) => a.ip().is_private(),
+        Ok(std::net::SocketAddr::V6(a)) => a.ip().segments()[0] & 0xfe00 == 0xfc00,
+        Err(_) => false,
+    }
 }
 
 /// Why asking `server` about its hosting failed with `e`: a server older than open hosting can't
@@ -163,12 +176,31 @@ mod key_tests {
     fn the_key_never_goes_over_plain_tcp_to_another_machine() {
         let at = |url: &str| Endpoint::parse(url).unwrap().0;
         assert!(key_over_tls(&at("ws://share.example:9000/"), Some("k")).is_err());
-        assert!(key_over_tls(&at("ws://10.0.0.5:9000/"), Some("k")).is_err());
         assert!(key_over_tls(&at("wss://share.example/"), Some("k")).is_ok());
         assert!(key_over_tls(&at("ws://127.0.0.1:9000/"), Some("k")).is_ok());
         assert!(key_over_tls(&at("ws://localhost:9000/"), Some("k")).is_ok());
         // Browsing or publishing as anyone sends no key, so plain is fine.
         assert!(key_over_tls(&at("ws://share.example:9000/"), None).is_ok());
         assert!(key_over_tls(&at("ws://share.example:9000/"), Some(" ")).is_ok());
+    }
+
+    #[test]
+    fn the_key_may_go_over_plain_tcp_to_private_network_ip_literals() {
+        let at = |url: &str| Endpoint::parse(url).unwrap().0;
+        for ok in [
+            "ws://10.0.0.5:9000/", "ws://10.255.255.255:9000/", "ws://172.16.0.1:9000/", "ws://172.31.255.255:9000/",
+            "ws://192.168.0.1:9000/", "ws://192.168.10.5:47900/", "ws://127.0.0.1:9000/", "ws://[::1]:9000/",
+            "ws://[fc00::1]:9000/", "ws://[fdff::1]:9000/",
+        ] {
+            assert!(key_over_tls(&at(ok), Some("k")).is_ok(), "{ok}");
+        }
+        for bad in [
+            "ws://8.8.8.8:9000/", "ws://11.0.0.1:9000/", "ws://172.15.255.255:9000/", "ws://172.32.0.1:9000/",
+            "ws://192.167.0.1:9000/", "ws://192.169.0.1:9000/", "ws://[2001:db8::1]:9000/", "ws://[fe80::1]:9000/",
+            "ws://[fb00::1]:9000/", "ws://[fe00::1]:9000/", "ws://intranet:9000/", "ws://10.0.0.5.example.com:9000/",
+        ] {
+            assert!(key_over_tls(&at(bad), Some("k")).is_err(), "{bad}");
+        }
+        assert!(Endpoint::parse("ws://10.0.0.999:9000/").map_or(true, |(e, _)| key_over_tls(&e, Some("k")).is_err()));
     }
 }
