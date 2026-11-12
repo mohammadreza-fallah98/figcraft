@@ -186,8 +186,13 @@ pub fn invoke(app: &mut FigApp, id: &str) {
         }
         // From a menu the link is pasted into the Join dialog (`collab.join {link}` joins directly).
         "collab.join" => crate::live::open_join(app, ""),
-        // So is the server address for publishing (it carries the server key).
-        "collab.publish" => crate::live::open_publish(app),
+        // With a company portal configured, publishing is the portal's upload (or its login); otherwise
+        // the server address for publishing is typed into the dialog (it carries the server key).
+        "collab.publish" => {
+            if !crate::portal_upload::publish_from_menu(app) {
+                crate::live::open_publish(app)
+            }
+        }
         "edit.copyProperties" => {
             if app.run(id, json!({})).is_some() {
                 app.toast(tr("Properties copied"));

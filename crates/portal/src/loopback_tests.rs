@@ -56,7 +56,10 @@ fn a_valid_callback_delivers_the_code_once_and_closes() {
     ] {
         assert!(reply.contains(h), "{h}");
     }
-    assert!(reply.contains("<title>FigIran</title>") && reply.contains("Signed in. You can close this tab and return to FigIran."));
+    assert!(reply.contains("<title>FigIran</title>"));
+    assert!(reply.contains("lang=\"fa\" dir=\"rtl\""), "the page is Persian and right to left");
+    assert!(reply.contains("ورود انجام شد. می\u{200c}توانید این زبانه را ببندید و به FigIran برگردید."));
+    assert!(!reply.contains("Signed in"));
     assert_eq!(rx.recv_timeout(Duration::from_secs(5)).unwrap(), "abc");
     assert!(closed(port));
     assert!(rx.try_recv().is_err());

@@ -1,4 +1,5 @@
-//! «Upload current file to portal…»: only Admin and CompanyAdmin get the menu entry, the dialog asks
+//! File ▸ Publish to server… with a portal: only Admin and CompanyAdmin get the upload dialog (a Member gets a
+//! message, a signed-out person the portal login and nothing is sent), the dialog asks
 //! for the name (and the company, for an Admin), the document goes to the portal as Save as writes
 //! it without changing the document, and every failure has words.
 
@@ -12,7 +13,7 @@ use figiran_portal::upload::Company;
 use figiran_portal::{UploadError, UploadPhase, UploadRole};
 
 use crate::live_tests::{Harness, has_text, text_center, texts};
-use crate::portal_upload::{Problem, error_text, offered, problem_with, role_of};
+use crate::portal_upload::{Problem, error_text, problem_with, role_of};
 
 const BASE: &str = "https://portal.example";
 const ACCEPTED: &str = r#"{"isSuccess":true,"data":{"id":7,"name":"Untitled","status":"Importing"},"errorMessages":[]}"#;
@@ -109,9 +110,6 @@ fn only_admins_and_company_admins_are_offered_the_entry() {
     assert_eq!(role_of(&view(Status::SignedOut, "Admin")), None, "signed out, no role counts");
     let no_account = View { account: None, ..view(Status::SignedIn, "Admin") };
     assert_eq!(role_of(&no_account), None);
-    assert!(offered(&view(Status::SignedIn, "Admin"), true));
-    assert!(!offered(&view(Status::SignedIn, "Admin"), false), "no document, nothing to send");
-    assert!(!offered(&view(Status::SignedIn, "Member"), true));
 }
 
 #[test]
@@ -138,22 +136,76 @@ fn every_failure_has_words_with_the_reason_in_them() {
     assert!(!error_text(&UploadError::BadResponse("secret detail".into())).contains("secret detail"));
 }
 
-#[test]
-fn a_member_has_no_upload_entry() {
-    let (mut h, _, _) = signed_in("Member");
-    let shapes = open_profile_menu(&mut h);
-    assert!(has_text(&shapes, "Log out") && has_text(&shapes, "Open portal"));
-    assert!(!has_text(&shapes, "Upload current file to portal…"));
+fn publish(h: &mut Harness) {
+    crate::menus::invoke(&mut h.app, "collab.publish");
+}
+
+fn toast_of(h: &Harness) -> String {
+    h.app.ui.toast.as_ref().map(|(t, _)| t.clone()).unwrap_or_default()
 }
 
 #[test]
-fn an_admin_and_a_company_admin_have_it_between_the_portal_rows_and_log_out() {
-    for role in ["Admin", "CompanyAdmin"] {
+fn the_profile_menu_has_no_upload_row_any_more() {
+    for role in ["Member", "Admin", "CompanyAdmin"] {
         let (mut h, _, _) = signed_in(role);
         let shapes = open_profile_menu(&mut h);
-        let y = |s: &str| texts(&shapes).into_iter().rev().find(|(t, _, _)| t == s).map(|(_, p, _)| p.y).unwrap_or_else(|| panic!("{role}: no {s}"));
-        let entry = y("Upload current file to portal…");
-        assert!(y("Profile and access") < entry && entry < y("Log out"), "{role}");
+        for row in ["Projects", "Refresh", "Open portal", "Profile and access", "Log out"] {
+            assert!(has_text(&shapes, row), "{role}: {row}");
+        }
+        assert!(!has_text(&shapes, "Upload current file to portal…"), "{role}");
+    }
+}
+
+#[test]
+fn a_member_who_publishes_gets_a_message_and_no_dialog() {
+    let (mut h, portal, uploads) = signed_in("Member");
+    publish(&mut h);
+    let shapes = h.frames(3);
+    assert!(toast_of(&h).contains("Only a company admin can publish"), "{}", toast_of(&h));
+    assert!(!has_text(&shapes, "Upload to portal") && !has_text(&shapes, "Publish to server"));
+    assert!(!h.app.ui.portal.upload.is_open());
+    assert_eq!(portal.upload_view().phase, UploadPhase::Idle);
+    assert!(uploads.lock().unwrap().is_empty());
+}
+
+#[test]
+fn signed_out_publish_opens_the_login_and_sends_nothing() {
+    let (mut h, _) = Harness::new();
+    let uploads = Arc::new(Mutex::new(Vec::new()));
+    let portal = Portal::new(
+        BASE,
+        Arc::new(Scripted { role: "Admin", uploads: uploads.clone() }),
+        Box::new(MemoryStore::default()),
+        Box::new(|| {}),
+        inline,
+        None,
+    );
+    h.app.ui.portal.install(Ok(portal.clone()));
+    publish(&mut h);
+    let shapes = h.frames(3);
+    assert_eq!(portal.view().status, Status::WaitingForBrowser, "the portal login was started");
+    assert!(toast_of(&h).contains("Log in to the portal"), "{}", toast_of(&h));
+    assert!(!has_text(&shapes, "Upload to portal"), "no upload dialog");
+    assert!(!has_text(&shapes, "Server address") && !has_text(&shapes, "Publish to server"), "no address and key dialog");
+    assert!(h.app.ui.live.publish.is_none());
+    assert!(uploads.lock().unwrap().is_empty());
+}
+
+#[test]
+fn without_a_portal_the_server_dialog_stays() {
+    let (mut h, _) = Harness::new();
+    publish(&mut h);
+    assert!(h.app.ui.live.publish.is_some(), "upstream behaviour when no portal is configured");
+}
+
+#[test]
+fn an_admin_and_a_company_admin_get_the_upload_dialog_and_never_the_address_dialog() {
+    for role in ["Admin", "CompanyAdmin"] {
+        let (mut h, _, _) = signed_in(role);
+        publish(&mut h);
+        let shapes = h.frames(3);
+        assert!(has_text(&shapes, "Upload to portal"), "{role}");
+        assert!(h.app.ui.live.publish.is_none(), "{role}: no address and key dialog");
     }
 }
 
@@ -161,8 +213,7 @@ fn an_admin_and_a_company_admin_have_it_between_the_portal_rows_and_log_out() {
 fn a_company_admin_uploads_the_document_as_save_as_writes_it_and_the_document_stays_as_it_was() {
     let (mut h, portal, uploads) = signed_in("CompanyAdmin");
     let (path_before, dirty_before) = (h.app.session.docs[0].path.clone(), h.app.session.docs[0].is_dirty());
-    let shapes = open_profile_menu(&mut h);
-    h.click(text_center(&shapes, "Upload current file to portal…"));
+    publish(&mut h);
     let shapes = h.frames(3);
     for t in ["Upload to portal", "Project name", "Company: Acme", "Upload", "Close"] {
         assert!(has_text(&shapes, t), "{t}");
@@ -192,8 +243,7 @@ fn a_company_admin_uploads_the_document_as_save_as_writes_it_and_the_document_st
 #[test]
 fn an_admin_picks_the_company_and_it_is_sent() {
     let (mut h, portal, uploads) = signed_in("Admin");
-    let shapes = open_profile_menu(&mut h);
-    h.click(text_center(&shapes, "Upload current file to portal…"));
+    publish(&mut h);
     let shapes = h.frames(3);
     assert!(has_text(&shapes, "Beta"), "the companies are listed");
     h.click(text_center(&shapes, "Upload"));
@@ -212,8 +262,7 @@ fn an_admin_picks_the_company_and_it_is_sent() {
 #[test]
 fn logging_out_closes_the_dialog() {
     let (mut h, portal, _) = signed_in("CompanyAdmin");
-    let shapes = open_profile_menu(&mut h);
-    h.click(text_center(&shapes, "Upload current file to portal…"));
+    publish(&mut h);
     assert!(has_text(&h.frames(3), "Upload to portal"));
     portal.logout();
     let shapes = h.frames(3);

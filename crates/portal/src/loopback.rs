@@ -23,9 +23,10 @@ const POLL: Duration = Duration::from_millis(20);
 /// How long one client gets to send its request.
 const CLIENT_TIME: Duration = Duration::from_secs(2);
 
-const PAGE: &str = "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>FigIran</title>\
-<style>body{font:16px system-ui,sans-serif;margin:4rem auto;max-width:28rem;text-align:center}</style></head>\
-<body><h1>FigIran</h1><p>Signed in. You can close this tab and return to FigIran.</p></body></html>";
+/// The sign-in page the browser shows after the callback: Persian, right to left.
+const PAGE: &str = "<!doctype html><html lang=\"fa\" dir=\"rtl\"><head><meta charset=\"utf-8\"><title>FigIran</title>\
+<style>body{font:16px system-ui,Tahoma,sans-serif;margin:4rem auto;max-width:28rem;text-align:center}</style></head>\
+<body><h1>FigIran</h1><p>ورود انجام شد. می\u{200c}توانید این زبانه را ببندید و به FigIran برگردید.</p></body></html>";
 
 /// A running listener; dropping it (or [`Loopback::stop`]) closes the port.
 pub struct Loopback {

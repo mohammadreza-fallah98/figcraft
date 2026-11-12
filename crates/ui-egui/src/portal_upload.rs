@@ -1,5 +1,5 @@
-//! «Upload current file to portal…»: an Admin or CompanyAdmin sends the open document to the
-//! company portal as a new project. The profile menu (`portal::profile_top`) offers the entry; the
+//! File ▸ «Publish to server…» with a portal configured: an Admin or CompanyAdmin sends the open document
+//! to the company portal as a new project (`publish_from_menu`; the profile menu has no upload row); the
 //! dialog asks for the project name (and, for an Admin, the company), then the document is taken
 //! exactly as Save as would write it (`file.saveAs` with `data`, which changes nothing in the
 //! document) and `figiran_portal::Portal` uploads it on a background thread. This file only draws
@@ -8,6 +8,7 @@
 use std::time::Duration;
 
 use egui::{Context, Id, Ui};
+use figiran_portal::config::ConfigError;
 use figiran_portal::session::Account;
 use figiran_portal::upload::Companies;
 use figiran_portal::{Portal, Status, UploadError, UploadJob, UploadPhase, UploadRole, UploadView, View};
@@ -44,11 +45,6 @@ pub fn role_of(view: &View) -> Option<UploadRole> {
         return None;
     }
     view.account.as_ref().and_then(|a| UploadRole::from_name(&a.role))
-}
-
-/// The profile menu offers the entry: an uploader role and a document to send.
-pub fn offered(view: &View, has_document: bool) -> bool {
-    has_document && role_of(view).is_some()
 }
 
 /// What stops Upload.
@@ -96,17 +92,34 @@ pub fn error_text(error: &UploadError) -> String {
     }
 }
 
-/// The profile menu's row. Returns true when it was pressed (the dialog is then open).
-pub fn menu_entry(app: &mut FigApp, ui: &mut Ui, portal: &Portal, view: &View) -> bool {
-    let has_document = app.session.doc().is_ok();
-    if !offered(view, has_document) {
-        return false;
+/// File ▸ Publish to server…, while a company portal is configured: the portal is the only way to
+/// publish, so no server address or key is ever asked for here. Signed in as an uploader, the upload
+/// dialog opens; signed in as anyone else, a message says why not; signed out, nothing is sent: the
+/// portal's login opens in the browser and a message says that logging in is required. Returns
+/// false when no portal is configured (the caller then keeps the plain server dialog).
+pub fn publish_from_menu(app: &mut FigApp) -> bool {
+    let portal = match app.ui.portal.get().clone() {
+        Err(ConfigError::NotSet) => return false,
+        Err(e) => {
+            app.show_error(e.to_string());
+            return true;
+        }
+        Ok(portal) => portal,
+    };
+    let view = portal.view();
+    if view.status == Status::SignedIn {
+        match role_of(&view) {
+            Some(_) if app.session.doc().is_ok() => open(app, &portal, &view),
+            Some(_) => app.toast(tr("Open a file to publish it.")),
+            None => app.toast(tr("Only a company admin can publish files to the portal. Ask an admin of your company to publish this file.")),
+        }
+        return true;
     }
-    if !crate::right::menu_item(ui, tr("Upload current file to portal…"), "") {
-        return false;
+    // A login already under way is left alone: a second one would replace its state and code.
+    if matches!(view.status, Status::SignedOut | Status::Failed(_)) {
+        crate::portal::start_login(app, &portal);
     }
-    open(app, portal, view);
-    ui.close();
+    app.toast(tr("Log in to the portal to publish a file. Finish logging in in your browser, then choose Publish to server again."));
     true
 }
 

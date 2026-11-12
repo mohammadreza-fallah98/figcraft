@@ -935,7 +935,7 @@ fn publish_form(app: &mut FigApp, ui: &mut Ui, w: f32, doc: &Document) {
             hint(
                 ui,
                 tr(
-                    "To share this library with your team, publish the file to a server (Share ▸ Publish to server…), then publish the library there.",
+                    "To share this library with your team, publish the file to the company portal (File ▸ Publish to server…), then publish the library there.",
                 ),
             );
         }

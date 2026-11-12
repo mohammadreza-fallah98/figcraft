@@ -59,6 +59,8 @@ popover then shows an **edit link** and a **view link** to copy (sharing with a 
 **comment link**, see below). Agents do the same with
 `collab.publish {server, name?}` ([`mcp.md`](mcp.md#live-sessions)).
 
+> **With a company portal** (`FIGIRAN_PORTAL_URL` set), File ▸ Publish to server… does not ask for an address or key: signed in as an Admin or CompanyAdmin it opens the portal upload dialog (name, and the company for an Admin); signed in as a Member it says only a company admin can publish; signed out it opens the portal login and uploads nothing. The address-and-key dialog above is what remains without a portal.
+
 Whoever has the server key can publish files and manage every file's links: give it only to
 people you trust.
 

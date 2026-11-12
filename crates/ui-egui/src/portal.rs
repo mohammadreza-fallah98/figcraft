@@ -41,7 +41,7 @@ pub struct PortalUi {
     /// Live sessions started by opening a portal project (profile menu or the web page's button):
     /// they end, with their document, when the portal login ends.
     opened: Vec<Opened>,
-    /// The «Upload current file to portal…» dialog (`portal_upload`).
+    /// The portal upload dialog (File ▸ Publish to server…) (`portal_upload`).
     pub(crate) upload: crate::portal_upload::UploadDialog,
 }
 
@@ -59,7 +59,7 @@ pub fn set_state_dir(app: &mut FigApp, dir: Option<PathBuf>) {
 
 impl PortalUi {
     #[cfg(not(target_arch = "wasm32"))]
-    fn get(&mut self) -> &Result<Portal, ConfigError> {
+    pub(crate) fn get(&mut self) -> &Result<Portal, ConfigError> {
         let (ctx, dir) = (self.ctx.clone(), self.state_dir.clone());
         self.portal.get_or_insert_with(|| {
             let wake = Box::new(move || {
@@ -73,7 +73,7 @@ impl PortalUi {
 
     /// The browser build has no way to get the code back: no portal there.
     #[cfg(target_arch = "wasm32")]
-    fn get(&mut self) -> &Result<Portal, ConfigError> {
+    pub(crate) fn get(&mut self) -> &Result<Portal, ConfigError> {
         self.portal.get_or_insert(Err(ConfigError::NotSet))
     }
 }
@@ -202,7 +202,6 @@ pub fn profile_top(app: &mut FigApp, ui: &mut Ui) {
         app.services.open_url(&portal_page_url(portal.base_url(), PORTAL_PROFILE_PATH));
         ui.close();
     }
-    crate::portal_upload::menu_entry(app, ui, &portal, &view);
     ui.separator();
 }
 
@@ -341,7 +340,7 @@ fn body(app: &mut FigApp, ui: &mut Ui, t: &Tokens, portal: &Portal, view: &View)
 }
 
 /// Open the portal's login page in the browser.
-fn start_login(app: &mut FigApp, portal: &Portal) {
+pub(crate) fn start_login(app: &mut FigApp, portal: &Portal) {
     match portal.begin_login() {
         Ok(url) => app.services.open_url(&url),
         Err(e) => app.show_error(e),
