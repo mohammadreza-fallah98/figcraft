@@ -1,0 +1,21 @@
+[package]
+name = "figiran-vectordrawable"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "FigIran Android Vector Drawable export (shapes, strokes, gradients, clips and vector masks as a <vector> XML drawable)"
+
+[lints]
+workspace = true
+
+[dependencies]
+figiran-geom = { workspace = true }
+figiran-color = { workspace = true }
+figiran-doc = { workspace = true }
+figiran-text = { workspace = true }
+figiran-render = { workspace = true }
+figiran-pathops = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+roxmltree = "0.21"

@@ -1,0 +1,186 @@
+[workspace]
+resolver = "3"
+members = ["crates/*", "apps/*", "xtask"]
+# The plugin SDK and examples build for wasm32 in a workspace of their own (`cargo xtask plugins`).
+exclude = ["plugins"]
+# default-members = ["crates/*", "apps/figiran", "apps/figiran-cli", "xtask"]
+
+[workspace.package]
+version = "0.18.1"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+rust-version = "1.95"
+repository = "https://github.com/storytold/figiran"
+
+[workspace.dependencies]
+# internal
+figiran-geom = { path = "crates/geom" }
+figiran-color = { path = "crates/color" }
+figiran-doc = { path = "crates/doc" }
+figiran-layout = { path = "crates/layout" }
+figiran-text = { path = "crates/text" }
+figiran-pathops = { path = "crates/pathops" }
+figiran-render = { path = "crates/render" }
+figiran-svg = { path = "crates/svg" }
+figiran-pdf = { path = "crates/pdf" }
+figiran-vectordrawable = { path = "crates/vectordrawable" }
+figiran-format = { path = "crates/format" }
+figiran-tools = { path = "crates/tools" }
+figiran-collab = { path = "crates/collab" }
+figiran-engine = { path = "crates/engine" }
+figiran-ui-egui = { path = "crates/ui-egui" }
+figiran-mcp = { path = "crates/mcp" }
+figiran-collab-net = { path = "crates/collab-net" }
+figiran-plugin = { path = "crates/plugin" }
+
+# Keep coupled craft-libs crates on one rev. craft-update has no sibling-crate
+# dependencies and is pinned separately for the suite updater rollout.
+# Which paths stored in a document may be followed (craft-libs).
+craft-docpath = { version = "0.1.0", git = "https://github.com/storytold/craft-libs", rev = "e11f9d9aebea5f6b8e74643c1ea1ed172ba5f545" }
+# Who draws the window frame on Linux — the compositor or the app — so every Craft app shows the
+# same native titlebar per desktop (craft-libs). FigIran only reads the probe result and maps it
+# to its own `TitleBar`, so it does not enable craft-window's optional `egui` helpers (which would
+# pull a second egui family version).
+craft-window = { git = "https://github.com/storytold/craft-libs", rev = "e11f9d9aebea5f6b8e74643c1ea1ed172ba5f545" }
+# craft-update: app-specific pretend versions apply to startup and manual checks.
+craft-update = { git = "https://github.com/storytold/craft-libs", version = "=0.1.0", rev = "6e03f65bf45181db77ba6229716e6624db9eb25b", features = ["egui"] }
+# The suite's font store: exact lookup of a missing font in the pinned Google Fonts and Noto
+# indexes, and checksum-verified installs into the one folder every Craft app reads (craft-libs).
+craft-font-store = { git = "https://github.com/storytold/craft-libs", rev = "e11f9d9aebea5f6b8e74643c1ea1ed172ba5f545" }
+craft-font-catalog = { git = "https://github.com/storytold/craft-libs", rev = "e11f9d9aebea5f6b8e74643c1ea1ed172ba5f545" }
+# Shared dropdown menus: a combo box whose menu grows back after shrinking (craft-libs).
+craft-ui = { git = "https://github.com/storytold/craft-libs", rev = "e11f9d9aebea5f6b8e74643c1ea1ed172ba5f545" }
+# The macOS app menu whose Quit (⌘Q) asks the app before quitting, like the window's close button
+# (craft-libs; the menu it replaces quits straight through `terminate:` and loses unsaved work).
+craft-menu = { git = "https://github.com/storytold/craft-libs", rev = "e11f9d9aebea5f6b8e74643c1ea1ed172ba5f545" }
+# Where the settings live: the suite's folder rules, portable mode included (craft-libs).
+craft-settings = { git = "https://github.com/storytold/craft-libs", rev = "e11f9d9aebea5f6b8e74643c1ea1ed172ba5f545" }
+
+# foundation
+kurbo = { version = "0.13", features = ["serde"] }
+thiserror = "2"
+# Command-line parsing for figiran-cli (craft-contrib RFC-0012: clap derive, as photocraft does).
+clap = { version = "4", features = ["derive"] }
+serde = { version = "1", features = ["derive", "rc"] }
+serde_json = { version = "1", features = ["float_roundtrip"] }
+regex = "1.13"
+log = "0.4"
+same-file = "1.0.6"
+# All date/time conversion goes through chrono (no hand-rolled calendar code beyond the 400-year range extension; AGENTS.md).
+chrono = { version = "0.4.45", default-features = false, features = ["std"] }
+proptest = "1"
+imbl = { version = "7", features = ["serde"] }
+postcard = { version = "1", default-features = false, features = ["alloc"] }
+
+# rendering / formats
+tiny-skia = "0.12"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "webp", "gif", "bmp", "tiff"] }
+# Already built for `image`: embedded ICC profiles (moxcms) and PNG colour chunks (png).
+moxcms = "0.8"
+png = "0.18"
+usvg = "0.48"
+krilla = "0.8"
+skrifa = "0.47"
+harfrust = "0.13"
+unicode-bidi = "0.3"
+unicode-segmentation = "1.13"
+# Line breaks between the words of Thai, Lao, Khmer and Burmese, which are written without spaces
+# (#1219): ICU4X's line segmenter with its compiled data (pure Rust, Unicode-3.0 like the icu_*
+# crates already in the lock, whose version it matches). figiran-text picks the dictionaries, or
+# in the browser the smaller LSTM models.
+icu_segmenter = { version = "2.3", default-features = false, features = ["compiled_data"] }
+# Code export: layer names transliterated into ASCII identifiers (pure Rust data tables, zero
+# dependencies, BSD-3-Clause, no_std so the web build keeps it too).
+deunicode = "1.6"
+linesweeper = "0.4"
+zip = { version = "2", default-features = false, features = ["deflate"] }
+# `.fig` import: raw deflate chunks (already built for zip) and zstd chunks (pure Rust, MIT, wasm-safe).
+flate2 = { version = "1", default-features = false, features = ["rust_backend"] }
+ruzstd = { version = "0.9.1", default-features = false, features = ["std"] }
+sha1 = "0.11"
+sha2 = "0.10"
+base64 = "0.22"
+crc32fast = "1"
+
+# plugins: a pure-Rust, metered WebAssembly interpreter (no JIT; also runs in the web build). The
+# portable dispatch loop: tail-call dispatch relies on an LLVM optimisation that unoptimised and
+# debug builds may not do, and then a long-running plugin overflows the native stack.
+wasmi = { version = "2", default-features = false, features = ["std", "stable", "validate", "portable-dispatch"] }
+wat = "1.261"
+
+# ui
+egui = "0.37"
+egui_extras = { version = "0.37", default-features = false }
+eframe = { version = "0.37", default-features = false }
+rfd = "0.17"
+arboard = { version = "3.6", default-features = false }
+webbrowser = "1"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+cognitive_complexity = "deny"
+too_many_arguments = "deny"
+wildcard_imports = "deny"
+dbg_macro = "warn"
+# Style lints from newer toolchains that fight index-heavy pixel code.
+needless_range_loop = "allow"
+chunks_exact_to_as_chunks = "allow"
+# FigIran never crashes: shipped code returns `Result`/`Option` instead of panicking (see
+# AGENTS.md › Never crash). Tests may unwrap (clippy.toml).
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+todo = "deny"
+unimplemented = "deny"
+unreachable = "deny"
+
+# Workspace crates keep file:line in panic backtraces; dependencies carry no debug info. Both make
+# the test build faster and the target dir smaller.
+[profile.dev]
+opt-level = 1
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+opt-level = 2
+debug = false
+
+[profile.release]
+lto = "thin"
+codegen-units = 4
+
+# The browser build only (apps/figiran-web/index.html: data-cargo-profile). Optimised for size:
+# packaging/web/package.sh fails a .wasm over 24 MiB (Cloudflare's per-file cap is 25 MiB).
+# wasm32-unknown-unknown always aborts on panic, so panic = "abort" changes nothing there.
+[profile.web-release]
+inherits = "release"
+# "z", not "s": 1.9 MB smaller (24.0 MiB -> 22.2 MiB after wasm-opt, 0.11.1), back under the gate.
+opt-level = "z"
+lto = "fat"
+codegen-units = 1
+debug = false
+strip = true
+panic = "abort"
+
+# Keep the complete egui family and native event bridge on reviewed fork commits.
+[patch.crates-io]
+ecolor = { git = "https://github.com/storytold/egui.git", rev = "6d518fc799681571963842f95b55a6b68431b15a" }
+emath = { git = "https://github.com/storytold/egui.git", rev = "6d518fc799681571963842f95b55a6b68431b15a" }
+epaint = { git = "https://github.com/storytold/egui.git", rev = "6d518fc799681571963842f95b55a6b68431b15a" }
+epaint_default_fonts = { git = "https://github.com/storytold/egui.git", rev = "6d518fc799681571963842f95b55a6b68431b15a" }
+egui = { git = "https://github.com/storytold/egui.git", rev = "6d518fc799681571963842f95b55a6b68431b15a" }
+egui-winit = { git = "https://github.com/storytold/egui.git", rev = "6d518fc799681571963842f95b55a6b68431b15a" }
+egui-wgpu = { git = "https://github.com/storytold/egui.git", rev = "6d518fc799681571963842f95b55a6b68431b15a" }
+egui_glow = { git = "https://github.com/storytold/egui.git", rev = "6d518fc799681571963842f95b55a6b68431b15a" }
+egui_extras = { git = "https://github.com/storytold/egui.git", rev = "6d518fc799681571963842f95b55a6b68431b15a" }
+egui_kittest = { git = "https://github.com/storytold/egui.git", rev = "6d518fc799681571963842f95b55a6b68431b15a" }
+egui_system_font_provider = { git = "https://github.com/storytold/egui.git", rev = "6d518fc799681571963842f95b55a6b68431b15a" }
+eframe = { git = "https://github.com/storytold/egui.git", rev = "6d518fc799681571963842f95b55a6b68431b15a" }
+egui_demo_lib = { git = "https://github.com/storytold/egui.git", rev = "6d518fc799681571963842f95b55a6b68431b15a" }
+egui_inspection = { git = "https://github.com/storytold/egui.git", rev = "6d518fc799681571963842f95b55a6b68431b15a" }
+winit = { git = "https://github.com/storytold/winit.git", rev = "a517b3846ee8457d84ee4975110bfda6797c44dc" }
+
+# craft-libs' vendored krilla 0.8.2: decoded PNGs are capped at 1 GiB and reserved fallibly, and a
+# panic while drawing unwinds without aborting.
+krilla = { git = "https://github.com/storytold/craft-libs", rev = "e11f9d9aebea5f6b8e74643c1ea1ed172ba5f545" }

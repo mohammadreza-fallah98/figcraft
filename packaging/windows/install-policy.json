@@ -1,0 +1,126 @@
+{
+  "id": "figiran",
+  "name": "FigIran",
+  "upgradeCode": "7F8B9827-D065-41B7-A514-2A454B21F484",
+  "sources": [
+    "figiran.wxs"
+  ],
+  "icon": "assets/app-icon/figiran.ico",
+  "localization": [
+    "figiran.en-us.wxl"
+  ],
+  "extensions": [
+    "UI",
+    "Util"
+  ],
+  "payloads": [
+    "NOTICE",
+    "figiran-cli.exe",
+    "figiran.exe"
+  ],
+  "registry": [
+    [
+      "-1",
+      "Software\\Classes\\Figiran.Image\\shell\\open\\command",
+      "",
+      "\"[#FigiranExe]\" \"%1\""
+    ],
+    [
+      "-1",
+      "Software\\Classes\\.svg\\OpenWithProgids",
+      "Figiran.Image",
+      ""
+    ],
+    [
+      "-1",
+      "Software\\Classes\\.png\\OpenWithProgids",
+      "Figiran.Image",
+      ""
+    ],
+    [
+      "-1",
+      "Software\\Classes\\.jpg\\OpenWithProgids",
+      "Figiran.Image",
+      ""
+    ],
+    [
+      "-1",
+      "Software\\Classes\\.jpeg\\OpenWithProgids",
+      "Figiran.Image",
+      ""
+    ],
+    [
+      "-1",
+      "Software\\Classes\\Figiran.Sketch\\shell\\open\\command",
+      "",
+      "\"[#FigiranExe]\" \"%1\""
+    ],
+    [
+      "-1",
+      "Software\\Classes\\.sketch\\OpenWithProgids",
+      "Figiran.Sketch",
+      ""
+    ],
+    [
+      "-1",
+      "Software\\Classes\\Applications\\figiran.exe",
+      "FriendlyAppName",
+      "FigIran"
+    ],
+    [
+      "-1",
+      "Software\\Classes\\Applications\\figiran.exe\\shell\\open\\command",
+      "",
+      "\"[#FigiranExe]\" \"%1\""
+    ],
+    [
+      "-1",
+      "Software\\Classes\\Applications\\figiran.exe\\SupportedTypes",
+      ".figiran",
+      ""
+    ],
+    [
+      "-1",
+      "Software\\Classes\\Applications\\figiran.exe\\SupportedTypes",
+      ".svg",
+      ""
+    ],
+    [
+      "-1",
+      "Software\\Classes\\Applications\\figiran.exe\\SupportedTypes",
+      ".png",
+      ""
+    ],
+    [
+      "-1",
+      "Software\\Classes\\Applications\\figiran.exe\\SupportedTypes",
+      ".jpg",
+      ""
+    ],
+    [
+      "-1",
+      "Software\\Classes\\Applications\\figiran.exe\\SupportedTypes",
+      ".jpeg",
+      ""
+    ],
+    [
+      "-1",
+      "Software\\Classes\\Applications\\figiran.exe\\SupportedTypes",
+      ".sketch",
+      ""
+    ],
+    [
+      "-1",
+      "Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\figiran.exe",
+      "",
+      "[#FigiranExe]"
+    ],
+    [
+      "-1",
+      "Software\\FigIran",
+      "InstallDir",
+      "[INSTALLFOLDER]"
+    ]
+  ],
+  "mode": "dualScope"
+}
