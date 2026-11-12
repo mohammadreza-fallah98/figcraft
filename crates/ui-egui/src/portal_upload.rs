@@ -81,7 +81,7 @@ pub fn problem_with(role: UploadRole, name: &str, company: Option<i64>) -> Optio
 /// The person's words for why an upload failed.
 pub fn error_text(error: &UploadError) -> String {
     match error {
-        UploadError::Unauthorized => tr("Your session ended. Log in again.").to_string(),
+        UploadError::Unauthorized => tr("The portal didn't accept this upload (401). You are still logged in; try again, and if it keeps happening, tell the portal's administrator.").to_string(),
         UploadError::Forbidden => tr("Your account isn't allowed to upload projects to this company.").to_string(),
         UploadError::Invalid(reason) => trf("The portal refused the file: {reason}", &[("reason", reason)]),
         UploadError::Conflict(reason) => trf("The portal reports a conflict: {reason}", &[("reason", reason)]),

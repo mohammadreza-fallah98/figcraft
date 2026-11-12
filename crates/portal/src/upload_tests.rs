@@ -325,13 +325,17 @@ fn a_refused_token_is_renewed_once_and_the_upload_sent_again_from_the_start() {
 }
 
 #[test]
-fn a_session_the_portal_ends_fails_the_upload_as_unauthorized() {
+fn a_401_that_survives_a_fresh_token_fails_the_upload_but_keeps_the_login() {
     let dir = temp_dir("auth");
     let (portal, fake) = signed_in();
     fake.answers.lock().unwrap().push_back(Ok((401, "no".into())));
     fake.answers.lock().unwrap().push_back(Ok((401, "no".into())));
     portal.start_upload(job(&dir, None));
     assert_eq!(portal.upload_view().phase, UploadPhase::Failed(UploadError::Unauthorized));
+    let v = portal.view();
+    assert_eq!(v.status, Status::SignedIn, "a refused upload must not sign the person out");
+    assert_eq!(v.account.map(|a| a.username), Some("ada".to_string()));
+    assert_eq!(*fake.refreshes.lock().unwrap(), 1, "the token was renewed once");
     assert_eq!(files_in(&dir), 0);
     std::fs::remove_dir_all(&dir).unwrap();
 }

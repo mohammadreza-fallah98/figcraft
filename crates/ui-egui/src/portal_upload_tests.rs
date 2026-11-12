@@ -124,7 +124,7 @@ fn the_form_needs_a_name_and_an_admin_needs_a_company() {
 
 #[test]
 fn every_failure_has_words_with_the_reason_in_them() {
-    assert!(error_text(&UploadError::Unauthorized).contains("Log in again"));
+    assert!(error_text(&UploadError::Unauthorized).contains("still logged in"));
     assert!(error_text(&UploadError::Forbidden).contains("isn't allowed"));
     assert!(error_text(&UploadError::Invalid("bad zip".into())).contains("bad zip"));
     assert!(error_text(&UploadError::Conflict("exists".into())).contains("exists"));

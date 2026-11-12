@@ -578,13 +578,22 @@ impl Portal {
         })
     }
 
-    /// `call` with an access token; a token the portal refuses is renewed once, and a session the
-    /// portal no longer knows ends here.
+    /// `call` with an access token; a token the portal refuses is renewed once. The session ends here
+    /// only when the renewal itself is refused (no login, or the refresh token is no longer good). A
+    /// `401` that survives a freshly issued token is about that one request (a front end that doesn't
+    /// take the bearer token for it, say), not about the login: it is returned and the person stays
+    /// signed in.
     pub(crate) fn with_token<T>(&self, call: impl Fn(&dyn Api, &str) -> Result<T, PortalError>) -> Result<T, PortalError> {
-        let result = self.access_token(false).and_then(|t| match call(&*self.0.api, &t) {
-            Err(PortalError::Unauthorized(_)) => self.access_token(true).and_then(|t| call(&*self.0.api, &t)),
-            other => other,
-        });
+        let result = match self.access_token(false) {
+            Err(e) => Err(e),
+            Ok(t) => match call(&*self.0.api, &t) {
+                Err(PortalError::Unauthorized(_)) => match self.access_token(true) {
+                    Ok(fresh) => return call(&*self.0.api, &fresh),
+                    Err(e) => Err(e),
+                },
+                other => other,
+            },
+        };
         if let Err(PortalError::Unauthorized(_)) = &result {
             self.forget();
             self.set(|s| s.status = Status::Failed("Your session ended. Log in again.".into()));
