@@ -2027,7 +2027,7 @@ dependencies = [
 
 [[package]]
 name = "figiran-portal"
-version = "0.18.1"
+version = "0.19.0"
 dependencies = [
  "base64 0.22.1",
  "getrandom 0.4.3",
