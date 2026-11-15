@@ -1140,7 +1140,7 @@ dependencies = [
 [[package]]
 name = "craft-update"
 version = "0.1.0"
-source = "git+https://github.com/storytold/craft-libs?rev=6e03f65bf45181db77ba6229716e6624db9eb25b#6e03f65bf45181db77ba6229716e6624db9eb25b"
+source = "git+https://github.com/storytold/craft-libs?rev=e98299546f5c5c3c22388d16507f8b5e61a5f280#e98299546f5c5c3c22388d16507f8b5e61a5f280"
 dependencies = [
  "chrono",
  "dunce",
@@ -1791,7 +1791,7 @@ checksum = "b97b65636e5b9ef369943878ac74335ba1c55c1cb6adbf1e2c293c624248d693"
 
 [[package]]
 name = "figiran"
-version = "0.18.1"
+version = "0.19.0"
 dependencies = [
  "arboard",
  "craft-menu",
@@ -1818,12 +1818,13 @@ dependencies = [
  "windows",
  "winit",
  "winresource",
+ "winsafe",
  "zbus",
 ]
 
 [[package]]
 name = "figiran-cli"
-version = "0.18.1"
+version = "0.19.0"
 dependencies = [
  "clap",
  "clap_complete",
@@ -1841,7 +1842,7 @@ dependencies = [
 
 [[package]]
 name = "figiran-collab"
-version = "0.18.1"
+version = "0.19.0"
 dependencies = [
  "base64 0.22.1",
  "chrono",
@@ -1859,7 +1860,7 @@ dependencies = [
 
 [[package]]
 name = "figiran-collab-net"
-version = "0.18.1"
+version = "0.19.0"
 dependencies = [
  "base64 0.22.1",
  "figiran-collab",
@@ -1882,7 +1883,7 @@ dependencies = [
 
 [[package]]
 name = "figiran-color"
-version = "0.18.1"
+version = "0.19.0"
 dependencies = [
  "kurbo",
  "serde",
@@ -1891,7 +1892,7 @@ dependencies = [
 
 [[package]]
 name = "figiran-doc"
-version = "0.18.1"
+version = "0.19.0"
 dependencies = [
  "figiran-color",
  "figiran-geom",
@@ -1904,7 +1905,7 @@ dependencies = [
 
 [[package]]
 name = "figiran-engine"
-version = "0.18.1"
+version = "0.19.0"
 dependencies = [
  "base64 0.22.1",
  "craft-docpath",
@@ -1938,7 +1939,7 @@ dependencies = [
 
 [[package]]
 name = "figiran-format"
-version = "0.18.1"
+version = "0.19.0"
 dependencies = [
  "figiran-doc",
  "figiran-layout",
@@ -1955,7 +1956,7 @@ dependencies = [
 
 [[package]]
 name = "figiran-geom"
-version = "0.18.1"
+version = "0.19.0"
 dependencies = [
  "kurbo",
  "serde",
@@ -1963,7 +1964,7 @@ dependencies = [
 
 [[package]]
 name = "figiran-layout"
-version = "0.18.1"
+version = "0.19.0"
 dependencies = [
  "figiran-doc",
  "figiran-geom",
@@ -1971,7 +1972,7 @@ dependencies = [
 
 [[package]]
 name = "figiran-mcp"
-version = "0.18.1"
+version = "0.19.0"
 dependencies = [
  "base64 0.22.1",
  "figiran-collab-net",
@@ -1987,7 +1988,7 @@ dependencies = [
 
 [[package]]
 name = "figiran-pathops"
-version = "0.18.1"
+version = "0.19.0"
 dependencies = [
  "figiran-doc",
  "figiran-geom",
@@ -1996,7 +1997,7 @@ dependencies = [
 
 [[package]]
 name = "figiran-pdf"
-version = "0.18.1"
+version = "0.19.0"
 dependencies = [
  "figiran-color",
  "figiran-doc",
@@ -2013,7 +2014,7 @@ dependencies = [
 
 [[package]]
 name = "figiran-plugin"
-version = "0.18.1"
+version = "0.19.0"
 dependencies = [
  "figiran-color",
  "serde",
@@ -2039,7 +2040,7 @@ dependencies = [
 
 [[package]]
 name = "figiran-render"
-version = "0.18.1"
+version = "0.19.0"
 dependencies = [
  "crc32fast",
  "figiran-color",
@@ -2058,7 +2059,7 @@ dependencies = [
 
 [[package]]
 name = "figiran-server"
-version = "0.18.1"
+version = "0.19.0"
 dependencies = [
  "chrono",
  "crc32fast",
@@ -2083,7 +2084,7 @@ dependencies = [
 
 [[package]]
 name = "figiran-svg"
-version = "0.18.1"
+version = "0.19.0"
 dependencies = [
  "base64 0.22.1",
  "figiran-color",
@@ -2099,7 +2100,7 @@ dependencies = [
 
 [[package]]
 name = "figiran-text"
-version = "0.18.1"
+version = "0.19.0"
 dependencies = [
  "core-text",
  "craft-font-catalog",
@@ -2117,7 +2118,7 @@ dependencies = [
 
 [[package]]
 name = "figiran-ui-egui"
-version = "0.18.1"
+version = "0.19.0"
 dependencies = [
  "base64 0.22.1",
  "chrono",
@@ -2146,7 +2147,7 @@ dependencies = [
 
 [[package]]
 name = "figiran-vectordrawable"
-version = "0.18.1"
+version = "0.19.0"
 dependencies = [
  "figiran-color",
  "figiran-doc",
@@ -2160,7 +2161,7 @@ dependencies = [
 
 [[package]]
 name = "figiran-web"
-version = "0.18.1"
+version = "0.19.0"
 dependencies = [
  "base64 0.22.1",
  "craft-web-api",
@@ -6884,7 +6885,7 @@ checksum = "9440ea3e5aeabb0ac63af70daf835274065238cdd0cec83418f417eae38bacee"
 
 [[package]]
 name = "xtask"
-version = "0.18.1"
+version = "0.19.0"
 dependencies = [
  "figiran-engine",
  "serde_json",
