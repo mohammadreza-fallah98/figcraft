@@ -20,6 +20,14 @@ getrandom = "0.4"
 # Cargo.lock through craft-update.
 ureq = { workspace = true }
 
+# The browser build talks to the portal with fetch (and an XMLHttpRequest for uploads) and hears its login page through
+# `postMessage`: see `web.rs`. Same versions the web app uses.
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2"
+js-sys = "0.3"
+wasm-bindgen-futures = "0.4"
+web-sys = { version = "0.3", features = ["Window", "Crypto", "Request", "RequestInit", "RequestMode", "RequestCredentials", "Response", "Headers", "AbortSignal", "MessageEvent", "EventTarget", "Event", "ProgressEvent", "XmlHttpRequest", "XmlHttpRequestEventTarget", "XmlHttpRequestUpload"] }
+
 # The OS credential store holds the refresh token: Windows Credential Manager and the macOS Keychain.
 [target.'cfg(any(windows, target_os = "macos"))'.dependencies]
 keyring = { workspace = true }

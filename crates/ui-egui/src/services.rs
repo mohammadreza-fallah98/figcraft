@@ -51,6 +51,11 @@ pub trait Services {
         None
     }
     fn open_url(&mut self, _url: &str) {}
+    /// Open the company portal's login page. The browser build keeps a handle to the tab (no `noopener`): the portal's page
+    /// posts the one-time code back to it. Elsewhere it is [`open_url`](Self::open_url).
+    fn open_portal_login(&mut self, url: &str) {
+        self.open_url(url);
+    }
     /// Open `url` in place of the app where the platform has a place for it (a browser's own tab:
     /// the prototype is left); elsewhere as [`open_url`](Self::open_url) does.
     fn open_url_here(&mut self, url: &str) {

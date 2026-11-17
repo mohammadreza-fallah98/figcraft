@@ -250,5 +250,5 @@ fn begin(app: &mut FigApp, portal: &Portal, role: UploadRole) {
         return;
     };
     let company_id = (role == UploadRole::Admin).then_some(company).flatten();
-    portal.start_upload(UploadJob { encoded: encoded.to_string(), name, company_id, temp_dir: std::env::temp_dir() });
+    portal.start_upload(UploadJob::new(encoded.to_string(), name, company_id));
 }

@@ -165,6 +165,11 @@ impl Progress {
     fn add(&self, bytes: u64) {
         self.sent.fetch_add(bytes, Ordering::Relaxed);
     }
+    /// How much has gone out, as a request that counts it itself reports it (the browser build).
+    #[cfg(target_arch = "wasm32")]
+    pub(crate) fn set_sent(&self, bytes: u64) {
+        self.sent.store(bytes, Ordering::Relaxed);
+    }
     pub(crate) fn restart(&self, total: u64) {
         self.sent.store(0, Ordering::Relaxed);
         self.total.store(total, Ordering::Relaxed);
@@ -348,10 +353,10 @@ impl UploadView {
 /// The upload state a [`Portal`] keeps.
 #[derive(Default)]
 pub struct UploadShared {
-    phase: UploadPhase,
-    companies: Companies,
-    cancel: Option<Arc<AtomicBool>>,
-    progress: Progress,
+    pub(crate) phase: UploadPhase,
+    pub(crate) companies: Companies,
+    pub(crate) cancel: Option<Arc<AtomicBool>>,
+    pub(crate) progress: Progress,
 }
 
 /// What to upload.
@@ -365,8 +370,20 @@ pub struct UploadJob {
     pub temp_dir: PathBuf,
 }
 
+impl UploadJob {
+    /// A job whose temporary file goes to the system's temporary folder. The browser build writes no file (it sends the
+    /// decoded document from memory) and has no folder: asking `std::env::temp_dir()` there panics.
+    pub fn new(encoded: String, name: String, company_id: Option<i64>) -> Self {
+        #[cfg(not(target_arch = "wasm32"))]
+        let temp_dir = std::env::temp_dir();
+        #[cfg(target_arch = "wasm32")]
+        let temp_dir = PathBuf::new();
+        Self { encoded, name, company_id, temp_dir }
+    }
+}
+
 /// The largest base64 text that can hold [`MAX_UPLOAD_BYTES`].
-fn max_encoded_len() -> u64 {
+pub(crate) fn max_encoded_len() -> u64 {
     MAX_UPLOAD_BYTES.div_ceil(3) * 4
 }
 

@@ -27,10 +27,12 @@ pub fn new_verifier() -> Result<String, String> {
     Ok(verifier_from(&bytes))
 }
 
-/// Signing in needs the desktop app (the browser build has no way to get the code back).
+/// A fresh verifier from the browser's secure random numbers.
 #[cfg(target_arch = "wasm32")]
 pub fn new_verifier() -> Result<String, String> {
-    Err("signing in to a portal needs the desktop app".into())
+    let mut bytes = [0u8; VERIFIER_BYTES];
+    crate::web::fill_random(&mut bytes)?;
+    Ok(verifier_from(&bytes))
 }
 
 /// `verifier` is something the portal accepts: 43 to 128 characters of `A-Za-z0-9_-`.

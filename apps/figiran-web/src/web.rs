@@ -296,6 +296,15 @@ impl Services for WebServices {
             log::error!("couldn't open {url}: {e:?}");
         }
     }
+    /// The portal's login page opens in a tab this page keeps a handle to (no `noopener`): once the person confirms there, the
+    /// page posts the one-time code back to `window.opener`, addressed to this page's origin. It is the company's own portal,
+    /// named by the build, and only its login page is opened this way.
+    fn open_portal_login(&mut self, url: &str) {
+        let Some(window) = web_sys::window() else { return };
+        if let Err(e) = window.open_with_url_and_target(url, "_blank") {
+            log::error!("couldn't open {url}: {e:?}");
+        }
+    }
     /// The page itself goes to `url` (an Open link action that doesn't open a new tab). Only web
     /// and mail links reach here ([`figiran_engine::doc_urls::openable`]).
     fn open_url_here(&mut self, url: &str) {

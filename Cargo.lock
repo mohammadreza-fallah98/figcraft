@@ -2031,11 +2031,15 @@ version = "0.19.0"
 dependencies = [
  "base64 0.22.1",
  "getrandom 0.4.3",
+ "js-sys",
  "keyring",
  "serde",
  "serde_json",
  "sha2",
  "ureq",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
 ]
 
 [[package]]

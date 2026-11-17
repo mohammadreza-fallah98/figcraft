@@ -24,10 +24,18 @@ pub mod pkce;
 pub mod secret;
 pub mod session;
 pub mod upload;
+pub mod webflow;
+#[cfg(target_arch = "wasm32")]
+pub mod web;
 
 pub use api::{Access, Login, OpenedProject, PortalError, ProjectEntry};
 pub use deeplink::{AuthLink, LinkError, is_auth_link, parse_auth_link};
-pub use session::{Portal, Status, View};
+pub use session::{Status, View};
+/// The desktop app's portal (threads, credential store, loopback); the browser build has its own, with the same methods.
+#[cfg(not(target_arch = "wasm32"))]
+pub use session::Portal;
+#[cfg(target_arch = "wasm32")]
+pub use web::Portal;
 pub use upload::{Company, UploadError, UploadJob, UploadPhase, UploadRole, UploadView};
 
 #[cfg(test)]

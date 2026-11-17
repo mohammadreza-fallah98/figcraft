@@ -1,7 +1,7 @@
-//! Log in to a company portal from the right panel's top bar, next to Share (desktop app, and only
-//! when a portal address is configured: `FIGIRAN_PORTAL_URL`, see `figiran-portal`). The button
-//! opens a popover: Log in (the portal's page opens in the browser and `figiran://auth` brings the
-//! one-time code back), then the person's projects, each opened with the join link the portal
+//! Log in to a company portal from the right panel's top bar, next to Share (only when a portal
+//! address is configured: `FIGIRAN_PORTAL_URL`, see `figiran-portal`). The button opens a popover:
+//! Log in (the portal's page opens in the browser and `figiran://auth` brings the one-time code back
+//! to the desktop app; in the browser build the page posts it back to the tab that opened it), then the person's projects, each opened with the join link the portal
 //! gives. The name from the login goes into Preferences ▸ Your name. All the work is
 //! `figiran_portal::Portal`'s, on background threads; this file only draws it and applies its
 //! results (a name to keep, a project to join) once a frame.
@@ -58,7 +58,6 @@ pub fn set_state_dir(app: &mut FigApp, dir: Option<PathBuf>) {
 }
 
 impl PortalUi {
-    #[cfg(not(target_arch = "wasm32"))]
     pub(crate) fn get(&mut self) -> &Result<Portal, ConfigError> {
         let (ctx, dir) = (self.ctx.clone(), self.state_dir.clone());
         self.portal.get_or_insert_with(|| {
@@ -71,11 +70,6 @@ impl PortalUi {
         })
     }
 
-    /// The browser build has no way to get the code back: no portal there.
-    #[cfg(target_arch = "wasm32")]
-    pub(crate) fn get(&mut self) -> &Result<Portal, ConfigError> {
-        self.portal.get_or_insert(Err(ConfigError::NotSet))
-    }
 }
 
 #[cfg(test)]
@@ -342,7 +336,7 @@ fn body(app: &mut FigApp, ui: &mut Ui, t: &Tokens, portal: &Portal, view: &View)
 /// Open the portal's login page in the browser.
 pub(crate) fn start_login(app: &mut FigApp, portal: &Portal) {
     match portal.begin_login() {
-        Ok(url) => app.services.open_url(&url),
+        Ok(url) => app.services.open_portal_login(&url),
         Err(e) => app.show_error(e),
     }
 }

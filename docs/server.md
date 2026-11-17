@@ -61,6 +61,8 @@ popover then shows an **edit link** and a **view link** to copy (sharing with a 
 
 > **With a company portal** (`FIGIRAN_PORTAL_URL` set), File ▸ Publish to server… does not ask for an address or key: signed in as an Admin or CompanyAdmin it opens the portal upload dialog (name, and the company for an Admin); signed in as a Member it says only a company admin can publish; signed out it opens the portal login and uploads nothing. The address-and-key dialog above is what remains without a portal.
 
+> **The web build signs in too** when it is built with `FIGIRAN_PORTAL_URL` (`build-web.bat <portal address>`): Log in opens the portal's login page in a tab the page keeps a handle to, and the portal posts the one-time code back to the page (`postMessage`, to the page's own origin only; the portal must be told that origin, `FIGIRAN_WEB_URL`, to answer the page's calls). The session is kept in the page's memory only (no cookie or storage); projects, opening a project and Publish to server work as in the desktop app.
+
 Whoever has the server key can publish files and manage every file's links: give it only to
 people you trust.
 
