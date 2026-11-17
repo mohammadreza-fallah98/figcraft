@@ -5,13 +5,14 @@
 //!   futures on the page's single thread; nothing blocks a frame;
 //! * the login page opens in a tab this page keeps a handle to, and its one-time code comes back as a
 //!   `message` from the portal's origin ([`crate::webflow`] decides what counts as the answer);
-//! * the session lives in memory only: the access token and the rotating refresh token are never written
-//!   to `localStorage` or cookies, so a page that is closed or reloaded asks for the login again (the
-//!   portal's own session makes that one click). Requests send no cookies (`credentials: "omit"`): the
-//!   portal accepts this page's origin for the app endpoints only, with the bearer token.
+//! * the page holds only the short-lived access token, in memory. The refresh token never reaches script:
+//!   the portal keeps it in an `HttpOnly` cookie (`app/web/token`, `app/web/refresh`, `app/web/logout`), so a
+//!   page that is reloaded signs itself in again from that cookie ([`Portal::restore`]). Only those three calls
+//!   send the cookie (`credentials: "include"`); every other call sends none and carries the bearer token. The
+//!   portal accepts this page's origin for the app endpoints only.
 //!
-//! The calls are the app's own (`app/token`, `users/refresh-token`, `app/projects`, `app/logout`,
-//! `projects/upload`), parsed by the same functions as the desktop client's.
+//! The other calls are the app's own (`app/projects`, `projects/upload`, `companies`), parsed by the same
+//! functions as the desktop client's.
 
 use std::collections::VecDeque;
 use std::future::Future;
@@ -79,7 +80,6 @@ struct Tokens {
     access: String,
     /// `Date.now()` when the access token ends.
     access_until_ms: f64,
-    refresh: String,
 }
 
 struct Pending {
@@ -98,8 +98,10 @@ struct State {
     opened: Option<OpenedProject>,
     name: Option<String>,
     notice: Option<String>,
-    /// A refresh token is being traded: a second trade would present a spent token and the portal would end the session.
+    /// A refresh is under way: a second one would present a spent token and the portal would end the session.
     refreshing: bool,
+    /// The page tried to continue the session from the cookie (once per page load).
+    restored: bool,
 }
 
 struct Inner {
@@ -135,6 +137,7 @@ impl Portal {
             name: None,
             notice: None,
             refreshing: false,
+            restored: false,
         };
         Ok(Portal(Arc::new(Inner { base, wake, state: Mutex::new(state), uploads: Mutex::new(UploadShared::default()), answers })))
     }
@@ -147,7 +150,7 @@ impl Portal {
     pub fn view(&self) -> View {
         let s = lock(&self.0.state);
         let busy = matches!(s.status, Status::SigningIn) || s.projects == Projects::Loading || s.opening.is_some();
-        View { status: s.status.clone(), account: s.account.clone(), projects: s.projects.clone(), opening: s.opening, notice: s.notice.clone(), remembered: false, busy }
+        View { status: s.status.clone(), account: s.account.clone(), projects: s.projects.clone(), opening: s.opening, notice: s.notice.clone(), remembered: true, busy }
     }
 
     fn set(&self, f: impl FnOnce(&mut State)) {
@@ -160,8 +163,33 @@ impl Portal {
         (self.0.wake)();
     }
 
-    /// Nothing is remembered between page loads.
-    pub fn restore(&self) {}
+    /// Sign in again from the portal's cookie (once per page load): a person who logged in before and reloads the page, or comes
+    /// back to it, is signed in without a click. No cookie, or one the portal refuses, leaves the page signed out and says nothing.
+    pub fn restore(&self) {
+        let first = {
+            let mut s = lock(&self.0.state);
+            // A login the person has started is not overtaken by the cookie.
+            !std::mem::replace(&mut s.restored, true) && s.status == Status::SignedOut
+        };
+        if !first {
+            return;
+        }
+        self.set(|s| s.status = Status::SigningIn);
+        let me = self.clone();
+        spawn_local(async move {
+            match me.refresh_session().await {
+                Ok(login) => {
+                    me.install(login, false);
+                    me.load_projects().await;
+                }
+                Err(_) => me.set(|s| {
+                    if s.status == Status::SigningIn {
+                        s.status = Status::SignedOut;
+                    }
+                }),
+            }
+        });
+    }
 
     /// `figiran://auth` links are the desktop app's: the page gets its answer as a message.
     pub fn handle_auth_link(&self, _link: &str) -> bool {
@@ -222,7 +250,7 @@ impl Portal {
 
     async fn exchange(&self, code: &str, verifier: &str) {
         let body = serde_json::json!({"code": code, "verifier": verifier}).to_string();
-        let result = match self.request("POST", "api/v1/app/token", None, Some(body)).await {
+        let result = match self.request("POST", "api/v1/app/web/token", None, Some(body), true).await {
             Ok((status, text)) => api::parse_login(status, &text),
             Err(e) => Err(e),
         };
@@ -240,7 +268,7 @@ impl Portal {
         let account = Account { display_name: login.display_name(), username: login.username.clone(), company: login.company_name.clone(), role: login.role_name.clone() };
         let until = now_ms() + login.expire_time as f64 * 1000.0;
         self.set(|s| {
-            s.tokens = Some(Tokens { access: login.token, access_until_ms: until, refresh: login.refresh_token });
+            s.tokens = Some(Tokens { access: login.token, access_until_ms: until });
             if apply_name && !account.display_name.is_empty() {
                 s.name = Some(account.display_name.clone());
             }
@@ -251,15 +279,13 @@ impl Portal {
     }
 
     pub fn logout(&self) {
-        let held = lock(&self.0.state).tokens.as_ref().map(|t| (t.access.clone(), t.refresh.clone()));
-        if let Some((access, refresh)) = held.filter(|(_, refresh)| !refresh.is_empty()) {
-            let me = self.clone();
-            spawn_local(async move {
-                let body = serde_json::json!({"refreshToken": refresh}).to_string();
-                // Best effort: a portal that can't be reached has nothing more to end.
-                let _ = me.request("POST", "api/v1/app/logout", Some(&access), Some(body)).await;
-            });
-        }
+        let held = lock(&self.0.state).tokens.as_ref().map(|t| t.access.clone());
+        let me = self.clone();
+        // The portal ends the session with the cookie's token and clears the cookie. Best effort: a portal that can't be reached
+        // has nothing more to end (the cookie then runs out on its own).
+        spawn_local(async move {
+            let _ = me.request("POST", "api/v1/app/web/logout", held.as_deref(), None, true).await;
+        });
         self.forget();
     }
 
@@ -278,8 +304,9 @@ impl Portal {
         });
     }
 
-    /// One call: `(status, body)`. No cookies are sent; `bearer` is the access token.
-    async fn request(&self, method: &str, path: &str, bearer: Option<&str>, json: Option<String>) -> Result<(u16, String), PortalError> {
+    /// One call: `(status, body)`. `bearer` is the access token; `credentials` sends the portal's web session cookie (only the
+    /// `app/web/*` calls do).
+    async fn request(&self, method: &str, path: &str, bearer: Option<&str>, json: Option<String>, credentials: bool) -> Result<(u16, String), PortalError> {
         let url = format!("{}/{path}", self.0.base);
         let window = web_sys::window().ok_or_else(|| network("no window"))?;
         let headers = Headers::new().map_err(|_| network("headers"))?;
@@ -295,7 +322,7 @@ impl Portal {
         let init = RequestInit::new();
         init.set_method(method);
         init.set_mode(RequestMode::Cors);
-        init.set_credentials(RequestCredentials::Omit);
+        init.set_credentials(if credentials { RequestCredentials::Include } else { RequestCredentials::Omit });
         init.set_headers(&headers);
         init.set_signal(Some(&AbortSignal::timeout_with_u32(TIMEOUT_MS)));
         if let Some(body) = body.as_deref() {
@@ -329,23 +356,23 @@ impl Portal {
     }
 
     async fn access_token_held(&self, force: bool) -> Result<String, PortalError> {
-        let (access, refresh) = {
+        {
             let s = lock(&self.0.state);
             let Some(t) = s.tokens.as_ref() else { return Err(PortalError::Unauthorized("You are not logged in.".into())) };
             if !force && !webflow::needs_renewal(now_ms(), t.access_until_ms) {
                 return Ok(t.access.clone());
             }
-            (t.access.clone(), t.refresh.clone())
-        };
-        if refresh.is_empty() {
-            return if force { Err(PortalError::Unauthorized("The session ended; log in again.".into())) } else { Ok(access) };
         }
-        let body = serde_json::json!({"refreshToken": refresh}).to_string();
-        let (status, text) = self.request("POST", "api/v1/users/refresh-token", None, Some(body)).await?;
-        let login = api::parse_login(status, &text)?;
+        let login = self.refresh_session().await?;
         let token = login.token.clone();
         self.install(login, false);
         Ok(token)
+    }
+
+    /// A new session from the portal's cookie (`app/web/refresh`): the portal trades the refresh token it keeps and rotates the cookie.
+    async fn refresh_session(&self) -> Result<Login, PortalError> {
+        let (status, text) = self.request("POST", "api/v1/app/web/refresh", None, None, true).await?;
+        api::parse_login(status, &text)
     }
 
     /// `call` with an access token; a token the portal refuses is renewed once. The session ends here only when the renewal itself
@@ -382,7 +409,7 @@ impl Portal {
         self.set(|s| s.projects = Projects::Loading);
         let result = self
             .with_token(|token| async move {
-                let (status, text) = self.request("GET", "api/v1/app/projects", Some(&token), None).await?;
+                let (status, text) = self.request("GET", "api/v1/app/projects", Some(&token), None, false).await?;
                 api::parse_projects(status, &text)
             })
             .await;
@@ -408,7 +435,7 @@ impl Portal {
                 .with_token(|token| {
                     let me = me.clone();
                     async move {
-                        let (status, text) = me.request("POST", &format!("api/v1/app/projects/{id}/open"), Some(&token), None).await?;
+                        let (status, text) = me.request("POST", &format!("api/v1/app/projects/{id}/open"), Some(&token), None, false).await?;
                         api::parse_opened(id, status, &text)
                     }
                 })
@@ -456,7 +483,7 @@ impl Portal {
                 .with_token(|token| {
                     let me = me.clone();
                     async move {
-                        let (status, text) = me.request("GET", upload::COMPANIES_PATH, Some(&token), None).await?;
+                        let (status, text) = me.request("GET", upload::COMPANIES_PATH, Some(&token), None, false).await?;
                         upload::parse_companies(status, &text)
                     }
                 })
