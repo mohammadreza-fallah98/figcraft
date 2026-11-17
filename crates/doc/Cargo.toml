@@ -1,0 +1,18 @@
+[package]
+name = "figiran-doc"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "FigIran document model: pages, the node tree, properties, components, styles, variables, prototype data"
+
+[lints]
+workspace = true
+
+[dependencies]
+figiran-geom = { workspace = true }
+figiran-color = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+imbl = { workspace = true }
+unicode-segmentation = { workspace = true }

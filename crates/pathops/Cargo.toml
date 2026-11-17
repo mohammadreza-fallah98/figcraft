@@ -1,0 +1,15 @@
+[package]
+name = "figiran-pathops"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "FigIran path operations: booleans (union, subtract, intersect, exclude), outline stroke with inside/center/outside alignment, arrowheads"
+
+[lints]
+workspace = true
+
+[dependencies]
+figiran-geom = { workspace = true }
+figiran-doc = { workspace = true }
+linesweeper = { workspace = true }

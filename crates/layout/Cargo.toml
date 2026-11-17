@@ -1,0 +1,13 @@
+[package]
+name = "figiran-layout"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "FigIran layout: auto layout (horizontal, vertical, wrap, grid; hug/fill/fixed), constraints, layout grid geometry"
+
+[lints]
+workspace = true
+
+[dependencies]
+figiran-geom = { workspace = true }
+figiran-doc = { workspace = true }

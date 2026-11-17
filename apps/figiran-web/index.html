@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>FigIran</title>
+  <link data-trunk rel="rust" data-bin="figiran-web" data-cargo-profile="web-release" data-wasm-opt="z" data-wasm-opt-params="--enable-bulk-memory --enable-bulk-memory-opt --enable-nontrapping-float-to-int --enable-sign-ext --enable-reference-types --enable-multivalue --enable-simd" data-weak-refs />
+  <style>
+    html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; overscroll-behavior: none; background: #f5f5f5; }
+    #figiran_canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+    #figiran_loading { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      color: #6b6b6b; font: 14px system-ui, sans-serif; pointer-events: none; }
+    /* Shown once the page stopped on an internal error (web.rs: show_stopped). */
+    #figiran_stopped { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; box-sizing: border-box;
+      padding: 16px; text-align: center; color: #1e1e1e; background: rgba(245, 245, 245, 0.92); font: 14px/1.5 system-ui, sans-serif; }
+    @media (prefers-color-scheme: dark) {
+      html, body { background: #2c2c2c; }
+      #figiran_loading { color: #b8b8b8; }
+      #figiran_stopped { color: #f0f0f0; background: rgba(44, 44, 44, 0.92); }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="figiran_canvas"></canvas>
+  <div id="figiran_loading">Loading FigIran&hellip;</div>
+</body>
+</html>

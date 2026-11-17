@@ -1,0 +1,23 @@
+[package]
+name = "figiran-mcp"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "FigIran MCP server: JSON-RPC 2.0 over stdio, driving a headless engine session or a running FigIran app"
+
+[lints]
+workspace = true
+
+[dependencies]
+figiran-engine = { workspace = true }
+figiran-collab-net = { workspace = true }
+figiran-doc = { workspace = true }
+figiran-geom = { workspace = true }
+figiran-render = { workspace = true }
+serde_json = { workspace = true }
+base64 = { workspace = true }
+log = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
+image = { workspace = true }

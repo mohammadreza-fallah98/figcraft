@@ -1,0 +1,16 @@
+[package]
+name = "figiran-color"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "FigIran colour and paint: RGBA colours, HSB/HSL/LCH/OKLCH, hex/CSS parsing, solid/gradient/image paints, blend modes"
+
+[lints]
+workspace = true
+
+[dependencies]
+serde = { workspace = true }
+kurbo = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }

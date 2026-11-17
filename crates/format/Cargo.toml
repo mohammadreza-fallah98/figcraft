@@ -1,0 +1,22 @@
+[package]
+name = "figiran-format"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "FigIran native file format (.figiran: zip of document.json + images), image import helpers, REST API file JSON import and .fig import"
+
+[lints]
+workspace = true
+
+[dependencies]
+figiran-doc = { workspace = true }
+figiran-pathops = { workspace = true }
+figiran-layout = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+zip = { workspace = true }
+flate2 = { workspace = true }
+ruzstd = { workspace = true }
+sha1 = { workspace = true }
+sha2 = { workspace = true }
+image = { workspace = true }

@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Name=FigIran
+GenericName=Interface Design Tool
+Comment=Design and prototype user interfaces
+Exec=figiran %U
+TryExec=figiran
+Icon=ai.figiran.app
+Terminal=false
+StartupNotify=true
+StartupWMClass=ai.figiran.app
+Categories=Graphics;2DGraphics;VectorGraphics;X-Design;
+Keywords=design;interface;ui;ux;prototype;wireframe;mockup;vector;layout;components;
+MimeType=application/x-figiran;image/svg+xml;image/png;image/jpeg;application/x-sketch;x-scheme-handler/figiran;
