@@ -26,6 +26,8 @@ mod args;
 mod control_server;
 mod gamepad;
 mod graphics;
+#[cfg(any(windows, test))]
+mod protocol;
 mod recovery;
 mod services;
 mod startup;
@@ -152,6 +154,9 @@ fn main() -> eframe::Result {
         std::process::exit(i32::from(result.is_err()));
     }
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("warn")).init();
+    // Windows: `figiran:` links (the portal's login and its open buttons) start this program from wherever it is now.
+    #[cfg(windows)]
+    protocol::register();
     let args: Vec<String> = std::env::args().skip(1).collect();
     if args.iter().any(|a| a == "--version" || a == "-V") {
         println!(
