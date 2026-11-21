@@ -11,3 +11,8 @@ plans/
 *.profraw
 .cache/
 .vscode/
+
+# FigIran build outputs and the shared build cache (about 8 GB)
+/build-cache/
+/release/
+/.vs/
